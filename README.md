@@ -1,13 +1,17 @@
-# Turborepo Svelte starter
+# Transcendance Turborepo
 
-This is an official starter Turborepo.
+## Using this monorepo
 
-## Using this example
-
-Run the following command:
+Run the following command to start the caddy reverse proxy:
 
 ```sh
-npx create-turbo@latest -e with-svelte
+docker compose up -d
+```
+
+Then run the following commands to start the development server for the backend and frontend:
+
+```sh
+pnpm install && pnpm dev
 ```
 
 ## What's inside?
@@ -16,17 +20,22 @@ This Turborepo includes the following packages/apps:
 
 ### Apps and Packages
 
-- `docs`: a [svelte-kit](https://kit.svelte.dev/) app
-- `web`: another [svelte-kit](https://kit.svelte.dev/) app
-- `ui`: a stub Svelte component library shared by both `web` and `docs` applications
+- `backend`: a [NestJS](https://nestjs.com/) app
+- `frontend`: a [SvelteKit](https://kit.svelte.dev/) app
+- `ui`: a shared UI library for the frontend so that they are seperated from the frontend app
 - `eslint-config-custom`: `eslint` configurations (includes `eslint-plugin-svelte` and `eslint-config-prettier`)
 
 Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
 
-### Utilities
+### Tools
 
-This Turborepo has some additional tools already setup for you:
+- [pnpm](https://pnpm.io/): a fast, disk space efficient package manager
+- [turborepo](https://turborepo.dev/): a monorepo tool that optimizes the workflow for monorepos
+- [docker](https://www.docker.com/): for running the caddy reverse proxy
+- [caddy](https://caddyserver.com/): a web server that can be used as a reverse proxy
+- [eslint](https://eslint.org/): for linting the code
+- [prettier](https://prettier.io/): for formatting the code
 
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
+More will be added in the future.
+
+Oh and just FYI there is a reason why the frontend and backend are not in a container yet. I'm still figuring out how to do that properly. The containers will only be used for the production environment.

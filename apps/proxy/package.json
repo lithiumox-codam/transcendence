@@ -1,0 +1,10 @@
+{
+	"private": true,
+	"scripts": {
+		"build": "",
+		"dev": " ",
+		"lint": "",
+		"format": ""
+	},
+	"name": "proxy"
+}

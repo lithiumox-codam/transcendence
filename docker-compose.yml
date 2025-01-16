@@ -1,19 +1,23 @@
 services:
   backend:
-    build: ./apps/backend
+    build: ./backend
     restart: unless-stopped
-    ports:
-      - '8000:8000'
+    expose:
+      - "8000" # Only expose to internal network
     volumes:
-      - ./apps/backend:/app/
+      - ./backend:/app/
+    networks:
+      - internal
 
   frontend:
-    build: ./apps/frontend
+    build: ./frontend
     restart: unless-stopped
-    ports:
-      - '5173:5173'
+    expose:
+      - "3000" # Only expose to internal network
     volumes:
-      - ./apps/frontend:/app/
+      - ./frontend:/app/
+    networks:
+      - internal
     depends_on:
       - backend
 
@@ -21,18 +25,22 @@ services:
     image: caddy:latest
     restart: unless-stopped
     ports:
-      - '80:80'
-      - '443:443'
-      - '443:443/udp'
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
     volumes:
-      - ./apps/proxy/Caddyfile:/etc/caddy/Caddyfile
+      - ./proxy/Caddyfile:/etc/caddy/Caddyfile
       - caddy_data:/data
       - caddy_config:/config
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+    networks:
+      - internal
     depends_on:
       - backend
       - frontend
+
+networks:
+  internal:
+    driver: bridge
 
 volumes:
   caddy_data:

@@ -1,4 +1,5 @@
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -8,7 +9,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-bsbtp%uj89c0m1)+ostq60zl_i@fa6#(vp%w=o26i$hw51h7ro"
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "this_should_not_be_the_key")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -61,10 +62,19 @@ WSGI_APPLICATION = "backend.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
+print(f"Connecting to database host: {os.getenv('POSTGRES_HOST')}")
+
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": os.getenv("POSTGRES_DB", "mydatabase"),  # Default DB name
+        "USER": os.getenv("POSTGRES_USER", "myuser"),    # Default DB user
+        "PASSWORD": os.getenv("POSTGRES_PASSWORD", "mypassword"),  # Default DB password
+        "HOST": os.getenv("POSTGRES_HOST", "db"),  # The service name from Docker Compose
+        "PORT": os.getenv("POSTGRES_PORT", "5432"),  # Default Postgres port
+        'OPTIONS': {
+                   'connect_timeout': 10,
+        },
     }
 }
 

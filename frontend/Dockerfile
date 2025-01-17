@@ -32,7 +32,7 @@ WORKDIR /app
 RUN npm install -g pnpm
 
 # Copy the built assets and node_modules from the builder stage
-COPY --from=builder /app/.svelte-kit/output/server build/
+COPY --from=builder /app/build build/
 COPY --from=builder /app/node_modules node_modules/
 
 # Copy the package.json for metadata

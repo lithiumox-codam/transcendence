@@ -1,25 +1,24 @@
 localhost {
-    # Put most specific routes first
-    handle /api/admin* {
-        uri strip_prefix /api
-        reverse_proxy backend:8000
+    # Serve Django static files
+    handle_path /static/* {
+        root * /srv/staticfiles
+        file_server
     }
 
+    # Django API routes
     handle /api/* {
         uri strip_prefix /api
-        reverse_proxy backend:8000
+        reverse_proxy backend:8000 {
+            header_up X-Forwarded-Prefix /api
+        }
     }
 
-    handle /api {
-        uri strip_prefix /api
-        reverse_proxy backend:8000
-    }
-
+    # Catch-all for SvelteKit
     handle {
         reverse_proxy frontend:3000
     }
 
-    # Add some logging to help debug
+    # Debugging logs
     log {
         format console
         level DEBUG

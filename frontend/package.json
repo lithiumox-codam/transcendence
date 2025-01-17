@@ -37,6 +37,7 @@
 		"vitest": "^2.0.4"
 	},
 	"dependencies": {
-		"@sveltejs/adapter-node": "^5.2.11"
+		"@sveltejs/adapter-node": "^5.2.11",
+		"bootstrap": "^5.3.3"
 	}
 }

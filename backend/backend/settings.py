@@ -26,6 +26,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "api"
 ]
 
 MIDDLEWARE = [
@@ -62,8 +63,6 @@ WSGI_APPLICATION = "backend.wsgi.application"
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
-
-print(f"Connecting to database host: {os.getenv('POSTGRES_HOST')}")
 
 DATABASES = {
     "default": {
@@ -126,3 +125,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 USE_X_FORWARDED_HOST = True
+
+# CSRF a.k.a. Cross-Site Request Forgery
+CSRF_COOKIE_SECURE = False
+CSRF_USE_SESSIONS = False

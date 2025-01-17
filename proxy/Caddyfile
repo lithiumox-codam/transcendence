@@ -17,10 +17,4 @@ localhost {
     handle {
         reverse_proxy frontend:3000
     }
-
-    # Debugging logs
-    log {
-        format console
-        level DEBUG
-    }
 }

@@ -20,7 +20,7 @@ This Turborepo includes the following packages/apps:
 
 ### Apps and Packages
 
-- `backend`: a [NestJS](https://nestjs.com/) app
+- `backend`: a [Django](https://www.djangoproject.com/) app
 - `frontend`: a [SvelteKit](https://kit.svelte.dev/) app
 - `ui`: a shared UI library for the frontend so that they are seperated from the frontend app
 - `eslint-config-custom`: `eslint` configurations (includes `eslint-plugin-svelte` and `eslint-config-prettier`)

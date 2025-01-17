@@ -1,7 +1,0 @@
-localhost {
-	reverse_proxy * host.docker.internal:5173
-
-	handle_path /api/* {
-		reverse_proxy host.docker.internal:3000
-	}
-}

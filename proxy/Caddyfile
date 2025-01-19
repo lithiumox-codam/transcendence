@@ -6,10 +6,25 @@ localhost {
     }
 
     # Django API routes
-    handle /api/* {
+    handle /api* {
         uri strip_prefix /api
         reverse_proxy backend:8000 {
-            header_up X-Forwarded-Prefix /api
+            transport http {
+                versions h1
+            }
+            header_up Host {host}
+            header_up X-Real-IP {remote_host}
+            header_up X-Forwarded-For {remote_host}
+            header_up X-Forwarded-Proto {scheme}
+        }
+    }
+
+    # WebSocket-specific route
+    handle /api/ws* {
+        reverse_proxy backend:8000 {
+            transport http {
+                versions h1
+            }
         }
     }
 

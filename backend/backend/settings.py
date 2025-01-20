@@ -4,7 +4,6 @@ import os
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
@@ -41,6 +40,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "backend.middleware.api_prefix_middleware.ApiPrefixMiddleware",
+    "backend.middleware.logger_middleware.RequestLoggingMiddleware",
 ]
 
 ROOT_URLCONF = "backend.urls"
@@ -137,5 +137,6 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 USE_X_FORWARDED_HOST = True
 
 # CSRF a.k.a. Cross-Site Request Forgery
-CSRF_COOKIE_SECURE = False
+CSRF_COOKIE_SECURE = True
 CSRF_USE_SESSIONS = False
+CSRF_TRUSTED_ORIGINS = ["http://localhost", "https://localhost", "http://backend"]

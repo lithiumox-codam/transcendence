@@ -13,7 +13,7 @@ SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "this_should_not_be_the_key")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["backend", "localhost"]
+ALLOWED_HOSTS = ["backend", "localhost", "trans.meesdekker.com"]
 
 
 # Application definition
@@ -27,7 +27,6 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "api",
     "ws"
 ]
 
@@ -141,4 +140,4 @@ USE_X_FORWARDED_HOST = True
 # CSRF a.k.a. Cross-Site Request Forgery
 CSRF_COOKIE_SECURE = True
 CSRF_USE_SESSIONS = False
-CSRF_TRUSTED_ORIGINS = ["http://localhost", "https://localhost", "http://backend"]
+CSRF_TRUSTED_ORIGINS = ["http://localhost", "https://localhost", "http://backend", "http://trans.meesdekker.com"]

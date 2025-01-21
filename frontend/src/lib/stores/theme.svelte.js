@@ -9,12 +9,20 @@ function createThemeStore() {
         currentTheme = theme;
         localStorage.setItem('theme', theme);
         updateIsDark();
-        document.documentElement.classList.toggle('dark', isDark);
+        applyTheme();
     }
 
     function updateIsDark() {
         isDark = currentTheme === 'dark' || 
                 (currentTheme === 'system' && window?.matchMedia('(prefers-color-scheme: dark)').matches);
+    }
+
+    function applyTheme() {
+        document.documentElement.classList.toggle('dark', isDark);
+        const themeColorMetaTag = document.querySelector('meta[name="theme-color"]');
+        if (themeColorMetaTag) {
+            themeColorMetaTag.setAttribute('content', isDark ? '#222222' : '#ffffff'); // Example colors for dark and light themes
+        }
     }
 
     function toggle() {
@@ -24,11 +32,11 @@ function createThemeStore() {
     // Initial setup
     if (browser) {
         updateIsDark();
-        document.documentElement.classList.toggle('dark', isDark);
+        applyTheme();
         window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
             if (currentTheme === 'system') {
                 updateIsDark();
-                document.documentElement.classList.toggle('dark', isDark);
+                applyTheme();
             }
         });
     }

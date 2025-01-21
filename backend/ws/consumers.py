@@ -26,7 +26,7 @@ class SocketConsumer(WebsocketConsumer):
         connected_consumers.remove(self)
         print("Disconnected")
 
-    def receive(self, text_data):
+    def receive(self, text_data: str):
         try:
             message_data: ChatMessage = json.loads(text_data)
             if not isinstance(message_data, dict) or 'message' not in message_data or 'sender' not in message_data:

@@ -1,4 +1,5 @@
-localhost {
+localhost, trans.meesdekker.com {
+    tls internal
     # Serve Django static files
     handle_path /static/* {
         root * /srv/staticfiles

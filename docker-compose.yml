@@ -27,6 +27,8 @@ services:
       - internal
     depends_on:
       - backend
+    env_file:
+      - .env
 
   caddy:
     image: caddy:latest

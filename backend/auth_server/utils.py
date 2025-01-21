@@ -1,13 +1,12 @@
 import jwt
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 from django.conf import settings
-
 
 def generate_jwt_token(user):
 	payload = {
 		'user_id': user.id,
-		'iat': datetime.utcnow(),
-		'exp': datetime.utcnow() + timedelta(days=1)
+		'iat': datetime.now(UTC),
+		'exp': datetime.now(UTC) + timedelta(days=1)
 	}
 	return jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256')
 

@@ -1,6 +1,8 @@
 <script>
 	import logo from '$lib/images/svelte-logo.svg';
     import loader from '$lib/images/dots.svg';
+	import logo42 from '$lib/images/42-white.svg';
+
 	/** @type {{ data: import('./$types').PageData }} */
 	let { data } = $props();
     
@@ -49,6 +51,8 @@
                 <button disabled class="button-loading" aria-label="loading"><image class="loading-svg" src={loader} alt="loading element"/></button>
             {/if}
 		</form>
+		<div class="spacer"></div>
+	<button class="oauth-button" >Login with <img class="oauth-svg" src={logo42} alt="42 logo"/> </button>
 	</div>
 </div>
 
@@ -162,4 +166,43 @@
         height: 16px;
         width: 16px;
     }
+
+	.spacer {
+		background: linear-gradient(to right, transparent, hsl(var(--border)), transparent);
+		height: 1px;
+		margin: 1rem 0;
+	}
+
+	.oauth-button {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 0.75rem 1rem;
+		font-size: 1rem;
+		font-weight: 500;
+		color: hsl(var(--primary-foreground));
+		background-color: hsl(var(--primary));
+		border: none;
+		border-radius: var(--radius);
+		cursor: pointer;
+		transition:
+			background-color 0.2s ease,
+			transform 0.1s ease;
+		margin: auto;
+	}
+
+	.oauth-button:hover {
+		background-color: hsl(var(--primary) / 0.9);
+	}
+
+	.oauth-button:active {
+		transform: scale(0.98);
+	}
+
+	.oauth-svg {
+		margin-left: 0.5rem;
+		width: 1.5rem;
+		height: auto;
+		margin-right: 0.5rem;
+	}
 </style>

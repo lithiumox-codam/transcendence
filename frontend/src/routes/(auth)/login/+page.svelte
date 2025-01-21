@@ -2,6 +2,7 @@
 	import logo from '$lib/images/svelte-logo.svg';
     import loader from '$lib/images/dots.svg';
 	import logo42 from '$lib/images/42-white.svg';
+	import DotBounce from '$lib/components/DotBounce.svelte';
 
 	/** @type {{ data: import('./$types').PageData }} */
 	let { data } = $props();
@@ -45,11 +46,13 @@
 				class="input"
 				required
 			/>
-			{#if !isSubmitting}
-			    <button type="submit" class="button">Login</button>
-            {:else if isSubmitting}
-                <button disabled class="button-loading" aria-label="loading"><image class="loading-svg" src={loader} alt="loading element"/></button>
-            {/if}
+			    <button type="submit" class={isSubmitting ? "button-loading" : "button"}>
+					{#if isSubmitting}
+						<DotBounce />
+					{:else}
+						Login
+					{/if}
+				</button>
 		</form>
 		<div class="spacer"></div>
 	<button class="oauth-button" >Login with <img class="oauth-svg" src={logo42} alt="42 logo"/> </button>
@@ -113,58 +116,59 @@
 		box-shadow: 0 0 0 2px hsl(var(--ring) / 0.5);
 	}
 
-	.button {
-		padding: 0.75rem 1rem;
+	.button, .button-loading {
+		min-height: 2.5rem;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
 		font-size: 1rem;
 		font-weight: 500;
 		color: hsl(var(--primary-foreground));
-		background-color: hsl(var(--primary));
 		border: none;
 		border-radius: var(--radius);
 		cursor: pointer;
 		transition:
 			background-color 0.2s ease,
-			transform 0.1s ease;
+			transform 0.1s ease,
+			min-height 0.2s ease; /* Smooth transition for height */
+	}
+
+	.button {
+		background-color: hsl(var(--primary));
+		padding: 0.75rem 1rem;
 	}
 
 	.button:hover {
 		background-color: hsl(var(--primary) / 0.9);
+		size: 0.99;
 	}
 
-	.button:active {
-		transform: scale(0.98);
+	.button-loading {
+		background: linear-gradient(135deg, #ff7f50 25%, #ff4500 50%, #ff7f50 75%);
+		background-size: 300% 300%;
+		animation: loading-animation 5s ease-in-out infinite, color-shift 8s ease-in-out infinite;
+		border: 2px solid #ff6347;
+		box-shadow: 0 0 10px rgba(255, 99, 71, 0.5);
+		padding: 0; /* Remove inner padding for loading state */
+		min-height: 2rem;
 	}
 
-    .button-loading {
-        padding: 0.75rem 1rem;
-        font-size: 1rem;
-        font-weight: 500;
-        color: hsl(var(--primary-foreground));
-        background: linear-gradient(135deg, hsl(var(--primary) / 0.8) 25%, hsl(var(--primary)) 50%, hsl(var(--primary) / 0.8) 75%);
-        border: none;
-        border-radius: var(--radius);
-        cursor: pointer;
-        transition:
-            transform 0.1s ease;
-        background-size: 300% 100%;
-        animation: loading-animation 4s ease-in-out infinite;
-    }
+	@keyframes color-shift {
+		0%, 100% {
+			filter: hue-rotate(0deg);
+		}
+		50% {
+			filter: hue-rotate(360deg);
+		}
+	}
 
     @keyframes loading-animation {
-        0% {
+        0%, 100% {
             background-position: 0% 0%;
         }
         50% {
-            background-position: 100% 0%;
+            background-position: 100% 100%;
         }
-        100% {
-            background-position: 0% 0%;
-        }
-    }
-
-    .loading-svg {
-        height: 16px;
-        width: 16px;
     }
 
 	.spacer {

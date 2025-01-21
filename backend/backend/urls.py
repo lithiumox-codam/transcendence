@@ -2,6 +2,14 @@ from django.contrib import admin
 from django.urls import include, path
 
 urlpatterns = [
-    path("leaderboard/", include("api.urls")),
     path("admin/", admin.site.urls),
+    path(
+        "api/",
+        include(
+            [
+                path("user/", include("user.urls")),
+                path("leaderboard/", include("api.urls")),
+            ]
+        ),
+    ),
 ]

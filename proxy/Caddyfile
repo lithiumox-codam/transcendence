@@ -5,9 +5,13 @@ localhost {
         file_server
     }
 
+    @backend {
+        path /admin/*
+        path /api/*
+    }
+
     # Django API routes
-    handle /api* {
-        uri strip_prefix /api
+    handle @backend {
         reverse_proxy backend:8000 {
             transport http {
                 versions h1

@@ -27,7 +27,10 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "ws"
+    "ws",
+	"pong",
+	"rest_framework",
+	"corsheaders",
 ]
 
 MIDDLEWARE = [
@@ -39,6 +42,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "backend.middleware.api_prefix_middleware.ApiPrefixMiddleware",
+	"corsheaders.middleware.CorsMiddleware",
 ]
 
 ROOT_URLCONF = "backend.urls"
@@ -141,3 +145,9 @@ USE_X_FORWARDED_HOST = True
 CSRF_COOKIE_SECURE = True
 CSRF_USE_SESSIONS = False
 CSRF_TRUSTED_ORIGINS = ["http://localhost", "https://localhost", "http://backend", "http://trans.meesdekker.com"]
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost",
+    "https://localhost",
+    "http://trans.meesdekker.com",
+]

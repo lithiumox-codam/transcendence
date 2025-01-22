@@ -1,9 +1,9 @@
 <script>
-	import Header from '../../lib/components/Header.svelte';
+	import Header from '$lib/components/Header.svelte';
 	import { clickOutside } from '$lib/utils/clickOutside';
 	import Chat from '$lib/components/Chat.svelte';
 	import { fade } from 'svelte/transition';
-	import { onMount, setContext } from 'svelte';
+	import { onMount } from 'svelte';
 	import client from '$lib/utils/axios';
 	import { goto } from '$app/navigation';
 

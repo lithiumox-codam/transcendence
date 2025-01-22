@@ -3,41 +3,61 @@
 	import { clickOutside } from '$lib/utils/clickOutside';
 	import Chat from '$lib/components/Chat.svelte';
 	import { fade } from 'svelte/transition';
+	import { onMount, setContext } from 'svelte';
+	import client from '$lib/utils/axios';
+	import { goto } from '$app/navigation';
 
 	let showChat = $state(false);
+	let isAuthenticated = $state(false);
 
 	/** @type {{children: import('svelte').Snippet}} */
 	let { children } = $props();
+
+	onMount(async () => {
+		try {
+			const user = await client.get('/user/profile/');
+			if (user.status === 200) {
+				isAuthenticated = true;
+			} else {
+				throw new Error('Failed to get profile');
+			} 
+		} catch (e) {
+			console.error(e);
+			goto('/login');
+		}
+	});
 </script>
 
+{#if isAuthenticated}
 <div class="app">
 	<Header />
-
+	
 	<main>
 		{@render children()}
 	</main>
-
+	
 	<!-- Chat Button and Modal -->
 	<button class="chat-toggle" onclick={() => showChat = !showChat}>
 		{#if !showChat}
-			<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-				<polyline points="18 15 12 9 6 15"></polyline>
-			</svg>
+		<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+			<polyline points="18 15 12 9 6 15"></polyline>
+		</svg>
 		{:else}
-			<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-				<polyline points="6 9 12 15 18 9"></polyline>
-			</svg>
+		<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+			<polyline points="6 9 12 15 18 9"></polyline>
+		</svg>
 		{/if}
 	</button>
-
+	
 	{#if showChat}
-		<div class="chat-modal" transition:fade={{duration: 200}} use:clickOutside={() => showChat
+	<div class="chat-modal" transition:fade={{duration: 200}} use:clickOutside={() => showChat
 			= !showChat}>
 			<Chat />
 		</div>
-	{/if}
-</div>
-
+		{/if}
+	</div>
+{/if}
+	
 
 <!-- <MobileNav /> -->
 
@@ -58,29 +78,6 @@
 		max-width: 64rem;
 		margin: 0 auto;
 		box-sizing: border-box;
-	}
-
-	footer {
-		display: flex;
-		flex-direction: column;
-		justify-content: center;
-		align-items: center;
-		padding: 1rem;
-		border-top: 1px solid hsl(var(--border));
-		background-color: hsl(var(--background));
-		color: hsl(var(--muted-foreground));
-	}
-
-	footer a {
-		color: hsl(var(--primary));
-		text-decoration: none;
-		font-weight: 500;
-		transition: color 0.2s ease;
-	}
-
-	footer a:hover {
-		color: hsl(var(--primary) / 0.9);
-		text-decoration: underline;
 	}
 
 	.chat-toggle {

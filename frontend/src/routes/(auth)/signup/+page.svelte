@@ -4,9 +4,23 @@
 	import DotBounce from '$lib/components/DotBounce.svelte';
 	import client from '$lib/utils/axios';
 	import { goto } from '$app/navigation';
+	import { onMount } from 'svelte';
 
 	/** @type {{ data: import('./$types').PageData }} */
 	let { data } = $props();
+
+	onMount(async () => {
+		try {
+			const res = await client.get('/user/profile/');
+			if (res.status === 200) {
+				history.back();
+			} else {
+				throw new Error('Failed to get profile');
+			}
+		} catch (e) {
+			console.error(e);
+		}
+	});
     
     let hasError = $state(false);
     let isSubmitting = $state(false);

@@ -17,7 +17,7 @@
 		try {
 			const res = await client.get('/user/profile/');
 			if (res.status === 200) {
-				goto('/pong');
+				history.back();
 			} else {
 				throw new Error('Failed to get profile');
 			}

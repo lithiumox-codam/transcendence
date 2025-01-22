@@ -1,4 +1,4 @@
 <script>
-    /** @type {{ data: import('../../pong/$types').PageData }} */
+    /** @type {{ data: import('./$types').PageData }} */
     let { data } = $props();
 </script>

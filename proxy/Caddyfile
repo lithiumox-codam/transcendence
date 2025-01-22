@@ -1,14 +1,17 @@
-localhost, trans.meesdekker.com {
-    tls internal
+localhost {
     # Serve Django static files
     handle_path /static/* {
         root * /srv/staticfiles
         file_server
     }
 
+    @backend {
+        path /admin/*
+        path /api/*
+    }
+
     # Django API routes
-    handle /api* {
-        uri strip_prefix /api
+    handle @backend {
         reverse_proxy backend:8000 {
             transport http {
                 versions h1
@@ -21,7 +24,7 @@ localhost, trans.meesdekker.com {
     }
 
     # WebSocket-specific route
-    handle /api/ws* {
+    handle /ws* {
         reverse_proxy backend:8000 {
             transport http {
                 versions h1

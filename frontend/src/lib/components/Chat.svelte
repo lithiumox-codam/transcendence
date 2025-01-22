@@ -25,7 +25,7 @@
 		userId = generateUserId();
 	});
 
-	const ws = new WebSocket(`wss://${hostname}/api/ws/`);
+	const ws = new WebSocket(`wss://${hostname}/ws/`);
 
 	$effect(() => {
 		if (messageContainer !== null && messages.length > 0) {

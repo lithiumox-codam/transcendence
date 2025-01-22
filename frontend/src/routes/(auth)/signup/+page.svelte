@@ -1,9 +1,7 @@
 <script>
 	import logo from '$lib/images/svelte-logo.svg';
-    import loader from '$lib/images/dots.svg';
 	import logo42 from '$lib/images/42-white.svg';
 	import DotBounce from '$lib/components/DotBounce.svelte';
-	import { onMount } from 'svelte';
 	import client from '$lib/utils/axios';
 	import { goto } from '$app/navigation';
 
@@ -13,19 +11,6 @@
     let hasError = $state(false);
     let isSubmitting = $state(false);
 
-	onMount(async () => {
-		try {
-			const res = await client.get('/user/profile/');
-			if (res.status === 200) {
-				goto('/pong');
-			} else {
-				throw new Error('Failed to get profile');
-			}
-		} catch (e) {
-			console.error(e);
-		}
-	});
-
     async function handleLogin(event) {
         event.preventDefault();
 
@@ -34,7 +19,7 @@
 
         try {
             isSubmitting = true;
-			const res = await fetch('https://localhost/api/user/login/', {
+			const res = await fetch('https://localhost/api/user/signup/', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
@@ -42,14 +27,14 @@
 				body: JSON.stringify(data),
 			});
 			if (!res.ok) {
-				throw new Error('Failed to login');
+				throw new Error('Failed to sign up');
 			} else {
 				const json = await res.json();
 				console.log(json);
 				localStorage.setItem('access', json.access);
 				localStorage.setItem('refresh', json.refresh);
-				goto('/pong');
 			}
+			goto('/pong');
         } catch (e) {
             hasError = true;
         }
@@ -60,6 +45,15 @@
 	<img class="logo" src={logo} alt="Svelte Logo" />
 	<div class="login-container">
 		<form class="login-form" onsubmit={handleLogin}>
+			<label for="email" class="label">Email</label>
+			<input
+				id="email"
+				type="email"
+				name="email"
+				placeholder="Enter your email"
+				class="input"
+				required
+			/>
 			<label for="username" class="label">Username</label>
 			<input
 				id="username"
@@ -82,7 +76,7 @@
 					{#if isSubmitting}
 						<DotBounce />
 					{:else}
-						Login
+						Sign up
 					{/if}
 				</button>
 		</form>

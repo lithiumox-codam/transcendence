@@ -4,6 +4,7 @@
 	import { clickOutside } from '$lib/utils/clickOutside.js';
 	import { theme } from '$lib/stores/theme.svelte.js';
 	import { slide } from 'svelte/transition';
+	import { goto } from '$app/navigation';
 	
 	let showUserMenu = $state(false);
 	let showMobileMenu = $state(false);
@@ -110,7 +111,11 @@
 							Settings
 						</a>
 						<div class="dropdown-divider"></div>
-						<button class="dropdown-item text-destructive">
+						<button class="dropdown-item text-destructive" onclick={() => {
+							localStorage.removeItem('refresh');
+							localStorage.removeItem('access');
+							goto('/');
+						}}>
 							<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
 								<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
 								<polyline points="16 17 21 12 16 7"></polyline>

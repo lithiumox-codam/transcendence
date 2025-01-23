@@ -1,6 +1,8 @@
 from rest_framework import serializers
 from django.contrib.auth.hashers import make_password
-from .models import User
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -20,3 +22,17 @@ class UserSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Email already exists")
 
         return data
+
+class UserAvatarSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ["avatar"]
+
+    def save(self, *args, **kwargs):
+        if self.instance.avatar:
+            self.instance.avatar.delete()
+
+        # change file name to user id
+        self.validated_data["avatar"].name = f"{self.instance.id}.png"
+        return super().save(*args, **kwargs)
+

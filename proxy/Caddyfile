@@ -5,16 +5,36 @@ localhost {
         file_server
     }
 
+    @backend {
+        path /admin/*
+        path /media/*
+        path /api/*
+    }
+
     # Django API routes
-    handle /api/* {
-        uri strip_prefix /api
+    handle @backend {
         reverse_proxy backend:8000 {
-            header_up X-Forwarded-Prefix /api
+            transport http {
+                versions h1
+            }
+            header_up Host {host}
+            header_up X-Real-IP {remote_host}
+            header_up X-Forwarded-For {remote_host}
+            header_up X-Forwarded-Proto {scheme}
+        }
+    }
+
+    # WebSocket-specific route
+    handle /ws* {
+        reverse_proxy backend:8000 {
+            transport http {
+                versions h1
+            }
         }
     }
 
     # Catch-all for SvelteKit
     handle {
-        reverse_proxy frontend:3000
+        reverse_proxy frontend:5173
     }
 }

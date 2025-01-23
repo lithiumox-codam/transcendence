@@ -47,8 +47,8 @@
 				console.log(json);
 				localStorage.setItem('access', json.access);
 				localStorage.setItem('refresh', json.refresh);
+				goto('/pong');
 			}
-			goto('/pong');
         } catch (e) {
             hasError = true;
         }

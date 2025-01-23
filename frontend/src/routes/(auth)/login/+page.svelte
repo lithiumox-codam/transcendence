@@ -48,7 +48,10 @@
 				console.log(json);
 				localStorage.setItem('access', json.access);
 				localStorage.setItem('refresh', json.refresh);
-				goto('/pong');
+				setTimeout(() => {
+					isSubmitting = false;
+					goto('/pong');
+				}, 10000);
 			}
         } catch (e) {
             hasError = true;

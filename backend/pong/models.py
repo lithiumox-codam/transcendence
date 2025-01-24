@@ -3,6 +3,7 @@ from django.db import models
 # Create your models here.
 
 class GameState(models.Model):
+	game_id = models.IntegerField(default=1)
 	paddle1_y = models.FloatField(default=160)
 	paddle2_y = models.FloatField(default=160)
 	ball_x = models.FloatField(default=400)

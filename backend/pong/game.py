@@ -1,7 +1,7 @@
 from pong.models import GameState
 
 def update_game_state(game_id, inputs):
-	game = GameState.objects.get(id=game_id)
+	game = GameState.objects.get(game_id=game_id)
 
 	if inputs.get('w') and game.paddle1_y > 0:
 		game.paddle1_y -= 5
@@ -43,3 +43,18 @@ def update_game_state(game_id, inputs):
 
 	game.save()
 	return game
+
+def get_game_state(game_id):
+	game = GameState.objects.get(game_id=game_id)
+	return game
+
+def game_state_to_json(game):
+	return {
+		'game_id': game.game_id,
+		'paddle1_y': game.paddle1_y,
+		'paddle2_y': game.paddle2_y,
+		'ball_x': game.ball_x,
+		'ball_y': game.ball_y,
+		'ball_speed_x': game.ball_speed_x,
+		'ball_speed_y': game.ball_speed_y,
+	}

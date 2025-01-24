@@ -58,7 +58,7 @@
 	--color-text: rgba(0, 0, 0, 0.7);
 	--column-width: 42rem;
 	--column-margin-top: 4rem;
-	
+
 	font-family: var(--font-body);
 	color: hsl(var(--foreground));
 }

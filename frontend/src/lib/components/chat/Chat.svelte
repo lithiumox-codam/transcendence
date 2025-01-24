@@ -1,6 +1,6 @@
 <script>
 	import { text } from '@sveltejs/kit';
-	import {onDestroy, onMount} from 'svelte';
+	import { onDestroy, onMount } from 'svelte';
 
 	let messages = $state([]);
 	let newMessage = $state('');
@@ -40,7 +40,7 @@
 	ws.onmessage = (event) => {
 		const message = JSON.parse(event.data);
 		if (Array.isArray(message)) {
-			messages.push(...message.map(msg => ({ ...msg, timestamp: Date.now() })));
+			messages.push(...message.map((msg) => ({ ...msg, timestamp: Date.now() })));
 			return;
 		}
 		messages.push({ ...message, timestamp: Date.now() });
@@ -86,7 +86,7 @@
 				Connected
 			</div>
 		</div>
-		
+
 		<div class="messages" bind:this={messageContainer}>
 			{#each messages as message}
 				<div class="message-wrapper {formatSender(message.sender)}">
@@ -108,10 +108,19 @@
 				onkeydown={handleKeyPress}
 				placeholder="Type a message..."
 				class="input"
-
 			></textarea>
 			<button onclick={sendMessage} aria-label="Send" class="send-button">
-				<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					width="20"
+					height="20"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+					stroke-linecap="round"
+					stroke-linejoin="round"
+				>
 					<line x1="22" y1="2" x2="11" y2="13"></line>
 					<polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
 				</svg>
@@ -127,16 +136,20 @@
 		width: 100%;
 		height: 100%;
 		background-color: hsl(var(--background));
-		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2), inset 0 0 5px rgba(0, 0, 0, 0.1);
+		box-shadow:
+			0 2px 4px rgba(0, 0, 0, 0.2),
+			inset 0 0 5px rgba(0, 0, 0, 0.1);
 		border-radius: 0.5rem;
 		display: flex;
 		flex-direction: column;
 		z-index: 1000;
 	}
-	
+
 	@media (prefers-color-scheme: dark) {
 		.container {
-			box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1), inset 0 0 5px rgba(0, 0, 0, 0.05);
+			box-shadow:
+				0 2px 4px rgba(0, 0, 0, 0.1),
+				inset 0 0 5px rgba(0, 0, 0, 0.05);
 		}
 	}
 
@@ -157,7 +170,9 @@
 		background-color: hsl(var(--card));
 		border-top-left-radius: 0.5rem;
 		border-top-right-radius: 0.5rem;
-		box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1), inset 0 0 3px rgba(0, 0, 0, 0.05);
+		box-shadow:
+			0 1px 2px rgba(0, 0, 0, 0.1),
+			inset 0 0 3px rgba(0, 0, 0, 0.05);
 	}
 
 	.chat-header h1 {
@@ -211,7 +226,9 @@
 		word-break: break-word;
 		display: flex;
 		flex-direction: column;
-		box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1), inset 0 0 3px rgba(0, 0, 0, 0.05);
+		box-shadow:
+			0 1px 2px rgba(0, 0, 0, 0.1),
+			inset 0 0 3px rgba(0, 0, 0, 0.05);
 	}
 
 	.me .message {
@@ -242,7 +259,9 @@
 		background-color: hsl(var(--card));
 		border-bottom-left-radius: 0.5rem;
 		border-bottom-right-radius: 0.5rem;
-		box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.1), inset 0 0 3px rgba(0, 0, 0, 0.05);
+		box-shadow:
+			0 -1px 2px rgba(0, 0, 0, 0.1),
+			inset 0 0 3px rgba(0, 0, 0, 0.05);
 	}
 
 	.input {
@@ -265,7 +284,10 @@
 
 	.input:focus {
 		border-color: hsl(var(--ring));
-		box-shadow: 0 0 0 1px hsl(var(--background)), 0 0 0 2px hsl(var(--ring) / 0.3), inset 0 0 3px rgba(0, 0, 0, 0.05);
+		box-shadow:
+			0 0 0 1px hsl(var(--background)),
+			0 0 0 2px hsl(var(--ring) / 0.3),
+			inset 0 0 3px rgba(0, 0, 0, 0.05);
 	}
 
 	.input::placeholder {
@@ -286,7 +308,9 @@
 		justify-content: center;
 		transition: all 0.2s ease;
 		flex-shrink: 0;
-		box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1), inset 0 0 3px rgba(0, 0, 0, 0.05);
+		box-shadow:
+			0 1px 2px rgba(0, 0, 0, 0.1),
+			inset 0 0 3px rgba(0, 0, 0, 0.05);
 	}
 
 	.send-button:hover {
@@ -295,7 +319,10 @@
 
 	.send-button:focus-visible {
 		outline: none;
-		box-shadow: 0 0 0 1px hsl(var(--background)), 0 0 0 2px hsl(var(--ring)), inset 0 0 3px rgba(0, 0, 0, 0.05);
+		box-shadow:
+			0 0 0 1px hsl(var(--background)),
+			0 0 0 2px hsl(var(--ring)),
+			inset 0 0 3px rgba(0, 0, 0, 0.05);
 	}
 
 	.send-button svg {

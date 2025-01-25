@@ -7,3 +7,4 @@ daphne==4.1.2
 channels==4.2.0
 channels_redis==4.2.1
 pillow==10.4.0
+channelsmultiplexer===0.0.3

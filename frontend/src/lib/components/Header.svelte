@@ -229,11 +229,6 @@
 		font-weight: 600;
 	}
 
-	.logo-link img {
-		width: 2rem;
-		height: 2rem;
-	}
-
 	.desktop-nav ul {
 		display: flex;
 		gap: 1rem;

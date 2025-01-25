@@ -44,13 +44,12 @@
 				throw new Error('Failed to login');
 			} else {
 				const json = await res.json();
-				console.log(json);
 				localStorage.setItem('access', json.access);
 				localStorage.setItem('refresh', json.refresh);
 				setTimeout(() => {
 					isSubmitting = false;
 					goto('/pong');
-				}, 1000);
+				}, 2500);
 			}
 		} catch (e) {
 			hasError = true;

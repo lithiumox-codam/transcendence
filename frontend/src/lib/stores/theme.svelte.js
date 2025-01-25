@@ -10,7 +10,7 @@ function createThemeStore() {
         applyTheme();
     }
 
-    const isDark = () => currentTheme === 'dark' || (currentTheme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    const isDark = () => browser && (currentTheme === 'dark' || (currentTheme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches));
 
 	function applyTheme() {
 		if (browser) {

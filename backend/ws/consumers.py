@@ -2,7 +2,7 @@ import json
 import logging
 from typing import List, TypedDict, Set
 
-from channels.generic.websocket import WebsocketConsumer
+from channels.generic.websocket import WebsocketConsumer, AsyncWebsocketConsumer
 
 logger = logging.getLogger(__name__)
 
@@ -49,3 +49,13 @@ class SocketConsumer(WebsocketConsumer):
             self.send(text_data=json.dumps({
                 "error": "Internal server error"
             }))
+
+class EchoConsumer(WebsocketConsumer):
+    def connect(self):
+        self.accept()
+
+    def disconnect(self, close_code):
+        pass
+
+    def receive(self, text_data: str):
+        self.send(text_data=text_data)

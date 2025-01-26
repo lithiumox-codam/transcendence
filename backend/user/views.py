@@ -37,6 +37,7 @@ def get_user(request):
             "id": user.id,
             "username": user.username,
             "email": user.email,
+            "avatar": user.avatar.url if user.avatar else None,
         }
     )
 

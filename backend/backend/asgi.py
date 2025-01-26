@@ -8,6 +8,7 @@ from django.urls import re_path
 
 from ws.demultiplexer import demultiplexer
 
+
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "backend.settings")
 
 django_asgi_app = get_asgi_application()

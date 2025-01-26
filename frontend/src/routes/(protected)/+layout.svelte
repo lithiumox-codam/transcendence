@@ -1,7 +1,7 @@
 <script>
 	import Header from '$lib/components/Header.svelte';
 	import Chat from '$lib/components/chat/ChatContainer.svelte';
-	import { onMount, setContext } from 'svelte';
+	import { onDestroy, onMount, setContext } from 'svelte';
 	import client from '$lib/utils/axios';
 	import { goto } from '$app/navigation';
 	import ws from "$lib/stores/websocket";
@@ -25,6 +25,10 @@
 			console.error(e);
 			goto('/login');
 		}
+	});
+
+	onDestroy(() => {
+		ws.close();
 	});
 </script>
 

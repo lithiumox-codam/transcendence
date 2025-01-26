@@ -12,7 +12,10 @@
 
 	const navItems = [
 		{ path: '/', text: 'Leaderboard' },
-		{ path: '/pong', text: 'Play' }
+		{ path: '/pong', text: 'Play' },
+		{ path: '/test', text: 'Chat' },
+		{ path: '/test/echo', text: 'Echo' }
+
 	];
 
 	function toggleUserMenu() {

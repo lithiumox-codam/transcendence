@@ -7,6 +7,8 @@
 	let messageContainer = $state(null);
 	let userId = $state('');
 
+	let { } = $props();
+
 	onDestroy(() => {
 		ws.close();
 	});

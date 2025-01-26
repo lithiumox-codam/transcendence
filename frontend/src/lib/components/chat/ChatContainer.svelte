@@ -13,6 +13,7 @@
         } else {
             // If already expanded, toggle open/closed state
             open = !open;
+            minimized = true;
         }
     }
     
@@ -33,7 +34,7 @@
 <main 
     class="chat-container" 
     class:closed={minimized} 
-    use:clickOutside={toggleOpen}
+    use:clickOutside={() => {if (open) toggleOpen}}
 >
     {#if minimized}
         <button 
@@ -60,23 +61,23 @@
                     </div>
                     *<!-- Add chat messages and input here -->*
                 </div>
-            {/if}
-            <footer class="chat-footer">
-                <button 
-                    class="toggle-button" 
-                    onclick={toggleOpen}
-                >
-                    {open ? 'Close Chat' : 'Open Chat'}
-                </button>
-                {#if open}
+                <footer class="chat-footer">
                     <button 
-                        class="toggle-sidebar-button" 
-                        onclick={toggleSidebar}
+                        class="toggle-button" 
+                        onclick={toggleOpen}
                     >
-                        {sidebarOpen ? 'Hide Sidebar' : 'Show Sidebar'}
+                        {open ? 'Close Chat' : 'Open Chat'}
                     </button>
-                {/if}
-            </footer>
+                    {#if open}
+                        <button 
+                            class="toggle-sidebar-button" 
+                            onclick={toggleSidebar}
+                        >
+                            {sidebarOpen ? 'Hide Sidebar' : 'Show Sidebar'}
+                        </button>
+                    {/if}
+                </footer>
+            {/if}
         </div>
         {#if sidebarOpen && open}
             <aside class="chat-sidebar">

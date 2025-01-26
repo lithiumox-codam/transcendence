@@ -15,7 +15,10 @@
         history.push(payload);
     }
     onMount(() => {
-        ws.addListener('chat', chatListener);
+        const listener = ws.addListener('chat', chatListener);
+        return () => {
+            listener();
+        }
     });
     
     function sendMessage() {
@@ -30,10 +33,6 @@
 {#each history as { sender, message }}
     <div>
         <p>{sender}: {message}</p>
-    </div>
-    {:else}
-    <div>
-        <p>{message}</p>
     </div>
 {/each}
 

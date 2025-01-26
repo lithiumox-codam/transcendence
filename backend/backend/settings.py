@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     "ws",
     "user",
     "chat",
+    "auth",
 ]
 
 MIDDLEWARE = [

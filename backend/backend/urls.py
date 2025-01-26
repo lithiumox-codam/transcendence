@@ -9,6 +9,7 @@ urlpatterns = [
         "api/",
         include(
             [
+                path("auth/", include("auth.urls")),
                 path("user/", include("user.urls")),
             ]
         ),
@@ -16,5 +17,4 @@ urlpatterns = [
 ]
 
 if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL,
-                          document_root=settings.MEDIA_ROOT)
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

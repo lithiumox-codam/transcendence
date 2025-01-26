@@ -5,15 +5,20 @@
 	import client from '$lib/utils/axios';
 	import { goto } from '$app/navigation';
 	import ws from "$lib/stores/websocket";
+	import { browser } from '$app/environment';
 
 	let isAuthenticated = $state(false);
 	let user = $state(null);
 
 	/** @type {{children: import('svelte').Snippet}} */
 	let { children } = $props();
+
+	if (browser) {
+		setContext('ws', ws);
+		ws.connect();
+	}
 	
 	onMount(async () => {
-		ws.connect();
 		try {
 			user = await client.get('/user/profile/');
 			if (user.status === 200) {

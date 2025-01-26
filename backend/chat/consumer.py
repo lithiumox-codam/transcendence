@@ -1,16 +1,17 @@
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
-from channels.layers import get_channel_layer
-from asgiref.sync import async_to_sync
 
 class ChatConsumer(AsyncJsonWebsocketConsumer):
     async def connect(self):
+        self.group_name = 'chat_group'  # Define the group name
         
-        # Add this channel to the group
-        await self.channel_layer.group_add(
-            self.group_name,
-            self.channel_name
-        )
-        
+        # get the user and print out the user details
+        user = self.scope.get("user", None)
+        # if there is a user get their details
+        if user is not None:
+            print(f"Authenticated user: {user}")
+        else:
+            print("Anonymous user")
+
         # Accept the WebSocket connection
         await self.accept()
 

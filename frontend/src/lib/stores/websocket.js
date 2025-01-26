@@ -58,6 +58,14 @@ class WS {
         WS.instance = this;
     }
 
+
+    getToken() {
+        if (browser) {
+            return localStorage.getItem('access');
+        }
+        return null;
+    }
+
     /**
      * Establishes a WebSocket connection and sets up event handlers.
      */
@@ -67,7 +75,8 @@ class WS {
             return;
         }
 
-        this.ws = new WebSocket(this.url);
+        const token = this.getToken();
+        this.ws = new WebSocket(this.url, token ? ['access_token', token] : []);
         
         this.ws.onopen = () => {
             console.log('Connected to WS');
@@ -79,7 +88,6 @@ class WS {
             if (this.currentRetries < this.maxRetries) {
                 setTimeout(() => {
                     this.currentRetries++;
-                    console.log('Reconnecting... ', this.currentRetries, ' retries');
                     this.connect();
                 }, this.retryInterval);
             } else {
@@ -93,7 +101,7 @@ class WS {
                 if (message.stream && message.payload) {
                     this.notifyListeners(message.stream, message.payload);
                 } else {
-                    console.error('Invalid message format: \n(ex: { "stream": "test", "payload": {}}', message);
+                    console.error('Invalid message format: \n(ex: { "stream": "x", "payload": {}}', message);
                 }
             } catch (error) {
                 console.error('Error parsing message:', error);
@@ -110,7 +118,7 @@ class WS {
         if (this.ws.readyState === WebSocket.OPEN) {
             this.ws.send(JSON.stringify({stream, payload: data}));
         } else {
-            console.error('WebSocket is not open. Could not send message.');
+            console.error('WebSocket is not connected.');
         }
     }
 

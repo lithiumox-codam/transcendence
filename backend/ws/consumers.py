@@ -37,8 +37,14 @@ class SocketConsumer(AsyncWebsocketConsumer):
     async def receive(self, text_data: str):
         try:
             message_data: ChatMessage = json.loads(text_data)
-            if not isinstance(message_data, dict) or 'message' not in message_data or 'sender' not in message_data:
+            if not isinstance(message_data, dict) or 'message' not in message_data:
                 raise ValueError("Invalid message format")
+            
+            user = self.scope.get("user", None)
+            if user is None or user.is_anonymous:
+                raise ValueError("User not authenticated")
+            
+            message_data['sender'] = user.username
             store.append(message_data)
             
             # Broadcast the message to all connected consumers in the group

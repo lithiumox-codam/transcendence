@@ -30,6 +30,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "rest_framework",
     "rest_framework_simplejwt",
+    # 'channels_auth_token_middlewares',
     "ws",
     "user",
     "chat",

@@ -1,6 +1,7 @@
 from channelsmultiplexer import AsyncJsonWebsocketDemultiplexer
 
-from .consumers import SocketConsumer, EchoConsumer
+from .consumers import EchoConsumer, SocketConsumer
+from chat.consumer import ChatConsumer
 
 demultiplexer = AsyncJsonWebsocketDemultiplexer.as_asgi(
     chat = SocketConsumer.as_asgi(),

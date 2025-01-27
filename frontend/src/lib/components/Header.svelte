@@ -101,23 +101,25 @@
 			</button>
 
 			<div class="user-menu-container" use:clickOutside={closeMenus}>
-				<button class="user-button" onclick={toggleUserMenu}>
-					<div class="avatar">
-						<span>{user.data.username.substr(0, 2)}</span>
-					</div>
-				</button>
+                <button class="user-button" onclick={toggleUserMenu}>
+                    <div class="avatar">
+                        <img src={user.data.avatar ? user.data.avatar : `https://ui-avatars.com/api/?name=${user.data.username}`} alt="User Avatar" />
+                        <div class="status-dot"></div>
+                    </div>
+                </button>
 
-				{#if showUserMenu}
-					<div class="dropdown-menu" transition:slide>
-						<div class="user-info">
-							<div class="avatar">
-								<span>{user.data.username.substr(0, 2)}</span>
-							</div>
-							<div class="user-details">
-								<span class="user-name">{user.data.username}</span>
-								<span class="user-email">{user.data.email}</span>
-							</div>
-						</div>
+                {#if showUserMenu}
+                    <div class="dropdown-menu" transition:slide>
+                        <div class="user-info">
+                            <div class="avatar">
+                                <img src={user.data.avatar ? user.data.avatar : `https://ui-avatars.com/api/?name=${user.data.username}`} alt="" />
+                                <div class="status-dot"></div>
+                            </div>
+                            <div class="user-details">
+                                <span class="user-name">{user.data.username}</span>
+                                <span class="user-email">{user.data.email}</span>
+                            </div>
+                        </div>
 						<div class="dropdown-divider"></div>
 						<a href="/profile" class="dropdown-item">
 							<svg
@@ -298,19 +300,11 @@
 		border: none;
 		padding: 0;
 		cursor: pointer;
-	}
-
-	.avatar {
-		width: 2.25rem;
-		height: 2.25rem;
-		background-color: hsl(var(--primary));
-		color: hsl(var(--primary-foreground));
-		border-radius: 0.375rem;
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		font-weight: 500;
-		font-size: 0.875rem;
+		width: 36px;
+		height: 36px;
 	}
 
 	.dropdown-menu {
@@ -396,4 +390,38 @@
 			justify-self: end;
 		}
 	}
+
+	.avatar {
+        position: relative;
+        width: 2.25rem;
+        height: 2.25rem;
+        background-color: hsl(var(--primary));
+        color: hsl(var(--primary-foreground));
+        border-radius: 0.375rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 500;
+        font-size: 0.875rem;
+        overflow: hidden;
+    }
+
+    .avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 0.375rem;
+    }
+
+    .status-dot {
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 0;
+        height: 0;
+        border-left: 0.375rem solid transparent;
+        border-bottom: 0.375rem solid transparent;
+        border-top: 0.375rem solid green;
+        border-right: 0.375rem solid green;
+    }
 </style>

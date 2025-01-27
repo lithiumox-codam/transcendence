@@ -16,6 +16,7 @@ def get_user(request):
             "username": user.username,
             "email": user.email,
             "avatar": user.avatar.url if user.avatar else None,
+            "status": user.status,
         }
     )
 

@@ -118,7 +118,29 @@ class WS {
         if (this.ws.readyState === WebSocket.OPEN) {
             this.ws.send(JSON.stringify({stream, payload: data}));
         } else {
-            console.error('WebSocket is not connected.');
+            console.error('WebSocket is not connected. Attempting to reconnect...');
+            this.reconnectAndSend(stream, data);
+        }
+    }
+
+    /**
+     * Attempts to reconnect and send the message.
+     * @param {string} stream - The stream identifier.
+     * @param {Object} data - The payload to send.
+     */
+    reconnectAndSend(stream, data) {
+        if (this.currentRetries < this.maxRetries) {
+            setTimeout(() => {
+                this.currentRetries++;
+                this.connect();
+                if (this.ws.readyState === WebSocket.OPEN) {
+                    this.send(stream, data);
+                } else {
+                    console.error('Failed to reconnect and send message.');
+                }
+            }, this.retryInterval);
+        } else {
+            console.error('Max retries reached. Could not reconnect and send message.');
         }
     }
 

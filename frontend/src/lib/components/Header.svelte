@@ -4,8 +4,29 @@
 	import { theme } from '$lib/stores/theme.svelte.js';
 	import { slide } from 'svelte/transition';
 	import { goto } from '$app/navigation';
+	import WS from '$lib/stores/websocket';
+	import StatusBadge from './StatusBadge.svelte';
 
-	let { user } = $props();
+	let user = $state({
+		username: '',
+		email: '',
+		avatar: '',
+		status: 'offline'
+	});
+
+	async function userHandler(event) {
+		user = event.data;
+	}
+
+	WS.addListener('user', userHandler);
+
+	async function changeStatus() {
+		// cycle through statuses so if user is online, they become busy, etc.
+		const statuses = ['online', 'busy', 'away', 'offline'];
+		const status = statuses[(statuses.indexOf(user.status) + 1) % statuses.length];
+		WS.send('user', { type: "change_status", status });
+		console.log('Status changed to:', status);
+	}
 
 	let showUserMenu = $state(false);
 	let showMobileMenu = $state(false);
@@ -102,24 +123,35 @@
 
 			<div class="user-menu-container" use:clickOutside={closeMenus}>
                 <button class="user-button" onclick={toggleUserMenu}>
-                    <div class="avatar">
-                        <img src={user.data.avatar ? user.data.avatar : `https://ui-avatars.com/api/?name=${user.data.username}`} alt="User Avatar" />
-                        <div class="status-dot"></div>
-                    </div>
+					<div class="avatar" style={`border-color: ${user.status === 'online' ? 'green' : 'red'}`}>
+						<img src={user.avatar ? user.avatar : `https://ui-avatars.com/api/?name=${user.username}`} alt="User Avatar" />
+					</div>
                 </button>
 
                 {#if showUserMenu}
                     <div class="dropdown-menu" transition:slide>
                         <div class="user-info">
                             <div class="avatar">
-                                <img src={user.data.avatar ? user.data.avatar : `https://ui-avatars.com/api/?name=${user.data.username}`} alt="" />
-                                <div class="status-dot"></div>
+                                <img src={user.avatar ? user.avatar : `https://ui-avatars.com/api/?name=${user.username}`} alt="" />
                             </div>
                             <div class="user-details">
-                                <span class="user-name">{user.data.username}</span>
-                                <span class="user-email">{user.data.email}</span>
+                                <span class="user-name">{user.username}</span>
+                                <span class="user-email">{user.email}</span>
                             </div>
                         </div>
+						<div class="dropdown-divider"></div>
+						<button class="dropdown-item" onclick={changeStatus}>
+							<StatusBadge status={user.status} />
+							{#if user.status === 'online'}
+								Online
+							{:else if user.status === 'offline'}
+								Offline
+							{:else if user.status === 'busy'}
+								Busy
+							{:else if user.status === 'away'}
+								Away
+							{/if}
+						</button>
 						<div class="dropdown-divider"></div>
 						<a href="/profile" class="dropdown-item">
 							<svg
@@ -305,6 +337,7 @@
 		justify-content: center;
 		width: 36px;
 		height: 36px;
+		border-radius: 50%;
 	}
 
 	.dropdown-menu {

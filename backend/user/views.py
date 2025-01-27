@@ -8,7 +8,7 @@ from .serializers import UserSerializer, UserAvatarSerializer
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
-def get_user(request):
+def get_user(request) -> Response:
     user = request.user
     return Response(
         {
@@ -24,7 +24,7 @@ def get_user(request):
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 @parser_classes([MultiPartParser, FormParser])
-def upload_avatar(request):
+def upload_avatar(request) -> Response:
     serializer = UserAvatarSerializer(data=request.data, instance=request.user)
     if serializer.is_valid():
         serializer.save()

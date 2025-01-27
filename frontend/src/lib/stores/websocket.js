@@ -16,11 +16,8 @@ class WS {
      */
     constructor(url) {
         if (WS.instance) {
-            console.log('Returning existing WS instance');
             return WS.instance;
         }
-
-        console.log('Creating new WS instance');
 
         /**
          * @type {string}
@@ -71,7 +68,6 @@ class WS {
      */
     connect() {
         if (this.ws) {
-            console.log('WebSocket is already active.');
             return;
         }
 

@@ -1,4 +1,5 @@
 import jwt
+from urllib.parse import parse_qs
 from channels.auth import AuthMiddlewareStack
 from channels.middleware import BaseMiddleware
 from django.db import close_old_connections
@@ -7,14 +8,11 @@ from asgiref.sync import sync_to_async
 
 class JWTAuthMiddleware(BaseMiddleware):
     async def __call__(self, scope, receive, send):
+        self.scope = scope
         close_old_connections()
-        headers = dict(scope["headers"])
-        token = None
-
-        if b'sec-websocket-protocol' in headers:
-            protocols = headers[b'sec-websocket-protocol'].decode().split(',')
-            if len(protocols) == 2 and protocols[0] == 'access_token':
-                token = protocols[1].strip()
+        query_string = scope.get("query_string", b"").decode()
+        query_params = parse_qs(query_string)
+        token = query_params.get("jwt", [None])[0]
 
         if token:
             try:

@@ -1,5 +1,5 @@
 <script>
-	import { theme } from '$lib/stores/theme.svelte.js';
+	import { theme } from '$lib/classes/theme.svelte.js';
 </script>
 
 <svg version="1.1"

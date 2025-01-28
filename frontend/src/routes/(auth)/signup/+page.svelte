@@ -2,7 +2,7 @@
 	import logo from '$lib/images/svelte-logo.svg';
 	import Logo42 from '$lib/components/42-white.svelte';
 	import DotBounce from '$lib/components/DotBounce.svelte';
-	import { theme } from '$lib/stores/theme.svelte';
+	import { theme } from '$lib/classes/theme.svelte';
 	import client from '$lib/utils/axios';
 	import { goto } from '$app/navigation';
 	import { onMount } from 'svelte';

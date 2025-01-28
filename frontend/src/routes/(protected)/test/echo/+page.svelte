@@ -1,5 +1,5 @@
 <script>
-    import ws from "$lib/stores/websocket";
+    import ws from "$lib/classes/websocket";
 	import { onDestroy, onMount } from "svelte";
 
     let lastEcho = $state({ time: null, message: '' });

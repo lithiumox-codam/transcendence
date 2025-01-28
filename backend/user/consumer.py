@@ -40,7 +40,6 @@ class UserConsumer(AsyncJsonWebsocketConsumer):
         print(content)
         if content.get("type") == "change_status":
             new_status = content.get("status")
-            print(f"Changing status to {new_status}")
             await self.change_status(new_status)
             await self.send_user_data()
 

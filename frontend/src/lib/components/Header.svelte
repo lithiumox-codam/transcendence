@@ -1,10 +1,10 @@
 <script>
 	import { page } from '$app/state';
 	import { clickOutside } from '$lib/utils/clickOutside.js';
-	import { theme } from '$lib/stores/theme.svelte.js';
+	import { theme } from '$lib/classes/theme.svelte.js';
 	import { slide } from 'svelte/transition';
 	import { goto } from '$app/navigation';
-	import WS from '$lib/stores/websocket';
+	import WS from '$lib/classes/websocket.js';
 	import StatusBadge from './StatusBadge.svelte';
 
 	let user = $state({
@@ -21,11 +21,9 @@
 	WS.addListener('user', userHandler);
 
 	async function changeStatus() {
-		// cycle through statuses so if user is online, they become busy, etc.
 		const statuses = ['online', 'busy', 'away', 'offline'];
 		const status = statuses[(statuses.indexOf(user.status) + 1) % statuses.length];
-		WS.send('user', { type: "change_status", status });
-		console.log('Status changed to:', status);
+		WS.send('user', { type: 'change_status', status });
 	}
 
 	let showUserMenu = $state(false);
@@ -36,7 +34,6 @@
 		{ path: '/pong', text: 'Play' },
 		{ path: '/test', text: 'Chat' },
 		{ path: '/test/echo', text: 'Echo' }
-
 	];
 
 	function toggleUserMenu() {
@@ -122,23 +119,31 @@
 			</button>
 
 			<div class="user-menu-container" use:clickOutside={closeMenus}>
-                <button class="user-button" onclick={toggleUserMenu}>
+				<button class="user-button" onclick={toggleUserMenu}>
 					<div class="avatar" style={`border-color: ${user.status === 'online' ? 'green' : 'red'}`}>
-						<img src={user.avatar ? user.avatar : `https://ui-avatars.com/api/?name=${user.username}`} alt="User Avatar" />
+						<img
+							src={user.avatar ? user.avatar : `https://ui-avatars.com/api/?name=${user.username}`}
+							alt="User Avatar"
+						/>
 					</div>
-                </button>
+				</button>
 
-                {#if showUserMenu}
-                    <div class="dropdown-menu" transition:slide>
-                        <div class="user-info">
-                            <div class="avatar">
-                                <img src={user.avatar ? user.avatar : `https://ui-avatars.com/api/?name=${user.username}`} alt="" />
-                            </div>
-                            <div class="user-details">
-                                <span class="user-name">{user.username}</span>
-                                <span class="user-email">{user.email}</span>
-                            </div>
-                        </div>
+				{#if showUserMenu}
+					<div class="dropdown-menu" transition:slide>
+						<div class="user-info">
+							<div class="avatar">
+								<img
+									src={user.avatar
+										? user.avatar
+										: `https://ui-avatars.com/api/?name=${user.username}`}
+									alt=""
+								/>
+							</div>
+							<div class="user-details">
+								<span class="user-name">{user.username}</span>
+								<span class="user-email">{user.email}</span>
+							</div>
+						</div>
 						<div class="dropdown-divider"></div>
 						<button class="dropdown-item" onclick={changeStatus}>
 							<StatusBadge status={user.status} />
@@ -425,36 +430,36 @@
 	}
 
 	.avatar {
-        position: relative;
-        width: 2.25rem;
-        height: 2.25rem;
-        background-color: hsl(var(--primary));
-        color: hsl(var(--primary-foreground));
-        border-radius: 0.375rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 500;
-        font-size: 0.875rem;
-        overflow: hidden;
-    }
+		position: relative;
+		width: 2.25rem;
+		height: 2.25rem;
+		background-color: hsl(var(--primary));
+		color: hsl(var(--primary-foreground));
+		border-radius: 0.375rem;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-weight: 500;
+		font-size: 0.875rem;
+		overflow: hidden;
+	}
 
-    .avatar img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        border-radius: 0.375rem;
-    }
+	.avatar img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		border-radius: 0.375rem;
+	}
 
-    .status-dot {
-        position: absolute;
-        top: 0;
-        right: 0;
-        width: 0;
-        height: 0;
-        border-left: 0.375rem solid transparent;
-        border-bottom: 0.375rem solid transparent;
-        border-top: 0.375rem solid green;
-        border-right: 0.375rem solid green;
-    }
+	.status-dot {
+		position: absolute;
+		top: 0;
+		right: 0;
+		width: 0;
+		height: 0;
+		border-left: 0.375rem solid transparent;
+		border-bottom: 0.375rem solid transparent;
+		border-top: 0.375rem solid green;
+		border-right: 0.375rem solid green;
+	}
 </style>

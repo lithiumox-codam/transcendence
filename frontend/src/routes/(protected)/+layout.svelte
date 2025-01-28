@@ -2,7 +2,7 @@
 	import Header from '$lib/components/Header.svelte';
 	import Chat from '$lib/components/chat/ChatContainer.svelte';
 	import { onDestroy, setContext } from 'svelte';
-	import ws from '$lib/stores/websocket';
+	import ws from '$lib/classes/websocket';
 	import Loader from '$lib/components/Loader.svelte';
 
 	setContext('ws', ws);

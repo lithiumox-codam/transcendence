@@ -1,7 +1,7 @@
 <script>
-    import ws from "$lib/stores/websocket";
-	import { onMount } from "svelte";
+	import { getContext, onMount } from "svelte";
     
+    const ws = getContext('socket');
     
     let history = $state([]);
     let message = $state('');
@@ -22,7 +22,7 @@
     });
     
     function sendMessage() {
-        ws.send('chat', { sender: senderId, message });
+        ws.send('chat', { type: "chat.message", message });
         message = '';
     }
 

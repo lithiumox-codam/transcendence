@@ -49,10 +49,8 @@ class WS {
 
 		const token = this.getToken();
 		this.ws = new WebSocket("wss://localhost/ws/", token ? ['access_token', token] : []);
-		// console.log(token);
 
 		this.ws.onopen = () => {
-			console.log(this.ws);
 			console.log('Connected to WS');
 			if (this.connectionPromiseResolve) {
 				this.connectionPromiseResolve();

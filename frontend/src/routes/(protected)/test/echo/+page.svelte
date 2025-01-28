@@ -1,33 +1,28 @@
 <script>
-    import ws from "$lib/classes/websocket";
-	import { onDestroy, onMount } from "svelte";
+	import { getContext, onMount } from 'svelte';
 
-    let lastEcho = $state({ time: null, message: '' });
-    let message = $state('');
+	let lastEcho = $state({ time: null, message: '' });
+	let message = $state('');
+	const ws = getContext('ws');
 
-    /**
-     * Listener for the echo event
-     * @param payload {string}
-     */
-    async function echoListener(payload) {
-        console.log('Echo:', payload);
-        lastEcho.time = new Date();
-        lastEcho.message = payload;
+	onMount(() => {
+		const remove = ws.addListener('echo', (payload) => {
+			console.log('Echo:', payload);
+			lastEcho.time = new Date();
+			lastEcho.message = payload;
+		});
 
-    }
-
-    onMount(() => {
-        const remove = ws.addListener('echo', echoListener);
-
-        return () => {
-            remove();
-        }
-    });
+		return () => {
+			remove();
+		};
+	});
 </script>
 
 <h1>Echo Page</h1>
 
-<p>Last Echo: {lastEcho.message} ({lastEcho.time === null ? '' : lastEcho.time.toISOString()})</p>
+<p>
+	Last Echo: {lastEcho.message} ({lastEcho.time === null ? 'never' : lastEcho.time.toISOString()})
+</p>
 
 <input type="text" bind:value={message} />
 

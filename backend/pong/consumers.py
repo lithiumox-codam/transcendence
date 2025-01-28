@@ -40,18 +40,18 @@ class GameState:
 		# Ball collision with paddles
 		if (self.ball_x < self.paddle_width + self.ball_size / 2 and 
 			self.paddle1_y < self.ball_y < self.paddle1_y + self.paddle_height):
-			self.ball_speed_x = abs(self.ball_speed_x)
+			self.ball_speed_x = abs(self.ball_speed_x) * 1.05
 
 		if (self.ball_x > self.game_width - self.paddle_width - self.ball_size / 2 and 
 			self.paddle2_y < self.ball_y < self.paddle2_y + self.paddle_height):
-			self.ball_speed_x = -abs(self.ball_speed_x)
+			self.ball_speed_x = -abs(self.ball_speed_x) * 1.05
 
 		# Reset ball if it goes past paddles
 		if self.ball_x < 0 or self.ball_x > self.game_width:
 			self.ball_x = self.game_width / 2
 			self.ball_y = self.game_height / 2
 			self.ball_speed_x = 5 if self.ball_x < 0 else -5
-			self.ball_speed_y = 2
+			self.ball_speed_y = 2 if self.ball_y < 0 else -2
 
 class GameConsumer(AsyncWebsocketConsumer):
 	async def connect(self):

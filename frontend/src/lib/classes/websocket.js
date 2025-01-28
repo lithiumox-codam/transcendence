@@ -48,7 +48,7 @@ class WS {
 		}
 
 		const token = this.getToken();
-		this.ws = new WebSocket("wss://localhost/ws/", token ? ['access_token', token] : []);
+		this.ws = new WebSocket("wss://localhost/ws/" + (token ? `?jwt=${token}` : ''));
 
 		this.ws.onopen = () => {
 			console.log('Connected to WS');
@@ -60,11 +60,10 @@ class WS {
 
 		this.ws.onclose = () => {
 			this.ws = null;
-			setTimeout(() => this.connect(), 10000);
+			setTimeout(() => this.connect(), 1000);
 		};
 
 		this.ws.onmessage = (event) => {
-			console.log('Received message:', event.data);
 			try {
 				const message = JSON.parse(event.data);
 				if (message.stream && message.payload) {
@@ -111,6 +110,9 @@ class WS {
 		if (this.ws) {
 			this.ws.close();
 		}
+		this.listeners.forEach((l) => {
+			this.removeListener(l.id);
+		})
 	}
 
 	/**

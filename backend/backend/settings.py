@@ -1,6 +1,7 @@
 from pathlib import Path
 from datetime import timedelta
 import os
+import sys
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -92,8 +93,14 @@ DATABASES = {
         "OPTIONS": {
             "connect_timeout": 10,
         },
-    }
+    },
 }
+
+if "DJANGO_TEST" in os.environ:
+    DATABASES['default'] = {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
 
 # Password, email, and username for the superuser
 ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "admin")

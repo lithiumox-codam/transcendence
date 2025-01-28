@@ -7,13 +7,11 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
         self.user = self.scope.get("user", None)
         if self.user is not None:
             self.groups = await self.get_user_channels(self.user)
-            print(f"User channels: {self.groups}")
             for group in self.groups:
                 await self.channel_layer.group_add(
                     group,
                     self.channel_name
                 )
-            print(f"Authenticated user: {self.user}")
         else:
             print("Anonymous user")
 

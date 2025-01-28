@@ -1,16 +1,42 @@
 <script>
 	import { page } from '$app/state';
-	import logo from '$lib/images/svelte-logo.svg';
 	import { clickOutside } from '$lib/utils/clickOutside.js';
 	import { theme } from '$lib/stores/theme.svelte.js';
 	import { slide } from 'svelte/transition';
-	
+	import { goto } from '$app/navigation';
+	import WS from '$lib/stores/websocket';
+	import StatusBadge from './StatusBadge.svelte';
+
+	let user = $state({
+		username: '',
+		email: '',
+		avatar: '',
+		status: 'offline'
+	});
+
+	async function userHandler(event) {
+		user = event.data;
+	}
+
+	WS.addListener('user', userHandler);
+
+	async function changeStatus() {
+		// cycle through statuses so if user is online, they become busy, etc.
+		const statuses = ['online', 'busy', 'away', 'offline'];
+		const status = statuses[(statuses.indexOf(user.status) + 1) % statuses.length];
+		WS.send('user', { type: "change_status", status });
+		console.log('Status changed to:', status);
+	}
+
 	let showUserMenu = $state(false);
 	let showMobileMenu = $state(false);
 
 	const navItems = [
-		{path: '/', text: 'Leaderboard'},
-		{path: '/pong', text: 'Play'},
+		{ path: '/', text: 'Leaderboard' },
+		{ path: '/pong', text: 'Play' },
+		{ path: '/test', text: 'Chat' },
+		{ path: '/test/echo', text: 'Echo' }
+
 	];
 
 	function toggleUserMenu() {
@@ -20,7 +46,7 @@
 	function toggleMobileMenu() {
 		showMobileMenu = !showMobileMenu;
 	}
-	
+
 	function closeMenus() {
 		showUserMenu = false;
 		showMobileMenu = false;
@@ -48,70 +74,141 @@
 
 		<nav class="desktop-nav">
 			<ul>
-				{#each navItems as {path, text} (path)}
+				{#each navItems as { path, text } (path)}
 					{@render navItem(path, text)}
 				{/each}
 			</ul>
 		</nav>
 
-		
 		<div class="header-right">
 			<button class="theme-toggle" onclick={() => theme.toggle()} aria-label="Toggle theme">
-				{#if theme.isDark}
-				<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-					<circle cx="12" cy="12" r="4"></circle>
-					<path d="M12 2v2"></path>
-					<path d="M12 20v2"></path>
-					<path d="M4.93 4.93l1.41 1.41"></path>
-					<path d="M17.66 17.66l1.41 1.41"></path>
-					<path d="M2 12h2"></path>
-					<path d="M20 12h2"></path>
-					<path d="M6.34 17.66l-1.41 1.41"></path>
-					<path d="M19.07 4.93l-1.41 1.41"></path>
-				</svg>
+				{#if theme.isDark()}
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						width="20"
+						height="20"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+					>
+						<circle cx="12" cy="12" r="4"></circle>
+						<path d="M12 2v2"></path>
+						<path d="M12 20v2"></path>
+						<path d="M4.93 4.93l1.41 1.41"></path>
+						<path d="M17.66 17.66l1.41 1.41"></path>
+						<path d="M2 12h2"></path>
+						<path d="M20 12h2"></path>
+						<path d="M6.34 17.66l-1.41 1.41"></path>
+						<path d="M19.07 4.93l-1.41 1.41"></path>
+					</svg>
 				{:else}
-				<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-					<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-				</svg>
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						width="20"
+						height="20"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+					>
+						<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+					</svg>
 				{/if}
 			</button>
-			
-			<div class="user-menu-container" use:clickOutside={closeMenus}>
-				<button class="user-button" onclick={toggleUserMenu}>
-					<div class="avatar">
-						<span>JD</span>
-					</div>
-				</button>
 
-				{#if showUserMenu}
-					<div class="dropdown-menu" transition:slide>
-						<div class="user-info">
-							<div class="avatar">
-								<span>JD</span>
-							</div>
-							<div class="user-details">
-								<span class="user-name">John Doe</span>
-								<span class="user-email">john@example.com</span>
-							</div>
-						</div>
+			<div class="user-menu-container" use:clickOutside={closeMenus}>
+                <button class="user-button" onclick={toggleUserMenu}>
+					<div class="avatar" style={`border-color: ${user.status === 'online' ? 'green' : 'red'}`}>
+						<img src={user.avatar ? user.avatar : `https://ui-avatars.com/api/?name=${user.username}`} alt="User Avatar" />
+					</div>
+                </button>
+
+                {#if showUserMenu}
+                    <div class="dropdown-menu" transition:slide>
+                        <div class="user-info">
+                            <div class="avatar">
+                                <img src={user.avatar ? user.avatar : `https://ui-avatars.com/api/?name=${user.username}`} alt="" />
+                            </div>
+                            <div class="user-details">
+                                <span class="user-name">{user.username}</span>
+                                <span class="user-email">{user.email}</span>
+                            </div>
+                        </div>
+						<div class="dropdown-divider"></div>
+						<button class="dropdown-item" onclick={changeStatus}>
+							<StatusBadge status={user.status} />
+							{#if user.status === 'online'}
+								Online
+							{:else if user.status === 'offline'}
+								Offline
+							{:else if user.status === 'busy'}
+								Busy
+							{:else if user.status === 'away'}
+								Away
+							{/if}
+						</button>
 						<div class="dropdown-divider"></div>
 						<a href="/profile" class="dropdown-item">
-							<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								width="16"
+								height="16"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+							>
 								<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
 								<circle cx="12" cy="7" r="4"></circle>
 							</svg>
 							Profile
 						</a>
 						<a href="/settings" class="dropdown-item">
-							<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-								<path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path>
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								width="16"
+								height="16"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+							>
+								<path
+									d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"
+								></path>
 								<circle cx="12" cy="12" r="3"></circle>
 							</svg>
 							Settings
 						</a>
 						<div class="dropdown-divider"></div>
-						<button class="dropdown-item text-destructive">
-							<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+						<button
+							class="dropdown-item text-destructive"
+							onclick={() => {
+								localStorage.removeItem('refresh');
+								localStorage.removeItem('access');
+								goto('/');
+							}}
+						>
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								width="16"
+								height="16"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+							>
 								<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
 								<polyline points="16 17 21 12 16 7"></polyline>
 								<line x1="21" y1="12" x2="9" y2="12"></line>
@@ -167,11 +264,6 @@
 		text-decoration: none;
 		color: hsl(var(--foreground));
 		font-weight: 600;
-	}
-
-	.logo-link img {
-		width: 2rem;
-		height: 2rem;
 	}
 
 	.desktop-nav ul {
@@ -240,19 +332,12 @@
 		border: none;
 		padding: 0;
 		cursor: pointer;
-	}
-
-	.avatar {
-		width: 2.25rem;
-		height: 2.25rem;
-		background-color: hsl(var(--primary));
-		color: hsl(var(--primary-foreground));
-		border-radius: 0.375rem;
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		font-weight: 500;
-		font-size: 0.875rem;
+		width: 36px;
+		height: 36px;
+		border-radius: 50%;
 	}
 
 	.dropdown-menu {
@@ -339,4 +424,37 @@
 		}
 	}
 
+	.avatar {
+        position: relative;
+        width: 2.25rem;
+        height: 2.25rem;
+        background-color: hsl(var(--primary));
+        color: hsl(var(--primary-foreground));
+        border-radius: 0.375rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 500;
+        font-size: 0.875rem;
+        overflow: hidden;
+    }
+
+    .avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 0.375rem;
+    }
+
+    .status-dot {
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 0;
+        height: 0;
+        border-left: 0.375rem solid transparent;
+        border-bottom: 0.375rem solid transparent;
+        border-top: 0.375rem solid green;
+        border-right: 0.375rem solid green;
+    }
 </style>

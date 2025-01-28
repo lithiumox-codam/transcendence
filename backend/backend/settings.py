@@ -1,4 +1,5 @@
 from pathlib import Path
+from datetime import timedelta
 import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -27,10 +28,14 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "rest_framework",
+    "rest_framework_simplejwt",
+    # 'channels_auth_token_middlewares',
     "ws",
+    "user",
+    "chat",
+    "auth",
 	"pong",
-	"rest_framework",
-	"corsheaders",
 ]
 
 MIDDLEWARE = [
@@ -41,7 +46,6 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "backend.middleware.api_prefix_middleware.ApiPrefixMiddleware",
 	"corsheaders.middleware.CorsMiddleware",
 ]
 
@@ -63,6 +67,8 @@ TEMPLATES = [
     },
 ]
 
+AUTH_USER_MODEL = "user.User"
+
 WSGI_APPLICATION = "backend.wsgi.application"
 ASGI_APPLICATION = "backend.asgi.application"
 
@@ -83,16 +89,34 @@ DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
         "NAME": os.getenv("POSTGRES_DB", "mydatabase"),  # Default DB name
-        "USER": os.getenv("POSTGRES_USER", "myuser"),    # Default DB user
+        "USER": os.getenv("POSTGRES_USER", "myuser"),  # Default DB user
         "PASSWORD": os.getenv("POSTGRES_PASSWORD", "mypassword"),  # Default DB password
-        "HOST": os.getenv("POSTGRES_HOST", "db"),  # The service name from Docker Compose
+        "HOST": "database",  # The service name from Docker Compose
         "PORT": os.getenv("POSTGRES_PORT", "5432"),  # Default Postgres port
-        'OPTIONS': {
-                   'connect_timeout': 10,
+        "OPTIONS": {
+            "connect_timeout": 10,
         },
     }
 }
 
+# Password, email, and username for the superuser
+ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "admin")
+ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "admin@example.com")
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "admin")
+
+# REST Framework settings
+
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    )
+}
+
+# Simple JWT settings
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(days=2),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=10),
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
@@ -128,26 +152,26 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
-STATIC_URL = '/static/'
-STATIC_ROOT = '/app/staticfiles'
+STATIC_URL = "/static/"
+STATIC_ROOT = "/app/staticfiles"
 
-FORCE_SCRIPT_NAME = '/api'
+MEDIA_URL = "/media/"
+MEDIA_ROOT = "/app/media"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 USE_X_FORWARDED_HOST = True
 
 # CSRF a.k.a. Cross-Site Request Forgery
 CSRF_COOKIE_SECURE = True
 CSRF_USE_SESSIONS = False
-CSRF_TRUSTED_ORIGINS = ["http://localhost", "https://localhost", "http://backend", "http://trans.meesdekker.com"]
-
-CORS_ALLOWED_ORIGINS = [
+CSRF_TRUSTED_ORIGINS = [
     "http://localhost",
     "https://localhost",
+    "http://backend",
     "http://trans.meesdekker.com",
 ]

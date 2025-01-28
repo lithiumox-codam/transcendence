@@ -1,43 +1,42 @@
 <script>
-	import Header from '../../lib/components/Header.svelte';
-	import { clickOutside } from '$lib/utils/clickOutside';
-	import Chat from '$lib/components/Chat.svelte';
-	import { fade } from 'svelte/transition';
+	import Header from '$lib/components/Header.svelte';
+	import Chat from '$lib/components/chat/ChatContainer.svelte';
+	import { onDestroy, setContext } from 'svelte';
+	import ws from '$lib/stores/websocket';
+	import Loader from '$lib/components/Loader.svelte';
 
-	let showChat = $state(false);
+	setContext('ws', ws);
+
+	let socket = ws;
 
 	/** @type {{children: import('svelte').Snippet}} */
 	let { children } = $props();
+
+	onDestroy(() => {
+		ws.close();
+	});
 </script>
 
-<div class="app">
-	<Header />
+{#await socket.waitForConnection()}
+	<div class="loader-container">
+		<Loader />
+		<p class="connection-message">Connecting to socket...</p>
+	</div>
+{:then _}
+	<div class="app">
+		<Header />
 
-	<main>
-		{@render children()}
-	</main>
+		<main>
+			{@render children()}
+		</main>
 
-	<!-- Chat Button and Modal -->
-	<button class="chat-toggle" onclick={() => showChat = !showChat}>
-		{#if !showChat}
-			<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-				<polyline points="18 15 12 9 6 15"></polyline>
-			</svg>
-		{:else}
-			<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-				<polyline points="6 9 12 15 18 9"></polyline>
-			</svg>
-		{/if}
-	</button>
-
-	{#if showChat}
-		<div class="chat-modal" transition:fade={{duration: 200}} use:clickOutside={() => showChat
-			= !showChat}>
-			<Chat />
-		</div>
-	{/if}
-</div>
-
+		<!-- Chat Button and Modal -->
+		<Chat />
+	</div>
+{:catch error}
+	<p>{error.message}</p>
+	<button onclick={() => location.reload()}>Retry</button>
+{/await}
 
 <!-- <MobileNav /> -->
 
@@ -60,64 +59,11 @@
 		box-sizing: border-box;
 	}
 
-	footer {
+	.loader-container {
 		display: flex;
 		flex-direction: column;
-		justify-content: center;
-		align-items: center;
-		padding: 1rem;
-		border-top: 1px solid hsl(var(--border));
-		background-color: hsl(var(--background));
-		color: hsl(var(--muted-foreground));
-	}
-
-	footer a {
-		color: hsl(var(--primary));
-		text-decoration: none;
-		font-weight: 500;
-		transition: color 0.2s ease;
-	}
-
-	footer a:hover {
-		color: hsl(var(--primary) / 0.9);
-		text-decoration: underline;
-	}
-
-	.chat-toggle {
-		position: fixed;
-		bottom: 1rem;
-		right: 1rem;
-		background-color: hsl(var(--primary));
-		color: hsl(var(--primary-foreground));
-		border: none;
-		border-radius: 50%;
-		width: 50px;
-		height: 50px;
-		display: flex;
 		align-items: center;
 		justify-content: center;
-		cursor: pointer;
-		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-		transition: background-color 0.2s ease;
-	}
-
-	.chat-toggle:hover {
-		background-color: hsl(var(--primary) / 0.9);
-	}
-
-	.chat-modal {
-		margin-bottom: 5px;
-		position: fixed;
-		bottom: 70px;
-		right: 1rem;
-		width: 300px;
-		max-height: 400px;
-		background-color: hsl(var(--background));
-		border-radius: 0.5rem;
-		/* add a drop shadow */
-		box-shadow: 0 2px 8px hsl(var(--foreground) / 0.1);
-		overflow: hidden;
-		display: flex;
-		flex-direction: column;
+		height: 100vh;
 	}
 </style>

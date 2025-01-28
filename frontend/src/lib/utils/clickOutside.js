@@ -12,4 +12,4 @@ export function clickOutside(node, callback) {
 			document.removeEventListener('click', handleClick, true);
 		}
 	};
-} 
+}

@@ -1,27 +1,60 @@
 <script>
 	import logo from '$lib/images/svelte-logo.svg';
-    import loader from '$lib/images/dots.svg';
-	import logo42 from '$lib/images/42-white.svg';
+	import Logo42 from '$lib/components/42-white.svelte';
 	import DotBounce from '$lib/components/DotBounce.svelte';
+	import { onMount } from 'svelte';
+	import client from '$lib/utils/axios';
+	import { goto } from '$app/navigation';
 
 	/** @type {{ data: import('./$types').PageData }} */
 	let { data } = $props();
-    
-    let hasError = $state(false);
-    let isSubmitting = $state(false);
 
-    async function handleLogin(event) {
-        event.preventDefault();
+	let hasError = $state(false);
+	let isSubmitting = $state(false);
 
-        const formData = new FormData(event.target);
-        const data = Object.fromEntries(formData);
+	onMount(async () => {
+		try {
+			const res = await client.get('/user/profile/');
+			if (res.status === 200) {
+				history.back();
+			} else {
+				throw new Error('Failed to get profile');
+			}
+		} catch (e) {
+			console.error(e);
+		}
+	});
+
+	async function handleLogin(event) {
+		event.preventDefault();
+
+		const formData = new FormData(event.target);
+		const data = Object.fromEntries(formData);
 
         try {
             isSubmitting = true;
-        } catch (e) {
-            hasError = true;
-        }
-    }
+			const res = await fetch('https://localhost/api/auth/login/', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify(data)
+			});
+			if (!res.ok) {
+				throw new Error('Failed to login');
+			} else {
+				const json = await res.json();
+				localStorage.setItem('access', json.access);
+				localStorage.setItem('refresh', json.refresh);
+				setTimeout(() => {
+					isSubmitting = false;
+					goto('/pong');
+				}, 2500);
+			}
+		} catch (e) {
+			hasError = true;
+		}
+	}
 </script>
 
 <div class="page-container">
@@ -46,16 +79,18 @@
 				class="input"
 				required
 			/>
-			    <button type="submit" class={isSubmitting ? "button-loading" : "button"}>
-					{#if isSubmitting}
-						<DotBounce />
-					{:else}
-						Login
-					{/if}
-				</button>
+			<button type="submit" class={isSubmitting ? 'button-loading' : 'button'}>
+				{#if isSubmitting}
+					<DotBounce />
+				{:else}
+					Login
+				{/if}
+			</button>
 		</form>
 		<div class="spacer"></div>
-	<button class="oauth-button" >Login with <img class="oauth-svg" src={logo42} alt="42 logo"/> </button>
+		<button class="oauth-button"
+			>Login with <Logo42 />
+		</button>
 	</div>
 </div>
 
@@ -116,7 +151,8 @@
 		box-shadow: 0 0 0 2px hsl(var(--ring) / 0.5);
 	}
 
-	.button, .button-loading {
+	.button,
+	.button-loading {
 		min-height: 2.5rem;
 		display: inline-flex;
 		align-items: center;
@@ -146,7 +182,9 @@
 	.button-loading {
 		background: linear-gradient(135deg, #ff7f50 25%, #ff4500 50%, #ff7f50 75%);
 		background-size: 300% 300%;
-		animation: loading-animation 5s ease-in-out infinite, color-shift 8s ease-in-out infinite;
+		animation:
+			loading-animation 5s ease-in-out infinite,
+			color-shift 8s ease-in-out infinite;
 		border: 2px solid #ff6347;
 		box-shadow: 0 0 10px rgba(255, 99, 71, 0.5);
 		padding: 0; /* Remove inner padding for loading state */
@@ -154,7 +192,8 @@
 	}
 
 	@keyframes color-shift {
-		0%, 100% {
+		0%,
+		100% {
 			filter: hue-rotate(0deg);
 		}
 		50% {
@@ -162,14 +201,15 @@
 		}
 	}
 
-    @keyframes loading-animation {
-        0%, 100% {
-            background-position: 0% 0%;
-        }
-        50% {
-            background-position: 100% 100%;
-        }
-    }
+	@keyframes loading-animation {
+		0%,
+		100% {
+			background-position: 0% 0%;
+		}
+		50% {
+			background-position: 100% 100%;
+		}
+	}
 
 	.spacer {
 		background: linear-gradient(to right, transparent, hsl(var(--border)), transparent);
@@ -193,6 +233,7 @@
 			background-color 0.2s ease,
 			transform 0.1s ease;
 		margin: auto;
+		width: 50%;
 	}
 
 	.oauth-button:hover {

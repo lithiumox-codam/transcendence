@@ -4,21 +4,25 @@
 	import { theme } from '$lib/classes/theme.svelte.js';
 	import { slide } from 'svelte/transition';
 	import { goto } from '$app/navigation';
-	import WS from '$lib/classes/websocket.js';
+	import { getContext, onMount } from 'svelte';
 	import StatusBadge from './StatusBadge.svelte';
+
+	const WS = getContext('ws');
 
 	let user = $state({
 		username: '',
 		email: '',
-		avatar: '',
+		avatar: null,
 		status: 'offline'
 	});
 
-	async function userHandler(event) {
-		user = event.data;
-	}
+	onMount(() => {
+		const remove = WS.addListener('user', (payload) => {
+			user = payload.data;
+		});
 
-	WS.addListener('user', userHandler);
+		return () => remove();
+	});
 
 	async function changeStatus() {
 		const statuses = ['online', 'busy', 'away', 'offline'];
@@ -38,10 +42,6 @@
 
 	function toggleUserMenu() {
 		showUserMenu = !showUserMenu;
-	}
-
-	function toggleMobileMenu() {
-		showMobileMenu = !showMobileMenu;
 	}
 
 	function closeMenus() {
@@ -121,10 +121,11 @@
 			<div class="user-menu-container" use:clickOutside={closeMenus}>
 				<button class="user-button" onclick={toggleUserMenu}>
 					<div class="avatar" style={`border-color: ${user.status === 'online' ? 'green' : 'red'}`}>
-						<img
-							src={user.avatar ? user.avatar : `https://ui-avatars.com/api/?name=${user.username}`}
-							alt="User Avatar"
-						/>
+						{#if user.avatar && user.avatar.length > 0}
+							{user.username.substring(0, 2)}
+						{:else}
+							<img src={user.avatar} alt={user.username.substring(0, 2)} />
+						{/if}
 					</div>
 				</button>
 
@@ -132,12 +133,11 @@
 					<div class="dropdown-menu" transition:slide>
 						<div class="user-info">
 							<div class="avatar">
-								<img
-									src={user.avatar
-										? user.avatar
-										: `https://ui-avatars.com/api/?name=${user.username}`}
-									alt=""
-								/>
+								{#if user.avatar && user.avatar.length > 0}
+									{user.username.substring(0, 2)}
+								{:else}
+									<img src={user.avatar} alt={user.username.substring(0, 2)} />
+								{/if}
 							</div>
 							<div class="user-details">
 								<span class="user-name">{user.username}</span>
@@ -449,17 +449,5 @@
 		height: 100%;
 		object-fit: cover;
 		border-radius: 0.375rem;
-	}
-
-	.status-dot {
-		position: absolute;
-		top: 0;
-		right: 0;
-		width: 0;
-		height: 0;
-		border-left: 0.375rem solid transparent;
-		border-bottom: 0.375rem solid transparent;
-		border-top: 0.375rem solid green;
-		border-right: 0.375rem solid green;
 	}
 </style>

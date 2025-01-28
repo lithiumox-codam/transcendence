@@ -23,7 +23,7 @@ class WS {
                 this.close();
                 this.ws = null;
             });
-        } 
+        }
 
         WS.instance = this;
     }
@@ -49,7 +49,7 @@ class WS {
 
         const token = this.getToken();
         this.ws = new WebSocket("wss://localhost/ws/", token ? ['access_token', token] : []);
-        
+
         this.ws.onopen = () => {
             console.log('Connected to WS');
             if (this.connectionPromiseResolve) {
@@ -64,7 +64,6 @@ class WS {
         };
 
         this.ws.onmessage = (event) => {
-            console.log('Received message:', event.data);
             try {
                 const message = JSON.parse(event.data);
                 if (message.stream && message.payload) {
@@ -98,7 +97,7 @@ class WS {
      */
     send(stream, data) {
         this.waitForConnection().then(() => {
-            this.ws.send(JSON.stringify({stream, payload: data}));
+            this.ws.send(JSON.stringify({ stream, payload: data }));
         }).catch((error) => {
             console.error('Failed to send message:', error);
         });
@@ -111,6 +110,9 @@ class WS {
         if (this.ws) {
             this.ws.close();
         }
+        this.listeners.forEach((l) => {
+            this.removeListener(l.id);
+        })
     }
 
     /**
@@ -121,7 +123,7 @@ class WS {
      */
     addListener(stream, listener) {
         const id = (Math.random() + 1).toString(36).substring(7);
-        this.listeners.push({id, stream, listener});
+        this.listeners.push({ id, stream, listener });
         return () => this.removeListener(id);
     }
 

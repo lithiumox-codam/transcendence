@@ -19,4 +19,8 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    if 'integration' in sys.argv:
+        os.system('docker build -t transcendence-tests -f ./tests/Dockerfile . \
+            && docker run -it transcendence-tests')
+    else:
+        main()

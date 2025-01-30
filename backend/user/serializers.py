@@ -33,6 +33,7 @@ class UserAvatarSerializer(serializers.ModelSerializer):
             self.instance.avatar.delete()
 
         # change file name to user id
+        # TODO: support other image formats
         self.validated_data["avatar"].name = f"{self.instance.id}.png"
         return super().save(*args, **kwargs)
 

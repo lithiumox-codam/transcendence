@@ -81,7 +81,7 @@ class WS {
      * Waits for the WebSocket connection to be open.
      * @returns {Promise<void>} A promise that resolves when the connection is open.
      */
-    waitForConnection() {
+    async waitForConnection() {
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
             return Promise.resolve();
         }

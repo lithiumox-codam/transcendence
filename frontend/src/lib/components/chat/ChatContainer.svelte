@@ -1,226 +1,250 @@
 <script>
-    import { clickOutside } from '$lib/utils/clickOutside';
-    
-    let open = $state(false);
-    let sidebarOpen = $state(false);
-    let minimized = $state(true); // Start in minimized state
-    
-    function toggleOpen() {
-        if (minimized) {
-            // If minimized, expand to full view
-            minimized = false;
-            open = true;
-        } else {
-            // If already expanded, toggle open/closed state
-            open = !open;
-            minimized = true;
-        }
-    }
-    
-    function toggleSidebar() {
-        if (open && !minimized) {
-            sidebarOpen = !sidebarOpen;
-        }
-    }
-    
-    function minimize() {
-        // Always go to minimized state when minimize is called
-        minimized = true;
-        open = false;
-        sidebarOpen = false;
-    }
+	let isOpen = $state(false);
+	let messages = $state([]);
+	let newMessage = $state('');
+
+	const sendMessage = () => {
+		if (!newMessage.trim()) return;
+
+		// Add user message
+		messages = [
+			...messages,
+			{
+				text: newMessage,
+				sender: 'user',
+				timestamp: new Date().toLocaleTimeString()
+			}
+		];
+
+		// Mock assistant response
+		setTimeout(() => {
+			messages = [
+				...messages,
+				{
+					text: 'Thanks for your message! This is a mock response.',
+					sender: 'assistant',
+					timestamp: new Date().toLocaleTimeString()
+				}
+			];
+		}, 1000);
+
+		newMessage = '';
+	};
+
+	$effect(() => {
+		if (isOpen) {
+			const messagesEnd = document.getElementById('messages-end');
+			messagesEnd?.scrollIntoView({ behavior: 'smooth' });
+		}
+	});
 </script>
 
-<main 
-    class="chat-container" 
-    class:closed={minimized} 
-    use:clickOutside={() => {if (open) toggleOpen}}
->
-    {#if minimized}
-        <button 
-            class="minimize-button" 
-            onclick={toggleOpen}
-        >
-            💬
-        </button>
-    {:else}
-        <div 
-            class="chat-box" 
-            class:round={!open}
-        >
-            {#if open}
-                <div class="chat-content">
-                    <div class="chat-header">
-                        <h1>Chat Window</h1>
-                        <button 
-                            class="minimize-chat-button" 
-                            onclick={minimize}
-                        >
-                            —
-                        </button>
-                    </div>
-                    *<!-- Add chat messages and input here -->*
-                </div>
-                <footer class="chat-footer">
-                    <button 
-                        class="toggle-button" 
-                        onclick={toggleOpen}
-                    >
-                        {open ? 'Close Chat' : 'Open Chat'}
-                    </button>
-                    {#if open}
-                        <button 
-                            class="toggle-sidebar-button" 
-                            onclick={toggleSidebar}
-                        >
-                            {sidebarOpen ? 'Hide Sidebar' : 'Show Sidebar'}
-                        </button>
-                    {/if}
-                </footer>
-            {/if}
-        </div>
-        {#if sidebarOpen && open}
-            <aside class="chat-sidebar">
-                <h2>Past Chats</h2>
-                <p>Select a conversation or view user info here.</p>
-            </aside>
-        {/if}
-    {/if}
-</main>
-    
+<div class="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-2">
+	{#if isOpen}
+		<div class="chat-container">
+			<div class="chat-header">
+				<h2>Chat Support</h2>
+				<button onclick={() => (isOpen = false)} class="close-button">
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						class="icon"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+					>
+						<path d="M18 6 6 18" />
+						<path d="m6 6 12 12" />
+					</svg>
+				</button>
+			</div>
+
+			<div class="chat-messages">
+				{#each messages as message}
+					<div class="message {message.sender}">
+						<div class="message-content">
+							<p>{message.text}</p>
+							<p class="timestamp">{message.timestamp}</p>
+						</div>
+					</div>
+				{/each}
+				<div id="messages-end" />
+			</div>
+
+			<div class="chat-input">
+				<input
+					bind:value={newMessage}
+					onkeydown={(e) => e.key === 'Enter' && sendMessage()}
+					placeholder="Type your message..."
+				/>
+				<button onclick={sendMessage} class="send-button">
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						class="icon"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+					>
+						<path d="m5 12 7-7 7 7" />
+						<path d="M12 19V5" />
+					</svg>
+				</button>
+			</div>
+		</div>
+	{:else}
+		<button onclick={() => (isOpen = true)} class="open-button">
+			<svg
+				xmlns="http://www.w3.org/2000/svg"
+				class="icon"
+				viewBox="0 0 24 24"
+				fill="none"
+				stroke="currentColor"
+				stroke-width="2"
+				stroke-linecap="round"
+				stroke-linejoin="round"
+			>
+				<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+			</svg>
+		</button>
+	{/if}
+</div>
+
 <style>
-    .chat-container {
-        position: fixed;
-        bottom: 1rem;
-        right: 1rem;
-        z-index: 1000;
-        display: flex;
-        flex-direction: column;
-        gap: 1rem;
-        transition: all 0.3s ease;
-    }
-    
-    .chat-container.closed {
-        transform: scale(0);
-        opacity: 0;
-        pointer-events: none;
-    }
-    
-    .minimize-button {
-        width: 4rem;
-        height: 4rem;
-        background-color: hsl(var(--primary));
-        color: white;
-        border: none;
-        border-radius: 50%;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        font-size: 1.5rem;
-        cursor: pointer;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-        transition: transform 0.3s ease, background 0.3s ease;
-    }
-    
-    .minimize-button:hover {
-        transform: scale(1.1);
-        background-color: hsl(var(--primary) / 0.9);
-    }
-    
-    .chat-box {
-        width: 40vw;
-        max-width: 600px;
-        height: 60vh;
-        background-color: hsl(var(--background));
-        border: 1px solid hsl(var(--border));
-        border-radius: 12px;
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-        overflow: hidden;
-        display: flex;
-        flex-direction: column;
-        transition: all 0.3s ease;
-    }
-    
-    .chat-box.round {
-        width: 4rem;
-        height: 4rem;
-        border-radius: 50%;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-    }
-    
-    .chat-content {
-        flex-grow: 1;
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-    }
-    
-    .chat-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 0.75rem 1rem;
-        background-color: hsl(var(--primary));
-        color: white;
-    }
-    
-    .chat-header h1 {
-        margin: 0;
-        font-size: 1.25rem;
-    }
-    
-    .minimize-chat-button {
-        background: none;
-        border: none;
-        color: white;
-        font-size: 1.5rem;
-        cursor: pointer;
-        opacity: 0.7;
-        transition: opacity 0.3s ease;
-    }
-    
-    .minimize-chat-button:hover {
-        opacity: 1;
-    }
-    
-    .chat-footer {
-        display: flex;
-        justify-content: space-between;
-        padding: 0.75rem 1rem;
-        background-color: hsl(var(--background-muted));
-    }
-    
-    .toggle-button, .toggle-sidebar-button {
-        background: hsl(var(--primary));
-        color: white;
-        border: none;
-        padding: 0.5rem 1rem;
-        border-radius: 6px;
-        cursor: pointer;
-        transition: background 0.3s ease;
-        font-size: 0.875rem;
-    }
-    
-    .toggle-button:hover, .toggle-sidebar-button:hover {
-        background: hsl(var(--primary) / 0.8);
-    }
-    
-    .chat-sidebar {
-        position: absolute;
-        bottom: 0;
-        right: 100%;
-        width: 20vw;
-        max-width: 300px;
-        height: 60vh;
-        background-color: hsl(var(--background));
-        border: 1px solid hsl(var(--border));
-        border-radius: 12px 0 0 12px;
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-        padding: 1rem;
-        z-index: 999;
-        transition: all 0.3s ease;
-        overflow-y: auto;
-    }
+	.chat-container {
+		width: 360px;
+		max-width: 100%;
+		background-color: hsl(var(--card));
+		border: 1px solid hsl(var(--border));
+		border-radius: var(--radius);
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+		display: flex;
+		flex-direction: column;
+		animation: fadeIn 0.3s ease-in-out;
+	}
+
+	.chat-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: 16px;
+		border-bottom: 1px solid hsl(var(--border));
+		background-color: hsl(var(--popover));
+		border-top-left-radius: var(--radius);
+		border-top-right-radius: var(--radius);
+	}
+
+	.chat-header h2 {
+		margin: 0;
+		font-size: 16px;
+		font-weight: 600;
+	}
+
+	.close-button {
+		background: none;
+		border: none;
+		cursor: pointer;
+	}
+
+	.chat-messages {
+		flex: 1;
+		padding: 16px;
+		overflow-y: auto;
+	}
+
+	.message {
+		display: flex;
+		margin-bottom: 12px;
+	}
+
+	.message.user {
+		justify-content: flex-end;
+	}
+
+	.message.assistant {
+		justify-content: flex-start;
+	}
+
+	.message-content {
+		max-width: 80%;
+		padding: 8px 12px;
+		border-radius: var(--radius);
+		background-color: hsl(var(--muted));
+		color: hsl(var(--foreground));
+	}
+
+	.message.user .message-content {
+		background-color: hsl(var(--primary));
+		color: hsl(var(--primary-foreground));
+	}
+
+	.timestamp {
+		font-size: 10px;
+		color: hsl(var(--muted-foreground));
+		margin-top: 4px;
+		text-align: right;
+	}
+
+	.chat-input {
+		display: flex;
+		padding: 16px;
+		border-top: 1px solid hsl(var(--border));
+		background-color: hsl(var(--input));
+		border-bottom-left-radius: var(--radius);
+		border-bottom-right-radius: var(--radius);
+	}
+
+	.chat-input input {
+		flex: 1;
+		padding: 8px 12px;
+		border: 1px solid hsl(var(--border));
+		border-radius: 4px;
+		outline: none;
+	}
+
+	.send-button {
+		background: none;
+		border: none;
+		cursor: pointer;
+		margin-left: 8px;
+	}
+
+	.open-button {
+		width: 48px;
+		height: 48px;
+		background-color: hsl(var(--primary));
+		border: none;
+		border-radius: 50%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		cursor: pointer;
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+		transition: transform 0.2s ease-in-out;
+	}
+
+	.open-button:hover {
+		transform: scale(1.1);
+	}
+
+	.icon {
+		width: 24px;
+		height: 24px;
+		stroke: hsl(var(--primary-foreground));
+	}
+
+	@keyframes fadeIn {
+		from {
+			opacity: 0;
+			transform: translateY(10px);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
 </style>

@@ -11,8 +11,8 @@ class UserConsumer(AsyncJsonWebsocketConsumer):
             f"user_data_{self.user.id}",
             self.channel_name
         )
-        await self.send_user_data()
         await self.accept()
+        await self.send_user_data()
 
     async def send_user_data(self):
         user_data = await self.get_user_data(self.user)

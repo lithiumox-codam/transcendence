@@ -40,12 +40,10 @@ def get_messages(request, channel_id) -> Response:
     if request.user not in channel.users.all():
         return Response({"error": "You are not a member of this channel"}, status=status.HTTP_403_FORBIDDEN)
     
-    page = int(request.query_params.get('page', 1))
-    page_size = int(request.query_params.get('page_size', 10))
+    limit = int(request.query_params.get('limit', 20))
+    offset = int(request.query_params.get('offset', 0))
     
-    start = (page - 1) * page_size
-    end = start + page_size
-    messages = channel.messages.all().order_by('-timestamp')[start:end]
+    messages = channel.messages.all().order_by('-timestamp')[offset:offset + limit]
     
     return Response(
         {
@@ -98,10 +96,6 @@ def create_channel(request) -> Response:
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def create_message(request, channel_id) -> Response:
-    """
-    Create a new message in the specified channel with the provided content.
-    Returns the details of the created message.
-    """
     channel = Channel.objects.get(id=channel_id)
     if request.user not in channel.users.all():
         return Response({"error": "You are not a member of this channel"}, status=status.HTTP_403_FORBIDDEN)
@@ -113,19 +107,19 @@ def create_message(request, channel_id) -> Response:
     message = Message.objects.create(channel=channel, user=request.user, content=content)
     
     response_data = {
+        "channel_id": channel_id,
         "id": message.id,
         "user": message.user.username,
         "content": message.content,
-        "timestamp": message.timestamp,
+        "timestamp": message.timestamp.isoformat(),
     }
     
-    # Announce the new message to the channel
     channel_layer = get_channel_layer()
     async_to_sync(channel_layer.group_send)(
         f'chat_{channel.id}',
         {
-            'type': 'chat.message',
-            'message': f'New message from {message.user.username}: {message.content}'
+            'type': 'chat.message',  # Matches def chat_message(self, event) in the consumer
+            'payload': response_data
         }
     )
     
@@ -151,7 +145,7 @@ def add_user_to_channel(request, channel_id) -> Response:
     channel.save()
     
     response_data = {
-        "id": channel.id,
+        "channel_id": channel.id,
         "name": channel.name,
         "users": [user.username for user in channel.users.all()],
         "created_at": channel.created_at,

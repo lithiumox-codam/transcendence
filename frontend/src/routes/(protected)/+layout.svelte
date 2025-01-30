@@ -1,9 +1,10 @@
 <script>
 	import Header from '$lib/components/Header.svelte';
-	import Chat from '$lib/components/chat/ChatContainer.svelte';
+	// import Chat from '$lib/components/chat/ChatContainer.svelte';
 	import { onDestroy, setContext } from 'svelte';
 	import ws from '$lib/classes/websocket';
 	import Loader from '$lib/components/Loader.svelte';
+	import { browser } from '$app/environment';
 
 	setContext('ws', ws);
 
@@ -31,7 +32,7 @@
 		</main>
 
 		<!-- Chat Button and Modal -->
-		<Chat />
+		<!-- <Chat /> -->
 	</div>
 {:catch error}
 	<p>{error.message}</p>

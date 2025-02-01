@@ -14,6 +14,7 @@ class UserSerializer(serializers.ModelSerializer):
         validated_data["password"] = make_password(validated_data["password"])
         return super().create(validated_data)
 
+    # TODO: Add password validation
     def validate(self, data):
         if User.objects.filter(username__iexact=data["username"]).exists():
             raise serializers.ValidationError("Username already exists")

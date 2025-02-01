@@ -3,7 +3,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import api_view, parser_classes, permission_classes
 from rest_framework import status
 from rest_framework.parsers import MultiPartParser, FormParser
-from .serializers import UserSerializer, UserAvatarSerializer
+from .serializers import UserAvatarSerializer
 
 
 @api_view(["GET"])

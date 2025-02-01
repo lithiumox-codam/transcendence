@@ -27,9 +27,7 @@
 	<div class="app">
 		<Header />
 
-		<main>
-			{@render children()}
-		</main>
+		{@render children()}
 
 		<!-- Chat Button and Modal -->
 		<!-- <Chat /> -->

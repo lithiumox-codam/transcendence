@@ -1,11 +1,25 @@
 import { SvelteMap } from "svelte/reactivity";
 import client from "$lib/utils/axios";
+import WS from "$lib/classes/websocket";
 
-export class Chat {
-    constructor(wsInstance) {
-        this.ws = wsInstance;
-        this.channels = new SvelteMap();
-        this.messages = new SvelteMap();
+const limit = 25;
+
+class Chat {
+    instance = null;
+    messagesContainer = $state(null);
+    selectedChannel = $state(null);
+    messages = $state([]);
+    channels = $state([]);
+    channel = $derived(this.channels.find(channel => channel.id === this.selectedChannel));
+    preloaded = $state([]);
+    endReached = $state(false);
+
+    constructor() {
+        if (this.instance) {
+            return this.instance;
+        }
+
+        this.ws = WS;
 
         this.ws.addListener('chat', (data) => {
             console.log('Chat data:', data);
@@ -13,49 +27,85 @@ export class Chat {
                 this.handleMessage(data.payload);
             }
         });
-
-        // Store the promise so we know when channels are fully fetched
         this.initPromise = this.initializeChannels();
         console.log('Chat initialized');
     }
 
     async initializeChannels() {
-        const { data } = await client.get('/chat/channels/');
-        const fetchPromises = data.channels.map(channel => {
-            this.channels.set(channel.id, channel);
-            return this.getChannelMessages(channel.id);
-        });
-        await Promise.all(fetchPromises);
-    }
-
-    async getChannelMessages(channelId, limit = 10, offset = 0) {
-        const { data } = await client.get(`/chat/channels/${channelId}/messages/`, {
-            params: { limit, offset }
-        });
-        this.messages.set(channelId, data.messages);
-    }
-
-    handleMessage(payload) {
-        console.log('Handling message:', payload);
-        if (this.channels.has(payload.channel_id)) {
-            const messages = this.messages.get(payload.channel_id);
-            if (messages) {
-                console.log('message size before:', messages.length);
-                const { id, content, timestamp, user } = payload;
-                messages.push({ id, content, timestamp, user });
-                messages.sort((a, b) => b.timestamp - a.timestamp);
-                console.log('message size after:', messages.length);
-            }
+        try {
+            const { data } = await client.get('/chat/channels/');
+            const fetchPromises = data.channels.map(channel => {
+                this.channels.push(channel);
+            });
+            await Promise.all(fetchPromises);
+            this.selectedChannel = data.channels[0].id;
+            await this.getChannelMessages(this.selectedChannel);
+        } catch (e) {
+            console.error('Failed to initialize channels:', e);
         }
     }
 
-    async sendMessage(channelId, content) {
-        const x = await client.post(`/chat/messages/create/${channelId}`, { content });
-        console.log('Message sent:', x);
+    async getChannelMessages(channelId) {
+        if (this.endReached) return;
+
+        const { data } = await client.get(`/chat/channels/${channelId}/messages/`, {
+            params: { limit, offset: this.messages.length }
+        });
+        if (data.messages.length > 0) {
+            if (data.messages.length < limit) {
+                this.endReached = true;
+            }
+            for (const message of data.messages) {
+                this.messages.unshift(message);
+            }
+            this.scrollToBottom();
+        }
     }
 
-    async getFirstChannel() {
-        await this.initPromise;
-        return this.channels.size ? this.channels.keys().next().value : null;
+    handleMessage(payload) {
+        if (this.selectedChannel === payload.channel_id) {
+            this.messages.push(payload);
+            this.scrollToBottom();
+        }
+        const channel = this.channels.find(channel => channel.id === payload.channel_id);
+        if (channel) {
+            channel.latest_message = payload;
+        }
+    }
+
+    async sendMessage(content) {
+        try {
+            await client.post(`/chat/messages/create/${this.selectedChannel}`, { content });
+            this.scrollToBottom();
+        } catch (e) {
+            console.error('Failed to send message:', e);
+        }
+    }
+
+    async changeChannel(channelId) {
+        if (this.selectedChannel === channelId) {
+            return;
+        }
+        this.selectedChannel = channelId;
+        this.messages = [];
+        this.endReached = false;
+        await this.getChannelMessages(channelId);
+        this.scrollToBottom();
+    }
+
+    scrollToBottom() {
+        if (this.messagesContainer && this.messagesContainer.scrollTop !== this.messagesContainer.scrollHeight) {
+            this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
+        }
+    }
+
+    getInstance() {
+        if (!this.instance) {
+            this.instance = new Chat();
+        }
+        return this.instance;
     }
 }
+
+const chat = new Chat();
+export default chat;

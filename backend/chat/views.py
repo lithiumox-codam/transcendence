@@ -23,6 +23,11 @@ def get_channels(request) -> Response:
                     "name": channel.name,
                     "users": [user.username for user in channel.users.all()],
                     "created_at": channel.created_at,
+                    "latest_message": {
+                        "user": channel.messages.last().user.username,
+                        "content": channel.messages.last().content,
+                        "timestamp": channel.messages.last().timestamp,
+                    } if channel.messages.last() else None,
                 }
                 for channel in channels
             ]

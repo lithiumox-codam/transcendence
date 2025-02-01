@@ -31,6 +31,7 @@
 		"globals": "^15.0.0",
 		"prettier": "^3.3.2",
 		"prettier-plugin-svelte": "^3.2.6",
+		"sass-embedded": "^1.83.4",
 		"svelte": "^5.0.0",
 		"svelte-check": "^4.0.0",
 		"typescript": "^5.0.0",
@@ -38,7 +39,6 @@
 		"vitest": "^2.0.4"
 	},
 	"dependencies": {
-		"@lottiefiles/dotlottie-svelte": "^0.4.6",
 		"@sveltejs/adapter-node": "^5.2.11",
 		"axios": "^1.7.9",
 		"bootstrap": "^5.3.3",

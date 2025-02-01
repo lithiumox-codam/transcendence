@@ -16,6 +16,8 @@
 		status: 'offline'
 	});
 
+	$inspect(user);
+
 	onMount(() => {
 		const remove = WS.addListener('user', (payload) => {
 			user = payload.data;
@@ -121,7 +123,7 @@
 			<div class="user-menu-container" use:clickOutside={closeMenus}>
 				<button class="user-button" onclick={toggleUserMenu}>
 					<div class="avatar" style={`border-color: ${user.status === 'online' ? 'green' : 'red'}`}>
-						{#if user.avatar && user.avatar.length > 0}
+						{#if user.avatar}
 							{user.username.substring(0, 2)}
 						{:else}
 							<img src={user.avatar} alt={user.username.substring(0, 2)} />

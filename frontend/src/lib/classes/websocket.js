@@ -1,11 +1,12 @@
 import { browser } from "$app/environment";
+import { page } from "$app/state";
 
 /**
  * WebSocket manager class for handling connections and listeners.
  */
 class WS {
     static instance = null;
-
+    retry_attempts = 0;
     /**
      * Creates an instance of WS.
      */
@@ -60,7 +61,7 @@ class WS {
 
         this.ws.onclose = () => {
             this.ws = null;
-            setTimeout(() => this.connect(), 1000);
+            setTimeout(() => { this.connect() }, 1000);
         };
 
         this.ws.onmessage = (event) => {
@@ -75,6 +76,10 @@ class WS {
                 console.error('Error parsing message:', error);
             }
         };
+
+        this.ws.onerror = (error) => {
+            console.error('WebSocket error:', error);
+        }
     }
 
     /**

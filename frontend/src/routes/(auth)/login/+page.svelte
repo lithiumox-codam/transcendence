@@ -5,6 +5,7 @@
 	import { onMount } from 'svelte';
 	import client from '$lib/utils/axios';
 	import { goto } from '$app/navigation';
+	import { page } from '$app/state';
 
 	/** @type {{ data: import('./$types').PageData }} */
 	let { data } = $props();
@@ -31,8 +32,8 @@
 		const formData = new FormData(event.target);
 		const data = Object.fromEntries(formData);
 
-        try {
-            isSubmitting = true;
+		try {
+			isSubmitting = true;
 			const res = await fetch('https://localhost/api/auth/login/', {
 				method: 'POST',
 				headers: {
@@ -88,9 +89,7 @@
 			</button>
 		</form>
 		<div class="spacer"></div>
-		<button class="oauth-button"
-			>Login with <Logo42 />
-		</button>
+		<button class="oauth-button">Login with <Logo42 /> </button>
 	</div>
 </div>
 

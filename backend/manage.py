@@ -19,6 +19,9 @@ def main():
 
 
 if __name__ == '__main__':
+    # Use the python's script path as the current working directory
+    os.chdir(os.path.dirname(os.path.abspath(__file__)))
+
     if 'integration' in sys.argv:
         os.system('docker build -t transcendence-tests -f ./tests/Dockerfile . \
             && docker run -it transcendence-tests')

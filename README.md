@@ -14,6 +14,14 @@ Then run the following commands to start the development server for the backend 
 pnpm install && pnpm dev
 ```
 
+## Testing
+
+Run the following to start integration tests for the backend:
+
+```
+python backend/manage.py integration
+```
+
 ## What's inside?
 
 This Turborepo includes the following packages/apps:

@@ -68,3 +68,47 @@ class TestAvatar(APITestCase):
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+class TestChangePassword(APITestCase):
+    def setUp(self):
+        response = self.client.post("/api/auth/signup/", user_data)
+        self.token = response.data["access"]  # Store the token
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.token}")
+
+    def test_change_password(self):
+        response = self.client.put(
+            "/api/auth/change-password/",
+            {"old_password": user_data["password"], "new_password": "newpassword"}
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # Check if the user can log in with the new password
+        response = self.client.post("/api/auth/login/", {
+            "username": user_data["username"],
+            "password": "newpassword",
+        })
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # Check if the user can't log in with the old password
+        response = self.client.post("/api/auth/login/", {
+            "username": user_data["username"],
+            "password": user_data["password"],
+        })
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_change_password_invalid(self):
+        # Try to change password with wrong old password
+        response = self.client.put(
+            "/api/auth/change-password/",
+            {"old_password": "wrongpassword", "new_password": "newpassword"}
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        # Try to change password with the same password
+        response = self.client.put(
+            "/api/auth/change-password/",
+            {"old_password": user_data["password"], "new_password": user_data["password"]}
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        

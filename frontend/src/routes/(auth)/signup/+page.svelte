@@ -33,7 +33,7 @@
 
         try {
             isSubmitting = true;
-			const res = await fetch('https://localhost/api/user/signup/', {
+			const res = await fetch('https://localhost/api/auth/signup/', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',

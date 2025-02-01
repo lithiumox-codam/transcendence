@@ -34,7 +34,7 @@
 
         try {
             isSubmitting = true;
-			const res = await fetch('https://localhost/api/user/login/', {
+			const res = await fetch('https://localhost/api/auth/login/', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
@@ -51,7 +51,7 @@
 				setTimeout(() => {
 					isSubmitting = false;
 					goto('/pong');
-				}, 10000);
+				}, 1000);
 			}
         } catch (e) {
             hasError = true;

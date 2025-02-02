@@ -2,8 +2,8 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import api_view, parser_classes, permission_classes
 from rest_framework import status
-from rest_framework.parsers import MultiPartParser, FormParser
-from .serializers import UserAvatarSerializer
+from rest_framework.parsers import MultiPartParser
+from .serializers import UserUpdateSerializer
 
 
 @api_view(["GET"])
@@ -19,11 +19,13 @@ def get_user(request):
     )
 
 
-@api_view(["POST"])
+@api_view(["PATCH"])
 @permission_classes([IsAuthenticated])
-@parser_classes([MultiPartParser, FormParser])
-def upload_avatar(request):
-    serializer = UserAvatarSerializer(data=request.data, instance=request.user)
+@parser_classes([MultiPartParser])
+def update_user(request):
+    serializer = UserUpdateSerializer(
+        instance=request.user, data=request.data, partial=True
+    )
     if serializer.is_valid():
         serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)

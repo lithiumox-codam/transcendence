@@ -11,6 +11,7 @@ user_data = {
     "password": "testpassword",
 }
 
+
 class TestSignup(APITestCase):
     def test_create_user(self):
         response = self.client.post("/api/auth/signup/", user_data)
@@ -29,45 +30,96 @@ class TestSignup(APITestCase):
         response = self.client.post("/api/auth/signup/", user_data)
 
         # create user with same username
-        response = self.client.post("/api/auth/signup/", {
-            "username": user_data["username"],
-            "email": "test@example.com",
-            "password": "testpassword",
-        })
+        response = self.client.post(
+            "/api/auth/signup/",
+            {
+                "username": user_data["username"],
+                "email": "test@example.com",
+                "password": "testpassword",
+            },
+        )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
         # create user with same email
-        response = self.client.post("/api/auth/signup/", {
-            "username": "testuser1",
-            "email": user_data["email"],
-            "password": "testpassword",
-        })
+        response = self.client.post(
+            "/api/auth/signup/",
+            {
+                "username": "testuser1",
+                "email": user_data["email"],
+                "password": "testpassword",
+            },
+        )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-class TestAvatar(APITestCase):
+
+class TestUpdateUser(APITestCase):
     def setUp(self):
         response = self.client.post("/api/auth/signup/", user_data)
         self.token = response.data["access"]  # Store the token
         self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.token}")
 
-    def test_upload_avatar(self):
         image = Image.new("RGB", (100, 100))
         image_io = io.BytesIO()
         image.save(image_io, format="PNG")
         image_io.seek(0)
-        avatar = SimpleUploadedFile(
-            "avatar.png",
-            image_io.getvalue(),
-            content_type="image/png"
+        self.avatar = SimpleUploadedFile(
+            "avatar.png", image_io.getvalue(), content_type="image/png"
         )
 
-        response = self.client.post(
-            "/api/user/avatar/",
-            {"avatar": avatar},
-            format="multipart"  # Required for file uploads
-        )
+    def test_bad_request(self):
+        # Try to update without any data
+        response = self.client.patch("/api/user/update/", {}, format="multipart")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
+        # Try to update with existing username
+        response = self.client.patch(
+            "/api/user/update/", {"username": user_data["username"]}, format="multipart"
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        # Try to update with existing email
+        response = self.client.patch(
+            "/api/user/update/", {"email": user_data["email"]}, format="multipart"
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_update_username(self):
+        new_username = "newusername"
+        response = self.client.patch(
+            "/api/user/update/", {"username": new_username}, format="multipart"
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["username"], new_username)
+
+    def test_update_email(self):
+        new_email = "newemail@example.com"
+        response = self.client.patch(
+            "/api/user/update/", {"email": new_email}, format="multipart"
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["email"], new_email)
+
+    def test_update_avatar(self):
+        response = self.client.patch(
+            "/api/user/update/", {"avatar": self.avatar}, format="multipart"
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(response.data["avatar"].endswith(".png"))
+
+    def test_update_all(self):
+        new_username = "newusername"
+        new_email = "newemail@example.com"
+
+        response = self.client.patch(
+            "/api/user/update/",
+            {"username": new_username, "email": new_email, "avatar": self.avatar},
+            format="multipart",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["username"], new_username)
+        self.assertEqual(response.data["email"], new_email)
+        self.assertTrue(response.data["avatar"].endswith(".png"))
+
 
 class TestChangePassword(APITestCase):
     def setUp(self):
@@ -78,37 +130,44 @@ class TestChangePassword(APITestCase):
     def test_change_password(self):
         response = self.client.put(
             "/api/auth/change-password/",
-            {"old_password": user_data["password"], "new_password": "newpassword"}
+            {"old_password": user_data["password"], "new_password": "newpassword"},
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # Check if the user can log in with the new password
-        response = self.client.post("/api/auth/login/", {
-            "username": user_data["username"],
-            "password": "newpassword",
-        })
+        response = self.client.post(
+            "/api/auth/login/",
+            {
+                "username": user_data["username"],
+                "password": "newpassword",
+            },
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         # Check if the user can't log in with the old password
-        response = self.client.post("/api/auth/login/", {
-            "username": user_data["username"],
-            "password": user_data["password"],
-        })
+        response = self.client.post(
+            "/api/auth/login/",
+            {
+                "username": user_data["username"],
+                "password": user_data["password"],
+            },
+        )
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_change_password_invalid(self):
         # Try to change password with wrong old password
         response = self.client.put(
             "/api/auth/change-password/",
-            {"old_password": "wrongpassword", "new_password": "newpassword"}
+            {"old_password": "wrongpassword", "new_password": "newpassword"},
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
         # Try to change password with the same password
         response = self.client.put(
             "/api/auth/change-password/",
-            {"old_password": user_data["password"], "new_password": user_data["password"]}
+            {
+                "old_password": user_data["password"],
+                "new_password": user_data["password"],
+            },
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-
-        

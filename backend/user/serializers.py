@@ -24,17 +24,38 @@ class UserSerializer(serializers.ModelSerializer):
 
         return data
 
-class UserAvatarSerializer(serializers.ModelSerializer):
+
+class UserUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ["avatar"]
+        fields = ["username", "email", "avatar"]
+
+    def validate(self, data):
+        if len(data) == 0:
+            raise serializers.ValidationError("No fields to update")
+
+        if (
+            data.get("username")
+            and User.objects.filter(username__iexact=data["username"]).exists()
+        ):
+            raise serializers.ValidationError("Username already exists")
+
+        if (
+            data.get("email")
+            and User.objects.filter(email__iexact=data["email"]).exists()
+        ):
+            raise serializers.ValidationError("Email already exists")
+
+        return data
 
     def save(self, *args, **kwargs):
-        if self.instance.avatar:
-            self.instance.avatar.delete()
+        if self.validated_data.get("avatar"):
+            if self.instance.avatar:
+                self.instance.avatar.delete()
 
-        # change file name to user id
-        # TODO: support other image formats
-        self.validated_data["avatar"].name = f"{self.instance.id}.png"
+            # change file name to user id
+            # change file name to user id
+            # TODO: support other image formats
+            self.validated_data["avatar"].name = f"{self.instance.id}.png"
+
         return super().save(*args, **kwargs)
-

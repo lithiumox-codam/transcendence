@@ -6,7 +6,7 @@ import sys
 
 def main():
     """Run administrative tasks."""
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'backend.settings')
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "backend.settings")
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:
@@ -18,12 +18,14 @@ def main():
     execute_from_command_line(sys.argv)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Use the python's script path as the current working directory
     os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
-    if 'integration' in sys.argv:
-        os.system('docker build -t transcendence-tests -f ./tests/Dockerfile . \
-            && docker run -it transcendence-tests')
+    if "integration" in sys.argv:
+        os.system(
+            "docker build -t transcendence-tests -f ./tests/Dockerfile . \
+            && docker run --rm -it transcendence-tests"
+        )
     else:
         main()

@@ -4,7 +4,7 @@ import { ParaglideJS } from "@inlang/paraglide-sveltekit";
 import "../app.css";
 let { children } = $props();
 
-  let test = $state<string>("test");
+let test = $state<string>("test");
 </script>
 
 <ParaglideJS {i18n}>

@@ -1,0 +1,7 @@
+{
+    "recommendations": [
+        "biomejs.biome",
+        "ardenivanov.svelte-intellisense",
+        "svelte.svelte-vscode"
+    ]
+}

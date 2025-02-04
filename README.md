@@ -1,17 +1,13 @@
-# Transcendance
+# Turborepo Svelte starter
 
-## Using this monorepo
+This Turborepo starter is maintained by the Turborepo core team.
 
-Run the following command to start the caddy reverse proxy:
+## Using this example
 
-```sh
-docker compose up -d (--build)
-```
-
-Then run the following commands to start the development server for the backend and frontend:
+Run the following command:
 
 ```sh
-pnpm install && pnpm dev
+npx create-turbo@latest -e with-svelte
 ```
 
 ## What's inside?
@@ -20,15 +16,17 @@ This Turborepo includes the following packages/apps:
 
 ### Apps and Packages
 
-- `backend`: a [Django](https://www.djangoproject.com/) app
-- `frontend`: a [SvelteKit](https://kit.svelte.dev/) app
+- `docs`: a [svelte-kit](https://kit.svelte.dev/) app
+- `web`: another [svelte-kit](https://kit.svelte.dev/) app
+- `ui`: a stub Svelte component library shared by both `web` and `docs` applications
+- `eslint-config-custom`: `eslint` configurations (includes `eslint-plugin-svelte` and `eslint-config-prettier`)
 
-### Tools
+Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
 
-- [pnpm](https://pnpm.io/): a fast, disk space efficient package manager
-- [docker](https://www.docker.com/): for running the caddy reverse proxy
-- [caddy](https://caddyserver.com/): a web server that can be used as a reverse proxy
-- [eslint](https://eslint.org/): for linting the code
-- [prettier](https://prettier.io/): for formatting the code
+### Utilities
 
-More will be added in the future.
+This Turborepo has some additional tools already setup for you:
+
+- [TypeScript](https://www.typescriptlang.org/) for static type checking
+- [ESLint](https://eslint.org/) for code linting
+- [Prettier](https://prettier.io) for code formatting

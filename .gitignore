@@ -4,7 +4,6 @@
 node_modules
 .pnp
 .pnp.js
-.pnpm-store
 
 # testing
 coverage
@@ -26,7 +25,6 @@ yarn-error.log*
 .env.development.local
 .env.test.local
 .env.production.local
-.env
 
-.venv
-llms-full.txt
+# turbo
+.turbo

@@ -1,5 +1,5 @@
 <script lang="ts">
-  let test = $state<string>('test');
+let test = $state<string>("test");
 </script>
 
 <h1>Welcome to SvelteKit</h1>

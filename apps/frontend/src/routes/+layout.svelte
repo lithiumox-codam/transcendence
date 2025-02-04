@@ -1,8 +1,10 @@
 <script lang="ts">
-	import { i18n } from "$lib/i18n";
-	import { ParaglideJS } from "@inlang/paraglide-sveltekit";
-	import '../app.css';
-	let { children } = $props();
+import { i18n } from "$lib/i18n";
+import { ParaglideJS } from "@inlang/paraglide-sveltekit";
+import "../app.css";
+let { children } = $props();
+
+  let test = $state<string>("test");
 </script>
 
 <ParaglideJS {i18n}>

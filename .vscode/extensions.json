@@ -4,6 +4,7 @@
         "ardenivanov.svelte-intellisense",
         "svelte.svelte-vscode",
         "bradlc.vscode-tailwindcss",
-        "stivo.tailwind-fold"
+        "stivo.tailwind-fold",
+        "inlang.vs-code-extension"
     ]
 }

@@ -1,5 +1,5 @@
 {
-    "name": "with-svelte",
+    "name": "transcendance",
     "private": true,
     "scripts": {
         "build": "turbo run build",
@@ -15,6 +15,6 @@
     },
     "packageManager": "pnpm@8.15.6",
     "engines": {
-        "node": ">=18"
+        "node": ">=22"
     }
 }

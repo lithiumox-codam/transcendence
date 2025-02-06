@@ -1,215 +1,258 @@
 <script lang="ts">
-import { onMount } from "svelte";
+import * as BABYLON from "babylonjs";
 
 let canvas = $state<HTMLCanvasElement>();
-let ctx: CanvasRenderingContext2D;
+let engine = $state<BABYLON.Engine>();
+let scene = $state<BABYLON.Scene>();
 
 // Reactive state using new $state() syntax
-const paddleHeight = 80;
-const paddleWidth = 10;
 const ballSize = 8;
 const victoryScore = 7;
+const upperBound = 10;
+const lowerBound = -10;
 
-const leftPaddle = $state({ y: 200 });
-const rightPaddle = $state({ y: 200 });
-const ball = $state({ x: 400, y: 300, dx: 3, dy: 3, radius: ballSize });
+let leftPaddle = $state<BABYLON.Mesh>();
+let rightPaddle = $state<BABYLON.Mesh>();
+let ball = $state<BABYLON.Mesh>();
+
+let ballVelocity = $state<BABYLON.Vector3>();
+let collisionCooldown = $state(0);
+
 let scoreLeft = $state(0);
 let scoreRight = $state(0);
 let gameOver = $state(false);
+let winner = $state("");
 
 // Reactive key states using object
 const keysPressed = $state<Record<string, boolean>>({});
 
-// Game loop control
-let animationFrame: number;
-
 $effect(() => {
-  const context = canvas?.getContext("2d");
-  if (context) {
-    ctx = context;
-  } else {
-    throw new Error("Failed to get 2D context");
-  }
-  animationFrame = requestAnimationFrame(gameLoop);
+  if (!canvas) return;
+  engine = new BABYLON.Engine(canvas, true);
+  scene = new BABYLON.Scene(engine);
+  scene.clearColor = new BABYLON.Color4(0, 0, 0, 1);
+
+  const camera = new BABYLON.ArcRotateCamera(
+    "camera",
+    -Math.PI / 2,
+    Math.PI * 0.75,
+    50,
+    BABYLON.Vector3.Zero(),
+    scene,
+  );
+  const neonMaterial = new BABYLON.StandardMaterial("neonMaterial", scene);
+  neonMaterial.emissiveColor = new BABYLON.Color3(1, 1, 1);
+  // Create solid borders
+  const borderMaterial = new BABYLON.StandardMaterial("borderMat", scene);
+  borderMaterial.emissiveColor = new BABYLON.Color3(1, 1, 1); // White glow
+  borderMaterial.diffuseColor = new BABYLON.Color3(0, 0, 0); // Black base
+
+  const createDashedLine = () => {
+    const dashCount = 10;
+    const dashHeight = 1;
+    const gap = 1;
+
+    for (let i = 0; i < dashCount; i++) {
+      const dash = BABYLON.MeshBuilder.CreateBox(
+        "dash",
+        {
+          height: dashHeight,
+          width: 0.5,
+          depth: 0.5,
+        },
+        scene,
+      );
+      dash.position.y = (i - dashCount / 2) * (dashHeight + gap);
+      dash.material = neonMaterial.clone("dashMaterial");
+    }
+  };
+
+  createDashedLine();
+
+  // Create 4 border walls
+  const createBorder = (position: BABYLON.Vector3, size: BABYLON.Vector3) => {
+    const border = BABYLON.MeshBuilder.CreateBox(
+      "border",
+      {
+        width: size.x,
+        height: size.y,
+        depth: size.z,
+      },
+      scene,
+    );
+    border.position = position;
+    border.material = borderMaterial;
+    return border;
+  };
+
+  // Top border
+  createBorder(
+    new BABYLON.Vector3(0, upperBound + 0.5, 0),
+    new BABYLON.Vector3(42, 1, 1),
+  );
+
+  // Bottom border
+  createBorder(
+    new BABYLON.Vector3(0, lowerBound - 0.5, 0),
+    new BABYLON.Vector3(42, 1, 1),
+  );
+
+  // Left border
+  //   createBorder(new BABYLON.Vector3(-21, 0, 0), new BABYLON.Vector3(1, 22, 1));
+
+  // Right border
+  //   createBorder(new BABYLON.Vector3(21, 0, 0), new BABYLON.Vector3(1, 22, 1));
+
+  //   border.material.wireframe = true; // Make it a wireframe
+  //   glowLayer.addExcludedMesh(border); // Optional: exclude from glow if too bright
+
+  const light = new BABYLON.PointLight(
+    "light",
+    new BABYLON.Vector3(0, 20, -10),
+    scene,
+  );
+
+  const paddleWidth = 1;
+  const paddleHeight = 4;
+  const paddleDepth = 1;
+
+  leftPaddle = BABYLON.MeshBuilder.CreateBox(
+    "leftPaddle",
+    { width: paddleWidth, height: paddleHeight, depth: paddleDepth },
+    scene,
+  );
+  light;
+  leftPaddle.position.x = -20;
+  leftPaddle.material = neonMaterial;
+
+  rightPaddle = BABYLON.MeshBuilder.CreateBox(
+    "rightPaddle",
+    { width: paddleWidth, height: paddleHeight, depth: paddleDepth },
+    scene,
+  );
+  rightPaddle.position.x = 20;
+  rightPaddle.material = neonMaterial;
+
+  ball = BABYLON.MeshBuilder.CreateSphere("ball", { diameter: 1 }, scene);
+  ball.position = BABYLON.Vector3.Zero();
+  ballVelocity = new BABYLON.Vector3(0.1, 0.07, 0);
+  ball.material = neonMaterial;
+
+  const glowLayer = new BABYLON.GlowLayer("glow", scene);
+  glowLayer.intensity = 0.5;
 
   const handleKey = (e: KeyboardEvent, pressed: boolean) => {
     e.preventDefault();
     keysPressed[e.key] = pressed;
   };
 
+  window.addEventListener("resize", () => engine?.resize());
   window.addEventListener("keydown", (e) => handleKey(e, true));
   window.addEventListener("keyup", (e) => handleKey(e, false));
 
+  engine.runRenderLoop(() => {
+    updatePaddles();
+    updateBall();
+    scene?.render();
+  });
+
   return () => {
-    cancelAnimationFrame(animationFrame);
+    engine?.dispose();
     window.removeEventListener("keydown", (e) => handleKey(e, true));
     window.removeEventListener("keyup", (e) => handleKey(e, false));
   };
 });
 
 function updatePaddles() {
-  if (!canvas) return;
-  if (keysPressed.w && leftPaddle.y > 0) leftPaddle.y -= 5;
-  if (keysPressed.s && leftPaddle.y < canvas.height - paddleHeight)
-    leftPaddle.y += 5;
-
-  if (keysPressed.ArrowUp && rightPaddle.y > 0) rightPaddle.y -= 5;
-  if (keysPressed.ArrowDown && rightPaddle.y < canvas.height - paddleHeight)
-    rightPaddle.y += 5;
-}
-
-function updateBall() {
-  if (!canvas) return;
-  ball.x += ball.dx;
-  ball.y += ball.dy;
-
-  // Top/bottom collision
-  if (ball.y + ball.radius > canvas.height || ball.y - ball.radius < 0) {
-    ball.dy *= -1;
+  if (gameOver || !leftPaddle || !rightPaddle) return;
+  const moveSpeed = 0.3;
+  if (keysPressed.w && leftPaddle.position.y < 8) {
+    leftPaddle.position.y += moveSpeed;
   }
-
-  // Paddle collisions
-  if (
-    ball.x - ball.radius < paddleWidth &&
-    ball.y > leftPaddle.y &&
-    ball.y < leftPaddle.y + paddleHeight
-  ) {
-    ball.dx *= -1.1;
-    ball.dy *= 1.1;
-    ball.x = paddleWidth + ball.radius;
+  if (keysPressed.s && leftPaddle.position.y > -8) {
+    leftPaddle.position.y -= moveSpeed;
   }
-
-  if (
-    ball.x + ball.radius > canvas.width - paddleWidth &&
-    ball.y > rightPaddle.y &&
-    ball.y < rightPaddle.y + paddleHeight
-  ) {
-    ball.dx *= -1.1;
-    ball.dy *= 1.1;
-    ball.x = canvas.width - paddleWidth - ball.radius;
+  if (keysPressed.ArrowUp && rightPaddle.position.y < 8) {
+    rightPaddle.position.y += moveSpeed;
   }
-
-  // Score points
-  if (ball.x < 0) {
-    scoreRight++;
-    if (scoreRight >= victoryScore) gameOver = true;
-    resetBall();
-  }
-  if (ball.x > canvas.width) {
-    scoreLeft++;
-    if (scoreLeft >= victoryScore) gameOver = true;
-    resetBall();
+  if (keysPressed.ArrowDown && rightPaddle.position.y > -8) {
+    rightPaddle.position.y -= moveSpeed;
   }
 }
 
 function resetBall() {
-  if (!canvas) return;
-  ball.x = canvas.width / 2;
-  ball.y = canvas.height / 2;
-  ball.dx = Math.random() > 0.5 ? 4 : -4;
-  ball.dy = Math.random() * 4 - 2;
+  if (!ball || !ballVelocity) return;
+  ball.position = BABYLON.Vector3.Zero();
+  ballVelocity.x = Math.random() < 0.5 ? 0.1 : -0.1;
+  ballVelocity.y = Math.random() < 0.5 ? 0.07 : -0.07;
 }
 
-function draw() {
-  if (!canvas) return;
-  ctx.fillStyle = "black";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-  ctx.fillStyle = "white";
-  ctx.fillRect(0, leftPaddle.y, paddleWidth, paddleHeight);
-  ctx.fillRect(
-    canvas.width - paddleWidth,
-    rightPaddle.y,
-    paddleWidth,
-    paddleHeight,
-  );
-
-  ctx.beginPath();
-  ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
-  ctx.fill();
-
-  ctx.font = "48px Arial";
-  ctx.fillText(scoreLeft.toString(), canvas.width / 4, 50);
-  ctx.fillText(scoreRight.toString(), (canvas.width * 3) / 4, 50);
-}
-
-function gameLoop() {
-  updatePaddles();
-  updateBall();
-  draw();
-  animationFrame = requestAnimationFrame(gameLoop);
-}
-
-function restartGame() {
-  scoreLeft = 0;
-  scoreRight = 0;
-  gameOver = false;
-  resetBall();
-  leftPaddle.y = 200;
-  rightPaddle.y = 200;
-  animationFrame = requestAnimationFrame(gameLoop);
+function updateBall() {
+  if (gameOver || !ball || !leftPaddle || !rightPaddle || !ballVelocity) return;
+  ball.position.addInPlace(ballVelocity);
+  // Define vertical boundaries.
+  if (ball.position.y > upperBound || ball.position.y < lowerBound) {
+    ballVelocity.y *= -1;
+  }
+  // Check paddle collisions.
+  if (collisionCooldown <= 0) {
+    if (ball.intersectsMesh(leftPaddle, false)) {
+      ballVelocity.x = Math.abs(ballVelocity.x) * 1.05;
+      collisionCooldown = 10; // Set cooldown frames
+    }
+    if (ball.intersectsMesh(rightPaddle, false)) {
+      ballVelocity.x = -Math.abs(ballVelocity.x) * 1.05;
+      collisionCooldown = 10;
+    }
+  } else {
+    collisionCooldown--;
+  }
+  if (ball.position.x < -21) {
+    scoreRight++;
+    resetBall();
+    if (scoreRight >= victoryScore) {
+      gameOver = true;
+      winner = "Right";
+    }
+  }
+  if (ball.position.x > 21) {
+    scoreLeft++;
+    resetBall();
+    if (scoreLeft >= victoryScore) {
+      gameOver = true;
+      winner = "Left";
+    }
+  }
 }
 </script>
-  
-  <div class="game-container">
-	{#if gameOver}
-	  <div class="game-over">
-		<h2>Game Over!</h2>
-		<p>{scoreLeft} - {scoreRight}</p>
-		<button onclick={restartGame}>Play Again</button>
-	  </div>
-	{:else}
-	  <canvas
-		bind:this={canvas}
-		width={800}
-		height={400}
-		class="pong-canvas"
-	  ></canvas>
-	{/if}
-  </div>
-  
-  <style>
-	  :global(body) {
-    background: black;
-    margin: 0;
-    height: 100vh;
-    display: grid;
-    place-items: center;
-    font-family: Arial, sans-serif;
-  }
-	.pong-canvas {
-	  border: 2px solid white;
-	  background: black;
-	}
-	canvas {
-	  margin: 0 auto;
-	  display: block;
-	}
 
-	.game-over {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    text-align: center;
-    background: rgba(0, 0, 0, 0.8);
-    padding: 2rem;
-    border-radius: 10px;
-    border: 2px solid white;
-  }
+<div class="absolute top-0 left-0 right-0 flex justify-between p-4 text-white text-4xl font-mono z-10 [text-shadow:0_0_10px_#fff]">
+    <div>{scoreLeft}</div>
+    <div class="opacity-50">|</div>
+    <div>{scoreRight}</div>
+</div>
 
-  	button {
-    background: white;
-    color: black;
-    border: none;
-    padding: 0.8rem 1.5rem;
-    font-size: 1.2rem;
-    cursor: pointer;
-    border-radius: 5px;
-    margin-top: 1rem;
-  }
+{#if gameOver}
+<div class="absolute inset-0 grid place-items-center bg-black/80 z-20">
+	<div class="text-center">
+		<h2 class="text-6xl text-white mb-8 animate-pulse">
+			{winner} Wins!
+		</h2>
+		<button
+			onclick={() => {
+				scoreLeft = 0;
+				scoreRight = 0;
+				gameOver = false;
+				winner = "";
+				resetBall();
+			}}
+			class="px-8 py-4 text-2xl bg-transparent border-2 border-white/50 rounded-lg
+				   text-white hover:bg-white/10 transition-all backdrop-blur-sm"
+		>
+			Play Again
+		</button>
+	</div>
+</div>
+{/if}
 
-  	button:hover {
-    background: #ddd;
-  }
-  </style>
+<canvas bind:this={canvas} class="z-0" style="width: 100%; height: 100vh; display: block;"></canvas> -->

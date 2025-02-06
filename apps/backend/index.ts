@@ -1,6 +1,9 @@
-import fastify from "fastify";
+import websocket from "@fastify/websocket"
+import fastify from "fastify"
 
-const server = fastify();
+const server = fastify({ logger: true });
+
+server.register(websocket);
 
 server.get("/ping", async (request, reply) => {
   return "pong\n";

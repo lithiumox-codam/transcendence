@@ -3,6 +3,7 @@
     "version": "1.0.0",
     "description": "",
     "main": "index.js",
+    "type": "module",
     "scripts": {
         "build": "tsc -p tsconfig.json",
         "preview": "node build/index.js",
@@ -12,7 +13,8 @@
     "author": "",
     "license": "ISC",
     "dependencies": {
-        "fastify": "^5.2.1"
+        "fastify": "^5.2.1",
+        "@repo/database": "^0.0.0"
     },
     "devDependencies": {
         "@tsconfig/node22": "^22.0.0",

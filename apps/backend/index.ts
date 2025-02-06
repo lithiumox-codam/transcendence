@@ -1,6 +1,9 @@
+import { db, schema } from "@repo/database";
 import fastify from "fastify";
 
 const server = fastify();
+
+await db.get(schema.User, 1);
 
 server.get("/ping", async (request, reply) => {
     return "pong\n";

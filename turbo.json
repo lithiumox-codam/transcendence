@@ -15,11 +15,15 @@
         },
         "dev": {
             "cache": false,
-            "persistent": true
+            "persistent": true,
+            "inputs": ["$TURBO_DEFAULT$", ".env*"]
         },
         "//#format-and-lint": {},
         "//#format-and-lint:fix": {
             "cache": false
-        }
+        },
+        "db:migrate": {},
+        "db:push": {},
+        "db:studio": {}
     }
 }

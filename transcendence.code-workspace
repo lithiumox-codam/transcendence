@@ -25,6 +25,7 @@
         "editor.codeActionsOnSave": {
             "quickfix.biome": "explicit",
             "source.organizeImports.biome": "always"
-        }
+        },
+        "workbench.editor.labelFormat": "short"
     }
 }

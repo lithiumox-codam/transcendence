@@ -11,6 +11,9 @@ export const appRouter = t.router({
     createUser: t.procedure.input(userInputSchema).mutation(async (opts) => {
         return await db.insert(users).values(opts.input);
     }),
+    getAllUsers: t.procedure.query(async () => {
+        return await db.select().from(users).all();
+    }),
 });
 // export type definition of API
 export type AppRouter = typeof appRouter;

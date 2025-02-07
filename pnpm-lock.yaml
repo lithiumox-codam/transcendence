@@ -152,6 +152,9 @@ importers:
       '@trpc/server':
         specifier: ^10.45.2
         version: 10.45.2
+      '@types/better-sqlite3':
+        specifier: ^7.6.12
+        version: 7.6.12
       drizzle-orm:
         specifier: 0.39.2
         version: 0.39.2(@libsql/client@0.14.0)(@types/better-sqlite3@7.6.12)(better-sqlite3@11.8.1)

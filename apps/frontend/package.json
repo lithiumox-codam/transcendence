@@ -29,6 +29,9 @@
         "vitest": "^3.0.0"
     },
     "dependencies": {
-        "@inlang/paraglide-sveltekit": "^0.15.5"
+        "@inlang/paraglide-sveltekit": "^0.15.5",
+        "@repo/trpc": "workspace:^",
+        "@trpc/client": "^10.45.2",
+        "trpc-sveltekit": "^3.6.2"
     }
 }

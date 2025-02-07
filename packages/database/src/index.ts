@@ -1,9 +1,5 @@
-import { createClient } from "@libsql/client";
-import { drizzle } from "drizzle-orm/libsql";
-import * as schema from "./schema";
+import { drizzle } from "drizzle-orm/better-sqlite3";
+import * as schema from "./schema.js";
 
-export const client = createClient({ url: "./sqlite.db" });
-
-export const db = drizzle(client, { schema });
-
-export { schema };
+export const db = drizzle("../../sqlite.db", { schema });
+export * from "./schema.js";

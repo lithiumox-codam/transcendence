@@ -2,25 +2,31 @@
     "name": "@repo/database",
     "version": "0.0.0",
     "private": true,
-    "type": "module",
-    "scripts": {
-        "build": "tsc",
-        "db:migrate": "drizzle-kit generate:pg --config ./drizzle.config.ts",
-        "db:push": "drizzle-kit push --config ./drizzle.config.ts",
-        "db:studio": "drizzle-kit studio --config ./drizzle.config.ts"
+    "license": "MIT",
+    "publishConfig": {
+        "access": "public"
     },
     "exports": {
         ".": "./src/index.ts"
     },
+    "scripts": {
+        "db:seed": "tsx scripts/seed.ts",
+        "db:push": "drizzle-kit push",
+        "db:studio": "drizzle-kit studio",
+        "generate": "drizzle-kit generate"
+    },
     "dependencies": {
         "@libsql/client": "^0.14.0",
-        "dotenv": "^16.4.7",
-        "drizzle-orm": "^0.39.1"
+        "@repo/tsconfig": "^0.0.0",
+        "better-sqlite3": "^11.8.1",
+        "drizzle-orm": "0.39.2"
     },
     "devDependencies": {
         "@tsconfig/node22": "^22.0.0",
-        "@types/node": "^22.13.1",
-        "drizzle-kit": "^0.30.4",
-        "tsx": "^4.19.2"
-    }
+        "@types/better-sqlite3": "^7.6.12",
+        "drizzle-kit": "0.30.4",
+        "tsx": "4.7.1",
+        "typescript": "5.3.3"
+    },
+    "type": "module"
 }

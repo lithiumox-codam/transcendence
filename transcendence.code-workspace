@@ -9,7 +9,7 @@
             "name": "Packages"
         },
         {
-            "path": ".",
+            "path": "."
         }
     ],
     "settings": {
@@ -27,5 +27,10 @@
             "source.organizeImports.biome": "always"
         },
         "workbench.editor.labelFormat": "short"
+    },
+    "extensions": {
+        "recommendations": [
+            "yoavbls.pretty-ts-errors"
+        ]
     }
 }

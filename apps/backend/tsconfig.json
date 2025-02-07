@@ -1,9 +1,5 @@
 {
-    "extends": "@tsconfig/node22/tsconfig.json",
-    "compilerOptions": {
-        "outDir": "build",
-        "module": "ESNext",
-        "moduleResolution": "bundler",
-
-    }
+  "extends": ["@repo/tsconfig/base.json"],
+  "include": ["src/**/*"],
+  "exclude": ["node_modules"]
 }

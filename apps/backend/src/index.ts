@@ -6,8 +6,7 @@ const server = fastify();
 server.get("/ping", async (_request, reply) => {
     try {
         const res = await db.select().from(users).all();
-        console.log(res);
-        reply.send("pong");
+        reply.send(res);
     } catch (err) {
         console.log(err);
     }

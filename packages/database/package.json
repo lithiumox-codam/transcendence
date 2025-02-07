@@ -13,7 +13,8 @@
         "db:seed": "tsx scripts/seed.ts",
         "db:push": "drizzle-kit push",
         "db:studio": "drizzle-kit studio",
-        "generate": "drizzle-kit generate"
+        "generate": "drizzle-kit generate",
+        "dev": "drizzle-kit studio"
     },
     "dependencies": {
         "@libsql/client": "^0.14.0",

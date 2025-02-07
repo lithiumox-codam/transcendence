@@ -1,0 +1,7 @@
+{
+    "$schema": "https://inlang.com/schema/inlang-message-format",
+    "flag": "🇳🇱",
+    "language": "Nederlands",
+    "hello_world": "Hallo, {name} uit Nederland!",
+    "play": "Speel nu!"
+}

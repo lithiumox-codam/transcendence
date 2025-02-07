@@ -2,6 +2,9 @@
     "recommendations": [
         "biomejs.biome",
         "ardenivanov.svelte-intellisense",
-        "svelte.svelte-vscode"
+        "svelte.svelte-vscode",
+        "bradlc.vscode-tailwindcss",
+        "stivo.tailwind-fold",
+        "inlang.vs-code-extension"
     ]
 }

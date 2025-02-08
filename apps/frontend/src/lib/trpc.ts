@@ -1,5 +1,6 @@
 import type { AppRouter } from "@repo/trpc";
 import { createTRPCProxyClient, httpBatchLink } from "@trpc/client";
+import superjson from "superjson";
 
 export const client = createTRPCProxyClient<AppRouter>({
     links: [
@@ -8,4 +9,5 @@ export const client = createTRPCProxyClient<AppRouter>({
             url: "http://localhost:8080/trpc/",
         }),
     ],
+    transformer: superjson,
 });

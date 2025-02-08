@@ -1,9 +1,8 @@
 import { db, users } from "@repo/database";
 import {
-    type AppRouter,
     type FastifyTRPCPluginOptions,
     appRouter,
-    createContext,
+    createTRPCContext,
     fastifyTRPCPlugin,
 } from "@repo/trpc";
 import fastify from "fastify";
@@ -14,20 +13,17 @@ server.register(fastifyTRPCPlugin, {
     prefix: "/trpc",
     trpcOptions: {
         router: appRouter,
-        createContext,
+        createTRPCContext,
         onError({ path, error }) {
+            // report to error monitoring
             console.error(`Error in tRPC handler on path '${path}':`, error);
         },
-    } satisfies FastifyTRPCPluginOptions<AppRouter>["trpcOptions"],
+    } satisfies FastifyTRPCPluginOptions<typeof appRouter>["trpcOptions"],
 });
 
 server.get("/ping", async (_request, reply) => {
-    try {
-        const res = await db.select().from(users).all();
-        reply.send(res);
-    } catch (err) {
-        console.log(err);
-    }
+    const res = await db.select().from(users).all();
+    reply.send(res);
 });
 
 server.listen({ port: 8080 }, (err, address) => {

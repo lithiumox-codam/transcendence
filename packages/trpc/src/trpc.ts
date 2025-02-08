@@ -1,5 +1,5 @@
-import { db } from "@repo/database";
 import { TRPCError, initTRPC } from "@trpc/server";
+import type { CreateFastifyContextOptions } from "@trpc/server/adapters/fastify";
 import superjson from "superjson";
 import { ZodError } from "zod";
 
@@ -9,17 +9,10 @@ import { ZodError } from "zod";
  * This is where you define the context that is passed to every tRPC procedure.
  * You can add things like session data, database connections, etc.
  */
-export const createTRPCContext = async (opts: {
-    headers: Headers;
-    session: null;
-}) => {
-    const authToken = opts.headers.get("Authorization") ?? null;
-    return {
-        session, // user, etc (im implementing this later)
-        db,
-        token: authToken,
-    };
-};
+export function createTRPCContext({ req, res }: CreateFastifyContextOptions) {
+    const user = { name: req.headers.username ?? "anonymous" };
+    return { req, res, user };
+}
 
 /**
  * 2. INITIALIZATION
@@ -66,17 +59,19 @@ export const createTRPCRouter = t.router;
  */
 const timingMiddleware = t.middleware(async ({ next, path }) => {
     const start = Date.now();
-
+    let waitMs = 0;
     if (t._config.isDev) {
         // artificial delay in dev 100-500ms
-        const waitMs = Math.floor(Math.random() * 400) + 100;
+        waitMs = Math.floor(Math.random() * 400) + 100;
         await new Promise((resolve) => setTimeout(resolve, waitMs));
     }
 
     const result = await next();
 
     const end = Date.now();
-    console.log(`[TRPC] ${path} took ${end - start}ms to execute`);
+    console.log(
+        `[TRPC] ${path} took ${end - start}ms to execute (+${waitMs}ms)`,
+    );
 
     return result;
 });

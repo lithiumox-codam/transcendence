@@ -1,4 +1,5 @@
 import { db, userInputSchema, users } from "@repo/database";
+import { observable } from "@trpc/server/observable";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "../trpc.js";
@@ -12,5 +13,16 @@ export const userRouter = createTRPCRouter({
     }),
     all: publicProcedure.query(async () => {
         return await db.select().from(users).all();
+    }),
+    // emit a random number every second
+    test: publicProcedure.subscription(() => {
+        return observable<number>((emit) => {
+            const int = setInterval(() => {
+                emit.next(Math.random());
+            }, 500);
+            return () => {
+                clearInterval(int);
+            };
+        });
     }),
 });

@@ -1,3 +1,4 @@
+import ws from "@fastify/websocket";
 import { db, users } from "@repo/database";
 import {
     type FastifyTRPCPluginOptions,
@@ -9,11 +10,14 @@ import fastify from "fastify";
 
 const server = fastify();
 
+server.register(ws);
+
 server.register(fastifyTRPCPlugin, {
     prefix: "/trpc",
+    useWSS: true,
     trpcOptions: {
         router: appRouter,
-        createTRPCContext,
+        createContext: createTRPCContext,
         onError({ path, error }) {
             // report to error monitoring
             console.error(`Error in tRPC handler on path '${path}':`, error);

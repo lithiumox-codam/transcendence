@@ -1,8 +1,24 @@
 <script lang="ts">
+    import { client } from "$lib/trpc";
     import type { PageData } from "./$types";
 
     let { data }: { data: PageData } = $props();
+
+    let number = $state(0);
+
+    $effect(() => {
+        client.user.test.subscribe(undefined, {
+            onData: (data) => {
+                number = data;
+            },
+            onError: (err) => {
+                console.error(err);
+            },
+        });
+    });
 </script>
+
+{number}
 
 {#if data.allusers}
     <table class="min-w-full divide-y divide-gray-200">

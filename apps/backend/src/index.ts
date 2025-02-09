@@ -25,6 +25,32 @@ server.register(fastifyTRPCPlugin, {
     } satisfies FastifyTRPCPluginOptions<typeof appRouter>["trpcOptions"],
 });
 
+server.get("/panel", async (_, reply) => {
+    const { renderTrpcPanel } = await import("trpc-ui");
+
+    console.log(
+        renderTrpcPanel(appRouter, {
+            url: "http://localhost:8080/trpc",
+            meta: {
+                title: "My Backend Title",
+                description:
+                    "This is a description of my API, which supports [markdown](https://en.wikipedia.org/wiki/Markdown).",
+            },
+        }),
+    );
+
+    reply.send(
+        renderTrpcPanel(appRouter, {
+            url: "http://localhost:8080/trpc",
+            meta: {
+                title: "My Backend Title",
+                description:
+                    "This is a description of my API, which supports [markdown](https://en.wikipedia.org/wiki/Markdown).",
+            },
+        }),
+    );
+});
+
 server.get("/ping", async (_request, reply) => {
     const res = await db.select().from(users).all();
     reply.send(res);

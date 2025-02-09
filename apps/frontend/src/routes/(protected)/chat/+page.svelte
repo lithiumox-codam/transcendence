@@ -4,27 +4,21 @@
 
     let { data }: { data: PageData } = $props();
 
-    let number = $state(0);
-    let string = $state("");
+    let rooms: any = $state([]);
+    let name = $state("");
 
     $effect(() => {
-        client.user.test.subscribe(undefined, {
+        client.chat.rooms.listen.subscribe(undefined, {
             onData: (data) => {
-                number = data;
-            },
-        });
-        client.user.testString.subscribe(undefined, {
-            onData: (data) => {
-                string = data;
+                rooms = data;
             },
         });
     });
 </script>
 
-{number}
-{string}
+{JSON.stringify(data)}
 
-{#if data.allusers}
+{#if rooms}
     <table class="min-w-full divide-y divide-gray-200">
         <thead class="bg-gray-50">
             <tr>
@@ -41,18 +35,28 @@
                 <th
                     class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                 >
-                    Email
+                    Description
                 </th>
             </tr></thead
         >
         <tbody class="bg-white divide-y divide-gray-200">
-            {#each data.allusers as user}
+            {#each rooms as room}
                 <tr>
-                    <td class="px-6 py-4 whitespace-nowrap">{user.id}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">{user.name}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">{user.email}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">{room.id}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">{room.name}</td>
+                    <td class="px-6 py-4 whitespace-nowrap"
+                        >{room.description}</td
+                    >
                 </tr>
             {/each}
         </tbody>
     </table>
+    <input type="text" bind:value={name} />
+    <button
+        onclick={async () => {
+            await client.chat.rooms.create.mutate({ name });
+        }}
+    >
+        create room
+    </button>
 {/if}

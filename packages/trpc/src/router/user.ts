@@ -14,11 +14,21 @@ export const userRouter = createTRPCRouter({
     all: publicProcedure.query(async () => {
         return await db.select().from(users).all();
     }),
-    // emit a random number every second
     test: publicProcedure.subscription(() => {
         return observable<number>((emit) => {
             const int = setInterval(() => {
                 emit.next(Math.random());
+            }, 500);
+            return () => {
+                clearInterval(int);
+            };
+        });
+    }),
+
+    testString: publicProcedure.subscription(() => {
+        return observable<string>((emit) => {
+            const int = setInterval(() => {
+                emit.next(Math.random().toString(36).substring(7));
             }, 500);
             return () => {
                 clearInterval(int);

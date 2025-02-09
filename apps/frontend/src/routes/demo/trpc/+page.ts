@@ -3,7 +3,7 @@ import { client } from "$lib/trpc";
 import type { PageLoad } from "./$types";
 
 export const load = (async () => {
-    if (!browser) return;
-    const allusers = await client.user.all.query();
-    return { allusers };
+    return {
+        allusers: await client.user.all.query(),
+    };
 }) satisfies PageLoad;

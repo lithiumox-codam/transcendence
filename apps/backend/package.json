@@ -1,24 +1,30 @@
 {
-  "name": "backend",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "build": "tsc -p tsconfig.json",
-    "start": "node build/index.js"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "@fastify/websocket": "^11.0.2",
-    "fastify": "^5.2.1",
-    "ws": "^8.18.0"
-  },
-  "devDependencies": {
-    "@tsconfig/node22": "^22.0.0",
-    "@types/node": "^22.13.1",
-    "@types/ws": "^8.5.14",
-    "typescript": "5.7.3"
-  }
+    "name": "backend",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "type": "module",
+    "scripts": {
+        "build": "tsc -p tsconfig.json",
+        "preview": "node build/index.js",
+        "dev": "tsx watch src/index.ts"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "@fastify/websocket": "^11.0.2",
+        "@repo/database": "^0.0.0",
+        "@repo/trpc": "workspace:^",
+        "@repo/tsconfig": "^0.0.0",
+        "@trpc/server": "^10.45.2",
+        "fastify": "^5.2.1"
+    },
+    "devDependencies": {
+        "@tsconfig/node22": "^22.0.0",
+        "@types/node": "^22.13.1",
+        "trpc-ui": "^1.0.12",
+        "tsx": "4.7.1",
+        "typescript": "5.7.3"
+    }
 }

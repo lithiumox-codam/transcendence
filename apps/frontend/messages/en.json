@@ -1,4 +1,7 @@
 {
-  "$schema": "https://inlang.com/schema/inlang-message-format",
-  "hello_world": "Hello, {name} from en!"
+    "$schema": "https://inlang.com/schema/inlang-message-format",
+    "flag": "🇬🇧",
+    "language": "English",
+    "hello_world": "Hello, {name} from England!",
+    "play": "Play now!"
 }

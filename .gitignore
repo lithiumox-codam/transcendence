@@ -28,5 +28,6 @@ yarn-error.log*
 
 # turbo
 .turbo
+sqlite.db
 
 .vscode/transcendence.code-workspace

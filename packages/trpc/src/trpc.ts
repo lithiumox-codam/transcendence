@@ -1,5 +1,8 @@
+import { verify } from "@repo/auth";
+import { db, users } from "@repo/database";
 import { TRPCError, initTRPC } from "@trpc/server";
 import type { CreateFastifyContextOptions } from "@trpc/server/adapters/fastify";
+import { eq } from "drizzle-orm";
 import superjson from "superjson";
 import { ZodError } from "zod";
 
@@ -9,8 +12,29 @@ import { ZodError } from "zod";
  * This is where you define the context that is passed to every tRPC procedure.
  * You can add things like session data, database connections, etc.
  */
-export function createTRPCContext({ req, res }: CreateFastifyContextOptions) {
-    const user = { name: req.headers.username ?? "anonymous" };
+export async function createTRPCContext({
+    req,
+    res,
+}: CreateFastifyContextOptions) {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+        return { req, res, user: null };
+    }
+    const token = authHeader.split(" ")[1];
+    let user = null;
+    if (token) {
+        console.log("token", token);
+        try {
+            const payload = await verify(token);
+            const userId: number = payload.userId as number;
+            if (!userId) {
+                throw new Error("No user id in token");
+            }
+            user = await db.select().from(users).where(eq(users.id, userId));
+            console.log("user", user);
+        } catch (e) {}
+    }
+
     return { req, res, user };
 }
 
@@ -93,16 +117,16 @@ export const publicProcedure = t.procedure.use(timingMiddleware);
  *
  * @see https://trpc.io/docs/procedures
  */
-// export const protectedProcedure = t.procedure
-//     .use(timingMiddleware)
-//     .use(({ ctx, next }) => {
-//         if (!ctx.session?.user) {
-//             throw new TRPCError({ code: "UNAUTHORIZED" });
-//         }
-//         return next({
-//             ctx: {
-//                 // infers the `session` as non-nullable
-//                 session: { ...ctx.session, user: ctx.session.user },
-//             },
-//         });
-//     });
+export const protectedProcedure = t.procedure
+    .use(timingMiddleware)
+    .use(({ ctx, next }) => {
+        if (!ctx.user) {
+            throw new TRPCError({ code: "UNAUTHORIZED" });
+        }
+        return next({
+            ctx: {
+                // infers the `session` as non-nullable
+                user: ctx.user,
+            },
+        });
+    });

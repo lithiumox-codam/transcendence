@@ -23,6 +23,7 @@
 
 {number}
 {string}
+{JSON.stringify(data.user)}
 
 {#if data.allusers}
     <table class="min-w-full divide-y divide-gray-200">

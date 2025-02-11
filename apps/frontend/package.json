@@ -30,6 +30,7 @@
     },
     "dependencies": {
         "@inlang/paraglide-sveltekit": "^0.15.5",
+        "@repo/database": "workspace:^",
         "@repo/trpc": "workspace:^",
         "@trpc/client": "^10.45.2",
         "superjson": "^2.2.2",

@@ -5,6 +5,7 @@
     let { data }: { data: PageData } = $props();
 
     let rooms: any = $state([]);
+    let string = $state("");
     let name = $state("");
 
     $effect(() => {
@@ -13,10 +14,11 @@
                 rooms = data;
             },
         });
+        client.chat.rooms.all.query().then((data) => {
+            rooms = data;
+        });
     });
 </script>
-
-{JSON.stringify(data)}
 
 {#if rooms}
     <table class="min-w-full divide-y divide-gray-200">

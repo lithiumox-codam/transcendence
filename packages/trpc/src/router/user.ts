@@ -2,10 +2,17 @@ import { db, userInputSchema, users } from "@repo/database";
 import { observable } from "@trpc/server/observable";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
-import { createTRPCRouter, publicProcedure } from "../trpc.js";
+import {
+    createTRPCRouter,
+    protectedProcedure,
+    publicProcedure,
+} from "../trpc.js";
 
 export const userRouter = createTRPCRouter({
-    get: publicProcedure.input(z.number()).query(async (opts) => {
+    get: protectedProcedure.input(z.number()).query(async (opts) => {
+        if (!opts.ctx.user) {
+            throw new Error("User not found");
+        }
         return await db.select().from(users).where(eq(users.id, opts.input));
     }),
     create: publicProcedure.input(userInputSchema).mutation(async (opts) => {

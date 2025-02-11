@@ -1,5 +1,6 @@
 <script lang="ts">
 import * as BABYLON from "babylonjs";
+import { onMount } from "svelte";
 
 let canvas = $state<HTMLCanvasElement>();
 let engine = $state<BABYLON.Engine>();
@@ -11,9 +12,13 @@ const victoryScore = 7;
 const upperBound = 10;
 const lowerBound = -10;
 
+let ground = $state<BABYLON.Mesh>();
 let leftPaddle = $state<BABYLON.Mesh>();
+let leftPaddleLight = $state<BABYLON.RectAreaLight>();
 let rightPaddle = $state<BABYLON.Mesh>();
+let rightPaddleLight = $state<BABYLON.RectAreaLight>();
 let ball = $state<BABYLON.Mesh>();
+let ballLight = $state<BABYLON.PointLight>();
 
 let ballVelocity = $state<BABYLON.Vector3>();
 let collisionCooldown = $state(0);
@@ -26,121 +31,13 @@ let winner = $state("");
 // Reactive key states using object
 const keysPressed = $state<Record<string, boolean>>({});
 
-$effect(() => {
+// Game loop control
+let animationFrame: number;
+
+onMount(() => {
   if (!canvas) return;
-  engine = new BABYLON.Engine(canvas, true);
-  scene = new BABYLON.Scene(engine);
-  scene.clearColor = new BABYLON.Color4(0, 0, 0, 1);
-
-  const camera = new BABYLON.ArcRotateCamera(
-    "camera",
-    -Math.PI / 2,
-    Math.PI * 0.75,
-    50,
-    BABYLON.Vector3.Zero(),
-    scene,
-  );
-  const neonMaterial = new BABYLON.StandardMaterial("neonMaterial", scene);
-  neonMaterial.emissiveColor = new BABYLON.Color3(1, 1, 1);
-  // Create solid borders
-  const borderMaterial = new BABYLON.StandardMaterial("borderMat", scene);
-  borderMaterial.emissiveColor = new BABYLON.Color3(1, 1, 1); // White glow
-  borderMaterial.diffuseColor = new BABYLON.Color3(0, 0, 0); // Black base
-
-  const createDashedLine = () => {
-    const dashCount = 10;
-    const dashHeight = 1;
-    const gap = 1;
-
-    for (let i = 0; i < dashCount; i++) {
-      const dash = BABYLON.MeshBuilder.CreateBox(
-        "dash",
-        {
-          height: dashHeight,
-          width: 0.5,
-          depth: 0.5,
-        },
-        scene,
-      );
-      dash.position.y = (i - dashCount / 2) * (dashHeight + gap);
-      dash.material = neonMaterial.clone("dashMaterial");
-    }
-  };
-
-  createDashedLine();
-
-  // Create 4 border walls
-  const createBorder = (position: BABYLON.Vector3, size: BABYLON.Vector3) => {
-    const border = BABYLON.MeshBuilder.CreateBox(
-      "border",
-      {
-        width: size.x,
-        height: size.y,
-        depth: size.z,
-      },
-      scene,
-    );
-    border.position = position;
-    border.material = borderMaterial;
-    return border;
-  };
-
-  // Top border
-  createBorder(
-    new BABYLON.Vector3(0, upperBound + 0.5, 0),
-    new BABYLON.Vector3(42, 1, 1),
-  );
-
-  // Bottom border
-  createBorder(
-    new BABYLON.Vector3(0, lowerBound - 0.5, 0),
-    new BABYLON.Vector3(42, 1, 1),
-  );
-
-  // Left border
-  //   createBorder(new BABYLON.Vector3(-21, 0, 0), new BABYLON.Vector3(1, 22, 1));
-
-  // Right border
-  //   createBorder(new BABYLON.Vector3(21, 0, 0), new BABYLON.Vector3(1, 22, 1));
-
-  //   border.material.wireframe = true; // Make it a wireframe
-  //   glowLayer.addExcludedMesh(border); // Optional: exclude from glow if too bright
-
-  const light = new BABYLON.PointLight(
-    "light",
-    new BABYLON.Vector3(0, 20, -10),
-    scene,
-  );
-
-  const paddleWidth = 1;
-  const paddleHeight = 4;
-  const paddleDepth = 1;
-
-  leftPaddle = BABYLON.MeshBuilder.CreateBox(
-    "leftPaddle",
-    { width: paddleWidth, height: paddleHeight, depth: paddleDepth },
-    scene,
-  );
-  light;
-  leftPaddle.position.x = -20;
-  leftPaddle.material = neonMaterial;
-
-  rightPaddle = BABYLON.MeshBuilder.CreateBox(
-    "rightPaddle",
-    { width: paddleWidth, height: paddleHeight, depth: paddleDepth },
-    scene,
-  );
-  rightPaddle.position.x = 20;
-  rightPaddle.material = neonMaterial;
-
-  ball = BABYLON.MeshBuilder.CreateSphere("ball", { diameter: 1 }, scene);
-  ball.position = BABYLON.Vector3.Zero();
-  ballVelocity = new BABYLON.Vector3(0.1, 0.07, 0);
-  ball.material = neonMaterial;
-
-  const glowLayer = new BABYLON.GlowLayer("glow", scene);
-  glowLayer.intensity = 0.5;
-
+  initBabylon();
+  if (!engine || !scene) return;
   const handleKey = (e: KeyboardEvent, pressed: boolean) => {
     e.preventDefault();
     keysPressed[e.key] = pressed;
@@ -163,9 +60,163 @@ $effect(() => {
   };
 });
 
+let topBorder = $state<BABYLON.Mesh>();
+let bottomBorder = $state<BABYLON.Mesh>();
+
+function initBorders() {
+  if (!scene) return;
+  const borderMaterial = new BABYLON.StandardMaterial("borderMat", scene);
+  borderMaterial.emissiveColor = new BABYLON.Color3(1, 1, 1); // White glow
+  borderMaterial.diffuseColor = new BABYLON.Color3(0, 0, 0); // Black base
+
+  const createBorder = (position: BABYLON.Vector3, size: BABYLON.Vector3) => {
+    const border = BABYLON.MeshBuilder.CreateBox(
+      "border",
+      {
+        width: size.x,
+        height: size.y,
+        depth: size.z,
+      },
+      scene,
+    );
+    border.position = position;
+    border.material = borderMaterial;
+    return border;
+  };
+  // Top border
+  topBorder = createBorder(
+    new BABYLON.Vector3(0, upperBound + 0.5, 0),
+    new BABYLON.Vector3(42, 1, 1),
+  );
+
+  // Bottom border
+  bottomBorder = createBorder(
+    new BABYLON.Vector3(0, lowerBound - 0.5, 0),
+    new BABYLON.Vector3(42, 1, 1),
+  );
+}
+
+function initBabylon() {
+  if (!canvas) return;
+  engine = new BABYLON.Engine(canvas, true);
+  scene = new BABYLON.Scene(engine);
+  scene.clearColor = new BABYLON.Color4(0, 0, 0, 1);
+  const axes = new BABYLON.Debug.AxesViewer(scene, 2); // 2 is the size of the axes
+
+  const ambientLight = new BABYLON.HemisphericLight(
+    "ambientLight",
+    new BABYLON.Vector3(0, 1, 0),
+    scene,
+  );
+  ambientLight.intensity = 0.1;
+
+  const mirrorMaterial = new BABYLON.StandardMaterial("mirrorMaterial", scene);
+  mirrorMaterial.reflectionTexture = new BABYLON.MirrorTexture(
+    "mirror",
+    512,
+    scene,
+    true,
+  );
+  mirrorMaterial.reflectionTexture.level = 1;
+  ground = BABYLON.MeshBuilder.CreatePlane(
+    "MirrorMesh",
+    { width: 120, height: 120 },
+    scene,
+  );
+  ground.position.z = 0.5; // Move behind game elements
+  ground.material = mirrorMaterial;
+  const camera = new BABYLON.ArcRotateCamera(
+    "camera",
+    -Math.PI / 2,
+    Math.PI * 0.75,
+    50,
+    BABYLON.Vector3.Zero(),
+    scene,
+  );
+  camera.attachControl(canvas, true);
+
+  const neonMaterial = new BABYLON.StandardMaterial("neonMaterial", scene);
+  neonMaterial.emissiveColor = new BABYLON.Color3(1, 1, 1);
+  initBorders();
+
+  const createDashedLine = () => {
+    const dashCount = 10;
+    const dashHeight = 1;
+    const gap = 1;
+
+    for (let i = 0; i < dashCount; i++) {
+      const dash = BABYLON.MeshBuilder.CreateBox(
+        "dash",
+        {
+          height: dashHeight,
+          width: 0.5,
+          depth: 0.1,
+        },
+        scene,
+      );
+      dash.position.y = (i - dashCount / 2) * (dashHeight + gap);
+      dash.material = neonMaterial.clone("dashMaterial");
+    }
+  };
+
+  createDashedLine();
+
+  neonMaterial.emissiveColor = new BABYLON.Color3(1, 1, 1);
+
+  const paddleWidth = 1;
+  const paddleHeight = 4;
+  const paddleDepth = 1;
+
+  leftPaddle = BABYLON.MeshBuilder.CreateBox(
+    "leftPaddle",
+    { width: paddleWidth, height: paddleHeight, depth: paddleDepth },
+    scene,
+  );
+  leftPaddle.position.x = -20;
+  leftPaddle.material = neonMaterial;
+  //   leftPaddleLight = new BABYLON.RectAreaLight(
+  //     "leftPaddleLight",
+  //     leftPaddle.position,
+  //     paddleWidth,
+  //     paddleHeight,
+  //     scene,
+  //   ); // This is not working
+
+  rightPaddle = BABYLON.MeshBuilder.CreateBox(
+    "rightPaddle",
+    { width: paddleWidth, height: paddleHeight, depth: paddleDepth },
+    scene,
+  );
+  rightPaddle.position.x = 20;
+  rightPaddle.material = neonMaterial;
+  //   rightPaddleLight = new BABYLON.RectAreaLight(
+  //     "rightPaddleLight",
+  //     rightPaddle.position,
+  //     10,
+  //     10,
+  //     scene,
+  //   ); // This is not working
+  const ballMaterial = new BABYLON.StandardMaterial("ballMaterial", scene);
+  ballMaterial.emissiveColor = new BABYLON.Color3(1, 0, 0);
+  ballMaterial.diffuseColor = new BABYLON.Color3(1, 0, 0);
+
+  ball = BABYLON.MeshBuilder.CreateSphere("ball", { diameter: 1 }, scene);
+  ball.position = BABYLON.Vector3.Zero();
+  ballVelocity = new BABYLON.Vector3(0.1, 0.07, 0);
+  ball.material = ballMaterial;
+
+  ballLight = new BABYLON.PointLight("ballLight", ball.position, scene);
+  ballLight.diffuse = new BABYLON.Color3(1, 0, 0);
+  ballLight.intensity = 0.4;
+
+  //   const glowLayer = new BABYLON.GlowLayer("glow", scene);
+  //   glowLayer.addExcludedMesh(ground);
+  //   glowLayer.intensity = 0.5;
+}
+
 function updatePaddles() {
-  if (gameOver || !leftPaddle || !rightPaddle) return;
-  const moveSpeed = 0.3;
+  if (!leftPaddle || !rightPaddle) return;
+  const moveSpeed = 0.2;
   if (keysPressed.w && leftPaddle.position.y < 8) {
     leftPaddle.position.y += moveSpeed;
   }
@@ -181,15 +232,25 @@ function updatePaddles() {
 }
 
 function resetBall() {
-  if (!ball || !ballVelocity) return;
+  if (!ball || !ballVelocity || !ballLight) return;
   ball.position = BABYLON.Vector3.Zero();
+  //   ballLight.position = ball.position;
   ballVelocity.x = Math.random() < 0.5 ? 0.1 : -0.1;
   ballVelocity.y = Math.random() < 0.5 ? 0.07 : -0.07;
 }
 
 function updateBall() {
-  if (gameOver || !ball || !leftPaddle || !rightPaddle || !ballVelocity) return;
+  if (
+    gameOver ||
+    !ball ||
+    !leftPaddle ||
+    !rightPaddle ||
+    !ballVelocity ||
+    !ballLight
+  )
+    return;
   ball.position.addInPlace(ballVelocity);
+  ballLight.position = ball.position;
   // Define vertical boundaries.
   if (ball.position.y > upperBound || ball.position.y < lowerBound) {
     ballVelocity.y *= -1;
@@ -255,4 +316,4 @@ function updateBall() {
 </div>
 {/if}
 
-<canvas bind:this={canvas} class="z-0" style="width: 100%; height: 100vh; display: block;"></canvas> -->
+<canvas bind:this={canvas} class="z-0" style="width: 100%; height: 100vh; display: block;"></canvas>

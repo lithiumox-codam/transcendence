@@ -2,6 +2,7 @@
     import { client } from "$lib/trpc";
     import { browser } from "$app/environment";
     import type { PageData } from "./$types";
+    import { goto } from "$app/navigation";
 
     let { data }: { data: PageData } = $props();
 
@@ -15,8 +16,8 @@
                 email,
                 password,
             });
-            console.log(res);
-            if (browser) localStorage.setItem("token", res.jwt);
+            if (browser) localStorage.setItem("token", res);
+            goto("/demo/trpc");
         } catch (error) {
             console.error(error);
         }

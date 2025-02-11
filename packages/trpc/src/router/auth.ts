@@ -54,10 +54,7 @@ export const authRouter = createTRPCRouter({
             process.env.CRYPTO_SECRET || "",
         );
 
-        return {
-            user: user[0],
-            jwt,
-        };
+        return jwt;
     }),
     login: publicProcedure
         .input(z.object({ email: z.string(), password: z.string() }))
@@ -82,9 +79,6 @@ export const authRouter = createTRPCRouter({
 
             const jwt = await sign({ userId: user[0].id });
 
-            return {
-                user: user[0],
-                jwt,
-            };
+            return jwt;
         }),
 });

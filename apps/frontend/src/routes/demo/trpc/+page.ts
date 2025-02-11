@@ -4,7 +4,7 @@ import type { PageLoad } from "./$types";
 
 export const load = (async () => {
     try {
-        const user = await client.user.get.query(1);
+        const user = await client.user.get.query();
         const allusers = await client.user.all.query();
         return { user, allusers };
     } catch (error) {

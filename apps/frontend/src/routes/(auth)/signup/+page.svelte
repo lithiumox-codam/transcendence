@@ -18,8 +18,8 @@
         event.preventDefault();
 
         try {
-            const response = await client.auth.signup.mutate(newUser);
-            if (browser) localStorage.setItem("token", response.jwt);
+            const res = await client.auth.signup.mutate(newUser);
+            if (browser) localStorage.setItem("token", res);
         } catch (error) {
             console.error(error);
         }

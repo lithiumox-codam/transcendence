@@ -21,17 +21,27 @@ export async function createTRPCContext({
         return { req, res, user: null };
     }
     const token = authHeader.split(" ")[1];
-    let user = null;
+    let user: { id: number; name: string; email: string } | undefined =
+        undefined;
     if (token) {
-        console.log("token", token);
         try {
             const payload = await verify(token);
             const userId: number = payload.userId as number;
             if (!userId) {
                 throw new Error("No user id in token");
             }
-            user = await db.select().from(users).where(eq(users.id, userId));
-            console.log("user", user);
+            const res = await db
+                .select({
+                    id: users.id,
+                    name: users.name,
+                    email: users.email,
+                })
+                .from(users)
+                .where(eq(users.id, userId));
+            if (res.length === 0) {
+                throw new Error("User not found");
+            }
+            user = res[0];
         } catch (e) {}
     }
 

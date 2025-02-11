@@ -31,6 +31,16 @@ export const client = createTRPCProxyClient<AppRouter>({
                 },
             }),
         }),
+        (runtime) => {
+            return ({ next, op }) => {
+                return next(op).catch((err) => {
+                    if (err instanceof Error) {
+                        console.error(err.message);
+                    }
+                    return err;
+                });
+            };
+        },
     ],
     transformer: superjson,
 });

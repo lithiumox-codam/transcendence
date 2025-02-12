@@ -1,8 +1,8 @@
 import { sign, verify } from "@repo/auth";
 import { db, userInputSchema, users } from "@repo/database";
 import { TRPCError } from "@trpc/server";
+import cookie from "cookie";
 import { and, eq } from "drizzle-orm";
-import * as jose from "jose";
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "../trpc.ts";
 
@@ -49,10 +49,7 @@ export const authRouter = createTRPCRouter({
             });
         }
 
-        const jwt = await sign(
-            { userId: user[0].id },
-            process.env.CRYPTO_SECRET || "",
-        );
+        const jwt = await sign({ userId: user[0].id });
 
         return jwt;
     }),

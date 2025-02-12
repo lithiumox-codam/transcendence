@@ -15,12 +15,12 @@ function getSecret(): Uint8Array {
  * @param secret The secret key used to sign the JWT.  Ensure this is
  *               kept securely.
  * @param expiresIn  A string or number representing the expiration time.
- *                   Examples: "1h", "2d", 3600 (seconds).  Defaults to "1h".
+ *                   Examples: "1h", "2d", 3600 (seconds).  Defaults to "1d".
  * @returns A promise that resolves to the signed JWT.
  */
 export async function sign(
     payload: JWTPayload,
-    expiresIn: string | number = "1h",
+    expiresIn: string | number = "1d",
 ): Promise<string> {
     const alg = "HS256"; // Consider RS256 or ES256 for higher security
     try {

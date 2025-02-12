@@ -6,6 +6,14 @@ import { eq } from "drizzle-orm";
 import superjson from "superjson";
 import { ZodError } from "zod";
 
+const extractToken = (url: string) => {
+    const tokenMatch = url.match(/token=([^&]*)/);
+    if (!tokenMatch) {
+        return null;
+    }
+    return tokenMatch[1];
+};
+
 /**
  * 1. REQUEST CONTEXT
  *
@@ -16,13 +24,11 @@ export async function createTRPCContext({
     req,
     res,
 }: CreateFastifyContextOptions) {
-    const authHeader = req.headers.authorization;
-    if (!authHeader) {
-        return { req, res, user: null };
-    }
-    const token = authHeader.split(" ")[1];
     let user: { id: number; name: string; email: string } | undefined =
         undefined;
+
+    const token = extractToken(req.url);
+
     if (token) {
         try {
             const payload = await verify(token);

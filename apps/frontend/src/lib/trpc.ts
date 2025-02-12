@@ -1,16 +1,14 @@
 import { browser } from "$app/environment";
 import type { AppRouter } from "@repo/trpc";
-import {
-    createTRPCProxyClient,
-    createWSClient,
-    httpBatchLink,
-    splitLink,
-    wsLink,
-} from "@trpc/client";
+import { createTRPCClient, createWSClient, wsLink } from "@trpc/client";
 import superjson from "superjson";
 
 const wsClient = createWSClient({
-    url: "ws://localhost:8080/trpc",
+    url: (() => {
+        if (browser)
+            return `http://localhost:8080/trpc?token=${localStorage.getItem("token")}`;
+        return "http://localhost:8080/trpc";
+    })(),
 });
 
 const getToken = () => {
@@ -18,29 +16,6 @@ const getToken = () => {
     return null;
 };
 
-export const client = createTRPCProxyClient<AppRouter>({
-    links: [
-        splitLink({
-            condition: (op) => op.type === "subscription",
-            true: wsLink<AppRouter>({ client: wsClient }),
-            false: httpBatchLink({
-                // Replace this URL with that of your tRPC server
-                url: "http://localhost:8080/trpc",
-                headers: {
-                    Authorization: `Bearer ${getToken()}`,
-                },
-            }),
-        }),
-        (runtime) => {
-            return ({ next, op }) => {
-                return next(op).catch((err) => {
-                    if (err instanceof Error) {
-                        console.error(err.message);
-                    }
-                    return err;
-                });
-            };
-        },
-    ],
-    transformer: superjson,
+export const client = createTRPCClient<AppRouter>({
+    links: [wsLink<AppRouter>({ client: wsClient, transformer: superjson })],
 });

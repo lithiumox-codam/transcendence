@@ -20,7 +20,7 @@
         "@repo/database": "^0.0.0",
         "@repo/trpc": "workspace:^",
         "@repo/tsconfig": "^0.0.0",
-        "@trpc/server": "^10.45.2",
+        "@trpc/server": "11.0.0-rc.764",
         "fastify": "^5.2.1"
     },
     "devDependencies": {

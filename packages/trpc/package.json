@@ -17,12 +17,16 @@
         "@repo/auth": "workspace:^",
         "@repo/database": "^0.0.0",
         "@repo/tsconfig": "^0.0.0",
-        "@trpc/server": "^10.45.2",
+        "@trpc/server": "11.0.0-rc.764",
         "@types/better-sqlite3": "^7.6.12",
+        "cookie": "^1.0.2",
         "drizzle-orm": "0.39.2",
         "fastify": "^5.2.1",
         "jose": "^5.9.6",
         "superjson": "^2.2.2",
         "zod": "^3.24.1"
+    },
+    "devDependencies": {
+        "@types/cookie": "^1.0.0"
     }
 }

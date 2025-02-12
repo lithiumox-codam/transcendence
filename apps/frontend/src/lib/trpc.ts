@@ -11,11 +11,6 @@ const wsClient = createWSClient({
     })(),
 });
 
-const getToken = () => {
-    if (browser) return localStorage.getItem("token");
-    return null;
-};
-
 export const client = createTRPCClient<AppRouter>({
     links: [wsLink<AppRouter>({ client: wsClient, transformer: superjson })],
 });

@@ -1,6 +1,7 @@
-import { EventEmitter } from "node:events";
+import EventEmitter, { on } from "node:events";
 import {
     type Message,
+    type Room,
     db,
     memberInsertSchema,
     members,
@@ -9,10 +10,13 @@ import {
     roomInsertSchema,
     rooms,
 } from "@repo/database";
-import { observable } from "@trpc/server/observable";
 import { desc, eq } from "drizzle-orm";
 import { z } from "zod";
-import { createTRPCRouter, publicProcedure } from "../trpc.js";
+import {
+    createTRPCRouter,
+    protectedProcedure,
+    publicProcedure,
+} from "../trpc.js";
 
 const ee = new EventEmitter();
 
@@ -20,9 +24,27 @@ const roomsRouter = createTRPCRouter({
     get: publicProcedure.input(z.number()).query(async (opts) => {
         return await db.select().from(rooms).where(eq(rooms.id, opts.input));
     }),
-    create: publicProcedure.input(roomInsertSchema).mutation(async (opts) => {
-        return await db.insert(rooms).values(opts.input);
-    }),
+    create: protectedProcedure
+        .input(roomInsertSchema)
+        .mutation(async (opts) => {
+            try {
+                const room = await db
+                    .insert(rooms)
+                    .values(opts.input)
+                    .returning();
+                if (room[0]) {
+                    await db.insert(members).values({
+                        userId: opts.ctx.user.id,
+                        roomId: room[0].id,
+                    });
+                }
+                ee.emit("add", room);
+                return room;
+            } catch (e) {
+                console.error(e);
+                throw e;
+            }
+        }),
     all: publicProcedure
         .input(
             z
@@ -41,13 +63,29 @@ const roomsRouter = createTRPCRouter({
                 .offset(offset)
                 .all();
         }),
-    listen: publicProcedure.subscription(() => {
-        return observable<Message>((emit) => {
-            ee.on("message", emit.next);
-            return () => {
-                ee.off("message", emit.next);
-            };
-        });
+    listen: protectedProcedure.subscription(async function* (opts) {
+        try {
+            // get the rooms the user is in
+            const initialRooms = await db
+                .select({
+                    id: rooms.id,
+                    name: rooms.name,
+                    createdAt: rooms.createdAt,
+                })
+                .from(rooms)
+                .innerJoin(members, eq(rooms.id, members.roomId))
+                .where(eq(members.userId, opts.ctx.user.id));
+            yield { type: "initial", data: initialRooms };
+
+            for await (const [data] of on(ee, "add", {
+                signal: opts.signal,
+            })) {
+                yield { type: "add", data };
+            }
+        } catch (e) {
+            console.error(e);
+            throw e;
+        }
     }),
 });
 
@@ -62,8 +100,8 @@ const messagesRouter = createTRPCRouter({
         .input(messageInsertSchema)
         .mutation(async (opts) => {
             try {
-                await db.insert(messages).values(opts.input);
-                ee.emit("message", opts.input);
+                const message = await db.insert(messages).values(opts.input);
+                ee.emit("message", message);
                 return opts.input;
             } catch (e) {
                 console.error(e);

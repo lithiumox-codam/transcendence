@@ -1,21 +1,22 @@
 <script lang="ts">
     import { client } from "$lib/trpc";
+    import type { Room } from "@repo/database";
     import type { PageData } from "./$types";
 
     let { data }: { data: PageData } = $props();
 
-    let rooms: any = $state([]);
-    let string = $state("");
+    let rooms: Room[] = $state([]);
     let name = $state("");
 
     $effect(() => {
         client.chat.rooms.listen.subscribe(undefined, {
             onData: (data) => {
-                rooms = data;
+                if (data.type === "initial") {
+                    rooms = data.data;
+                } else if (data.type === "add") {
+                    rooms.push(data.data[0]);
+                }
             },
-        });
-        client.chat.rooms.all.query().then((data) => {
-            rooms = data;
         });
     });
 </script>
@@ -34,11 +35,6 @@
                 >
                     Name
                 </th>
-                <th
-                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
-                    Description
-                </th>
             </tr></thead
         >
         <tbody class="bg-white divide-y divide-gray-200">
@@ -46,9 +42,6 @@
                 <tr>
                     <td class="px-6 py-4 whitespace-nowrap">{room.id}</td>
                     <td class="px-6 py-4 whitespace-nowrap">{room.name}</td>
-                    <td class="px-6 py-4 whitespace-nowrap"
-                        >{room.description}</td
-                    >
                 </tr>
             {/each}
         </tbody>

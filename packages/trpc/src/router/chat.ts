@@ -97,10 +97,16 @@ const messagesRouter = createTRPCRouter({
             .where(eq(messages.id, opts.input));
     }),
     create: publicProcedure
-        .input(messageInsertSchema)
+        .input(messageInsertSchema.omit({ userId: true }))
         .mutation(async (opts) => {
+            if (!opts.ctx.user) {
+                throw new Error("User not found");
+            }
             try {
-                const message = await db.insert(messages).values(opts.input);
+                const message = await db.insert(messages).values({
+                    ...opts.input,
+                    userId: opts.ctx.user.id,
+                });
                 ee.emit("message", message);
                 return opts.input;
             } catch (e) {

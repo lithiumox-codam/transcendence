@@ -19,6 +19,18 @@
             },
         });
     });
+
+    async function sendMessage(roomId: number) {
+        try {
+            const res = await client.chat.messages.create.mutate({
+                roomId,
+                message: prompt("Enter your message") ?? "",
+            });
+            console.log(res);
+        } catch (error) {
+            console.error(error);
+        }
+    }
 </script>
 
 {#if rooms}
@@ -42,6 +54,15 @@
                 <tr>
                     <td class="px-6 py-4 whitespace-nowrap">{room.id}</td>
                     <td class="px-6 py-4 whitespace-nowrap">{room.name}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <button
+                            onclick={() => {
+                                sendMessage(room.id);
+                            }}
+                        >
+                            send message
+                        </button>
+                    </td>
                 </tr>
             {/each}
         </tbody>

@@ -18,11 +18,12 @@
     "formatter": {
         "enabled": true,
         "indentStyle": "space",
-        "ignore": ["*.svelte"],
+        "ignore": ["*.svelte", "paraglide/**"],
         "indentWidth": 4
     },
     "organizeImports": {
-        "enabled": true
+        "enabled": true,
+        "ignore": ["*.svelte"]
     },
     "linter": {
         "enabled": true,

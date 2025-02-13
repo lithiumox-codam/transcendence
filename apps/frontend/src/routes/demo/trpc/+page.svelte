@@ -1,8 +1,29 @@
 <script lang="ts">
+    import { client } from "$lib/trpc";
     import type { PageData } from "./$types";
 
     let { data }: { data: PageData } = $props();
+
+    let number = $state(0);
+    let string = $state("");
+
+    $effect(() => {
+        client.user.test.subscribe(undefined, {
+            onData: (data) => {
+                number = data;
+            },
+        });
+        client.user.testString.subscribe(undefined, {
+            onData: (data) => {
+                string = data;
+            },
+        });
+    });
 </script>
+
+{number}
+{string}
+{JSON.stringify(data.user)}
 
 {#if data.allusers}
     <table class="min-w-full divide-y divide-gray-200">

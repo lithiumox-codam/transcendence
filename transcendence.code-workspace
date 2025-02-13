@@ -29,8 +29,6 @@
         "workbench.editor.labelFormat": "short"
     },
     "extensions": {
-        "recommendations": [
-            "yoavbls.pretty-ts-errors"
-        ]
+        "recommendations": ["yoavbls.pretty-ts-errors"]
     }
 }

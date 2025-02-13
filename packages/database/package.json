@@ -10,16 +10,17 @@
         ".": "./src/index.ts"
     },
     "scripts": {
-        "db:seed": "tsx scripts/seed.ts",
+        "db:clear": "tsx ./src/clear.ts",
         "db:push": "drizzle-kit push",
         "db:studio": "drizzle-kit studio",
         "generate": "drizzle-kit generate",
-        "dev": "drizzle-kit studio"
+        "dev": "dotenvx run -f ../../.env --debug -- drizzle-kit studio"
     },
     "dependencies": {
         "@libsql/client": "^0.14.0",
         "@repo/tsconfig": "^0.0.0",
         "better-sqlite3": "^11.8.1",
+        "dotenv": "^16.4.7",
         "drizzle-orm": "0.39.2",
         "drizzle-zod": "^0.7.0"
     },

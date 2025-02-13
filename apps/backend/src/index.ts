@@ -1,33 +1,32 @@
-import { db, users } from "@repo/database";
+import cors from "@fastify/cors";
+import ws from "@fastify/websocket";
 import {
-    type AppRouter,
     type FastifyTRPCPluginOptions,
     appRouter,
-    createContext,
+    createTRPCContext,
     fastifyTRPCPlugin,
 } from "@repo/trpc";
 import fastify from "fastify";
 
 const server = fastify();
 
-server.register(fastifyTRPCPlugin, {
-    prefix: "/trpc",
-    trpcOptions: {
-        router: appRouter,
-        createContext,
-        onError({ path, error }) {
-            console.error(`Error in tRPC handler on path '${path}':`, error);
-        },
-    } satisfies FastifyTRPCPluginOptions<AppRouter>["trpcOptions"],
+await server.register(cors, {
+    origin: "*",
 });
 
-server.get("/ping", async (_request, reply) => {
-    try {
-        const res = await db.select().from(users).all();
-        reply.send(res);
-    } catch (err) {
-        console.log(err);
-    }
+server.register(ws);
+
+server.register(fastifyTRPCPlugin, {
+    prefix: "/trpc",
+    useWSS: true,
+    trpcOptions: {
+        router: appRouter,
+        createContext: createTRPCContext,
+        onError({ path, error }) {
+            // report to error monitoring
+            console.error(`Error in tRPC handler on path '${path}':`, error);
+        },
+    } satisfies FastifyTRPCPluginOptions<typeof appRouter>["trpcOptions"],
 });
 
 server.listen({ port: 8080 }, (err, address) => {

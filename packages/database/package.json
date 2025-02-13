@@ -11,7 +11,7 @@
     },
     "scripts": {
         "db:clear": "tsx ./src/clear.ts",
-        "db:push": "drizzle-kit push",
+        "db:push": "dotenvx run -f ../../.env --debug -- drizzle-kit push",
         "db:studio": "drizzle-kit studio",
         "generate": "drizzle-kit generate",
         "dev": "dotenvx run -f ../../.env --debug -- drizzle-kit studio"

@@ -1,4 +1,4 @@
-import { sign, verify } from "@repo/auth";
+import { hashPassword, sign, verify, verifyPassword } from "@repo/auth";
 import { db, userInputSchema, users } from "@repo/database";
 import { TRPCError } from "@trpc/server";
 import { and, eq } from "drizzle-orm";
@@ -32,13 +32,15 @@ export const authRouter = createTRPCRouter({
 
         const { password, name, email } = opts.input;
 
+        const hashedPassword = await hashPassword(password);
+
         // create user
         const user = await db
             .insert(users)
             .values({
                 name,
                 email,
-                password,
+                password: hashedPassword,
             })
             .returning();
         if (user.length === 0 || !user[0]) {
@@ -60,16 +62,21 @@ export const authRouter = createTRPCRouter({
                 .select()
                 .from(users)
                 .where(eq(users.email, opts.input.email));
+
             if (user.length === 0 || !user[0]) {
                 throw new TRPCError({
                     code: "FORBIDDEN",
-                    message: "User not found",
+                    message: "Invalid credentials",
                 });
             }
-            if (user[0].password !== opts.input.password) {
+            const isValid = await verifyPassword(
+                user[0].password,
+                opts.input.password,
+            );
+            if (!isValid) {
                 throw new TRPCError({
                     code: "FORBIDDEN",
-                    message: "Password is not correct",
+                    message: "Invalid credentials",
                 });
             }
 

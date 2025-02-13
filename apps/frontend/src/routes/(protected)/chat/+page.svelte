@@ -4,18 +4,14 @@
     import type { PageData } from "./$types";
 
     let { data }: { data: PageData } = $props();
-
     let rooms: Room[] = $state([]);
     let name = $state("");
 
     $effect(() => {
+        rooms = data.rooms;
         client.chat.rooms.listen.subscribe(undefined, {
-            onData: (data) => {
-                if (data.type === "initial") {
-                    rooms = data.data;
-                } else if (data.type === "add") {
-                    rooms.push(data.data[0]);
-                }
+            onData: (msg) => {
+                rooms.push(msg.data);
             },
         });
     });
@@ -33,7 +29,7 @@
     }
 </script>
 
-{#if rooms}
+{#if data.rooms}
     <table class="min-w-full divide-y divide-gray-200">
         <thead class="bg-gray-50">
             <tr>
@@ -50,7 +46,7 @@
             </tr></thead
         >
         <tbody class="bg-white divide-y divide-gray-200">
-            {#each rooms as room}
+            {#each data.rooms as room}
                 <tr>
                     <td class="px-6 py-4 whitespace-nowrap">{room.id}</td>
                     <td class="px-6 py-4 whitespace-nowrap">{room.name}</td>

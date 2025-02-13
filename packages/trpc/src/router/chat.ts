@@ -1,4 +1,3 @@
-import EventEmitter, { on } from "node:events";
 import {
     type Message,
     type Room,
@@ -17,12 +16,29 @@ import {
     protectedProcedure,
     publicProcedure,
 } from "../trpc.js";
+import { TypedEventEmitter } from "../utils.js";
 
-const ee = new EventEmitter();
+interface ChatEvents {
+    "room.add": Room;
+    "message.new": Message;
+}
+
+const ee = new TypedEventEmitter<ChatEvents>();
 
 const roomsRouter = createTRPCRouter({
-    get: publicProcedure.input(z.number()).query(async (opts) => {
-        return await db.select().from(rooms).where(eq(rooms.id, opts.input));
+    get: publicProcedure.query(async ({ ctx }) => {
+        if (!ctx.user) {
+            throw new Error("User not found");
+        }
+        return await db
+            .select({
+                id: rooms.id,
+                name: rooms.name,
+                createdAt: rooms.createdAt,
+            })
+            .from(rooms)
+            .innerJoin(members, eq(rooms.id, members.roomId))
+            .where(eq(members.userId, ctx.user.id));
     }),
     create: protectedProcedure
         .input(roomInsertSchema)
@@ -37,8 +53,8 @@ const roomsRouter = createTRPCRouter({
                         userId: opts.ctx.user.id,
                         roomId: room[0].id,
                     });
+                    ee.emit("room.add", room[0]);
                 }
-                ee.emit("add", room);
                 return room;
             } catch (e) {
                 console.error(e);
@@ -65,22 +81,9 @@ const roomsRouter = createTRPCRouter({
         }),
     listen: protectedProcedure.subscription(async function* (opts) {
         try {
-            // get the rooms the user is in
-            const initialRooms = await db
-                .select({
-                    id: rooms.id,
-                    name: rooms.name,
-                    createdAt: rooms.createdAt,
-                })
-                .from(rooms)
-                .innerJoin(members, eq(rooms.id, members.roomId))
-                .where(eq(members.userId, opts.ctx.user.id));
-            yield { type: "initial", data: initialRooms };
-
-            for await (const [data] of on(ee, "add", {
-                signal: opts.signal,
-            })) {
-                yield { type: "add", data };
+            for await (const data of ee.iterate("room.add")) {
+                console.log("room.add", data);
+                yield { data };
             }
         } catch (e) {
             console.error(e);
@@ -103,11 +106,16 @@ const messagesRouter = createTRPCRouter({
                 throw new Error("User not found");
             }
             try {
-                const message = await db.insert(messages).values({
-                    ...opts.input,
-                    userId: opts.ctx.user.id,
-                });
-                ee.emit("message", message);
+                const message = await db
+                    .insert(messages)
+                    .values({
+                        ...opts.input,
+                        userId: opts.ctx.user.id,
+                    })
+                    .returning();
+                if (message[0]) {
+                    ee.emit("message.new", message[0]);
+                }
                 return opts.input;
             } catch (e) {
                 console.error(e);

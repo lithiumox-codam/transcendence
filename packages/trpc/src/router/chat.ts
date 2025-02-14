@@ -11,7 +11,7 @@ import {
     rooms,
 } from "@repo/database";
 import { TRPCError } from "@trpc/server";
-import { and, count, eq } from "drizzle-orm";
+import { and, count, desc, eq } from "drizzle-orm";
 import { z } from "zod";
 import {
     createTRPCRouter,
@@ -112,18 +112,29 @@ const roomsRouter = createTRPCRouter({
 });
 
 const messagesRouter = createTRPCRouter({
-    get: protectedProcedure.input(z.number()).query(async ({ ctx, input }) => {
-        return await db
-            .select({
-                id: messages.id,
-                message: messages.message,
-                createdAt: messages.createdAt,
-                userId: messages.userId,
-                roomId: messages.roomId,
-            })
-            .from(messages)
-            .where(eq(messages.roomId, input));
-    }),
+    get: protectedProcedure
+        .input(
+            z.object({
+                roomId: z.number(),
+                limit: z.number().min(1).default(10).optional(),
+                offset: z.number().min(0).default(0).optional(),
+            }),
+        )
+        .query(async ({ ctx, input }) => {
+            return await db
+                .select({
+                    id: messages.id,
+                    message: messages.message,
+                    createdAt: messages.createdAt,
+                    userId: messages.userId,
+                    roomId: messages.roomId,
+                })
+                .from(messages)
+                .limit(input.limit || 10)
+                .offset(input.offset || 0)
+                .orderBy(desc(messages.createdAt))
+                .where(eq(messages.roomId, input.roomId));
+        }),
     create: protectedProcedure
         .input(messageInsertSchema.omit({ userId: true }))
         .mutation(async ({ ctx, input }) => {
@@ -136,9 +147,7 @@ const messagesRouter = createTRPCRouter({
                             userId: ctx.user.id,
                         })
                         .returning();
-                    if (message[0]) {
-                        events.emit("message.new", message[0]);
-                    }
+                    if (message[0]) events.emit("message.new", message[0]);
                 } catch (e) {
                     console.error(e);
                     throw e;
@@ -151,9 +160,11 @@ const messagesRouter = createTRPCRouter({
             }
         }),
     listen: protectedProcedure.subscription(async function* ({ ctx }) {
+        console.log("listening");
+        const messageStream = events.stream("message");
         try {
-            const messageStream = events.stream("message");
             for await (const data of messageStream) {
+                console.log(data);
                 if (
                     await checkRoomMembership(ctx.user.id, data.message.roomId)
                 ) {

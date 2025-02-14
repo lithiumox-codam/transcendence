@@ -5,6 +5,8 @@ import { SvelteMap } from "svelte/reactivity";
 export class Chat {
     rooms = $state<Room[]>([]);
     messages = new SvelteMap<number, Message[]>();
+    messagesContainer: HTMLElement | null = $state(null);
+    selectedRoom: number | null = $state(null);
 
     constructor() {
         this.initialize();
@@ -17,9 +19,10 @@ export class Chat {
                 this.rooms.map(async (room) => {
                     try {
                         const messages = $state(
-                            await client.chat.messages.get.query(room.id),
+                            await client.chat.messages.get.query({
+                                roomId: room.id,
+                            }),
                         );
-                        console.log($state.snapshot(messages.length), "\n");
                         this.messages.set(room.id, messages);
                     } catch (e) {
                         console.error(e);
@@ -27,12 +30,13 @@ export class Chat {
                 }),
             );
             this.listenRooms();
+            this.listenMessages();
         } catch (e) {
             console.error(e);
         }
     }
 
-    async listenRooms(): Promise<void> {
+    private async listenRooms(): Promise<void> {
         client.chat.rooms.listen.subscribe(undefined, {
             onData: ({ data }) => {
                 switch (data.type) {
@@ -47,5 +51,31 @@ export class Chat {
                 }
             },
         });
+    }
+
+    private async listenMessages(): Promise<void> {
+        client.chat.messages.listen.subscribe(undefined, {
+            onData: ({ data }) => {
+                const messages = this.messages.get(data.message.roomId) ?? [];
+                switch (data.type) {
+                    case "new":
+                        {
+                            messages.push(data.message);
+                            if (this.selectedRoom === data.message.roomId)
+                                this.scrollDown();
+                        }
+                        break;
+                }
+            },
+        });
+    }
+
+    private async scrollDown() {
+        if (this.messagesContainer) {
+            this.messagesContainer.scroll({
+                top: this.messagesContainer.scrollHeight,
+                behavior: "smooth",
+            });
+        }
     }
 }

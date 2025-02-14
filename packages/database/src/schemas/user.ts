@@ -1,6 +1,7 @@
 import { sql } from "drizzle-orm";
 import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
+import { z } from "zod";
 
 export const users = sqliteTable("users", {
     id: integer("id").primaryKey({ autoIncrement: true }),
@@ -12,7 +13,18 @@ export const users = sqliteTable("users", {
 
 export type UserInsert = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
-export const userInputSchema = createInsertSchema(users);
+
+export const passwordSchema = z
+    .string()
+    .min(8, "Password must be at least 8 characters long")
+    .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+    .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+    .regex(/\d/, "Password must contain at least one number")
+    .regex(/[\W_]/, "Password must contain at least one special character");
+
+export const userInputSchema = createInsertSchema(users).extend({
+    password: passwordSchema,
+});
 export const userSelectSchema = createSelectSchema(users);
 
 export const refreshToken = sqliteTable("refresh_tokens", {

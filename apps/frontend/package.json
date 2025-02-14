@@ -30,8 +30,9 @@
     },
     "dependencies": {
         "@inlang/paraglide-sveltekit": "^0.15.5",
+        "@repo/database": "workspace:^",
         "@repo/trpc": "workspace:^",
-        "@trpc/client": "^10.45.2",
+        "@trpc/client": "11.0.0-rc.764",
         "babylon": "^6.18.0",
         "babylonjs": "^7.48.3",
         "superjson": "^2.2.2",

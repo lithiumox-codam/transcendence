@@ -1,6 +1,7 @@
-import { EventEmitter } from "node:events";
+import { get } from "node:http";
 import {
     type Message,
+    type Room,
     db,
     memberInsertSchema,
     members,
@@ -9,20 +10,79 @@ import {
     roomInsertSchema,
     rooms,
 } from "@repo/database";
-import { observable } from "@trpc/server/observable";
-import { desc, eq } from "drizzle-orm";
+import { TRPCError } from "@trpc/server";
+import { and, count, desc, eq } from "drizzle-orm";
 import { z } from "zod";
-import { createTRPCRouter, publicProcedure } from "../trpc.js";
+import {
+    createTRPCRouter,
+    protectedProcedure,
+    publicProcedure,
+} from "../trpc.js";
+import { TypedEventEmitter } from "../utils.js";
 
-const ee = new EventEmitter();
+interface ChatEvents {
+    "room.add": Room;
+    "room.remove": Room;
+    "message.new": Message;
+}
+
+const events = new TypedEventEmitter<ChatEvents>();
+
+async function checkRoomMembership(
+    userId: number,
+    roomId: number,
+): Promise<boolean> {
+    try {
+        const res = await db
+            .select({ count: count(members.userId) })
+            .from(members)
+            .where(and(eq(members.userId, userId), eq(members.roomId, roomId)));
+        if (!res[0]) {
+            return false;
+        }
+        return res[0].count > 0;
+    } catch (e) {
+        console.error(e);
+        return false;
+    }
+}
 
 const roomsRouter = createTRPCRouter({
-    get: publicProcedure.input(z.number()).query(async (opts) => {
-        return await db.select().from(rooms).where(eq(rooms.id, opts.input));
+    get: publicProcedure.query(async ({ ctx }) => {
+        if (!ctx.user) {
+            throw new Error("User not found");
+        }
+        return await db
+            .select({
+                id: rooms.id,
+                name: rooms.name,
+                createdAt: rooms.createdAt,
+            })
+            .from(rooms)
+            .innerJoin(members, eq(rooms.id, members.roomId))
+            .where(eq(members.userId, ctx.user.id));
     }),
-    create: publicProcedure.input(roomInsertSchema).mutation(async (opts) => {
-        return await db.insert(rooms).values(opts.input);
-    }),
+    create: protectedProcedure
+        .input(roomInsertSchema)
+        .mutation(async (opts) => {
+            try {
+                const room = await db
+                    .insert(rooms)
+                    .values(opts.input)
+                    .returning();
+                if (room[0]) {
+                    await db.insert(members).values({
+                        userId: opts.ctx.user.id,
+                        roomId: room[0].id,
+                    });
+                    events.emit("room.add", room[0]);
+                }
+                return room;
+            } catch (e) {
+                console.error(e);
+                throw e;
+            }
+        }),
     all: publicProcedure
         .input(
             z
@@ -32,46 +92,89 @@ const roomsRouter = createTRPCRouter({
                 })
                 .optional(),
         )
-        .query(async (opts) => {
-            const { limit, offset } = opts.input ?? { limit: 10, offset: 0 };
-            return await db
-                .select()
-                .from(rooms)
-                .limit(limit)
-                .offset(offset)
-                .all();
+        .query(async ({ input }) => {
+            const { limit, offset } = input ?? { limit: 10, offset: 0 };
+            return await db.select().from(rooms).limit(limit).offset(offset);
         }),
-    listen: publicProcedure.subscription(() => {
-        return observable<Message>((emit) => {
-            ee.on("message", emit.next);
-            return () => {
-                ee.off("message", emit.next);
-            };
-        });
+    listen: protectedProcedure.subscription(async function* ({ ctx }) {
+        try {
+            const roomStream = events.stream("room");
+            for await (const data of roomStream) {
+                if (await checkRoomMembership(ctx.user.id, data.room.id)) {
+                    yield { data };
+                }
+            }
+        } catch (e) {
+            console.error(e);
+            throw e;
+        }
     }),
 });
 
 const messagesRouter = createTRPCRouter({
-    get: publicProcedure.input(z.number()).query(async (opts) => {
-        return await db
-            .select()
-            .from(messages)
-            .where(eq(messages.id, opts.input));
-    }),
-    create: publicProcedure
-        .input(messageInsertSchema)
-        .mutation(async (opts) => {
-            try {
-                await db.insert(messages).values(opts.input);
-                ee.emit("message", opts.input);
-                return opts.input;
-            } catch (e) {
-                console.error(e);
-                throw e;
+    get: protectedProcedure
+        .input(
+            z.object({
+                roomId: z.number(),
+                limit: z.number().min(1).default(10).optional(),
+                offset: z.number().min(0).default(0).optional(),
+            }),
+        )
+        .query(async ({ ctx, input }) => {
+            return await db
+                .select({
+                    id: messages.id,
+                    message: messages.message,
+                    createdAt: messages.createdAt,
+                    userId: messages.userId,
+                    roomId: messages.roomId,
+                })
+                .from(messages)
+                .limit(input.limit || 10)
+                .offset(input.offset || 0)
+                .orderBy(desc(messages.createdAt))
+                .where(eq(messages.roomId, input.roomId));
+        }),
+    create: protectedProcedure
+        .input(messageInsertSchema.omit({ userId: true }))
+        .mutation(async ({ ctx, input }) => {
+            if (await checkRoomMembership(ctx.user.id, input.roomId)) {
+                try {
+                    const message = await db
+                        .insert(messages)
+                        .values({
+                            ...input,
+                            userId: ctx.user.id,
+                        })
+                        .returning();
+                    if (message[0]) events.emit("message.new", message[0]);
+                } catch (e) {
+                    console.error(e);
+                    throw e;
+                }
+            } else {
+                throw new TRPCError({
+                    code: "FORBIDDEN",
+                    message: "User is not a member of the room",
+                });
             }
         }),
-    all: publicProcedure.query(async () => {
-        return await db.select().from(messages).all();
+    listen: protectedProcedure.subscription(async function* ({ ctx }) {
+        console.log("listening");
+        const messageStream = events.stream("message");
+        try {
+            for await (const data of messageStream) {
+                console.log(data);
+                if (
+                    await checkRoomMembership(ctx.user.id, data.message.roomId)
+                ) {
+                    yield { data };
+                }
+            }
+        } catch (e) {
+            console.error(e);
+            throw e;
+        }
     }),
 });
 

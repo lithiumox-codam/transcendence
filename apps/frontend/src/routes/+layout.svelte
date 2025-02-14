@@ -7,7 +7,9 @@
 	let { children } = $props();
 </script>
 
-<ParaglideJS {i18n}>
-	<Header />
-	{@render children()}
-</ParaglideJS>
+<main class="dark bg-black">
+	<ParaglideJS {i18n}>
+		<Header />
+		{@render children()}
+	</ParaglideJS>
+</main>

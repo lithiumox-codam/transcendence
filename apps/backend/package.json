@@ -7,17 +7,20 @@
     "scripts": {
         "build": "tsc -p tsconfig.json",
         "preview": "node build/index.js",
-        "dev": "tsx watch src/index.ts"
+        "dev": "dotenvx run -f ../../.env --debug -- tsx watch src/index.ts"
     },
     "keywords": [],
     "author": "",
     "license": "ISC",
     "dependencies": {
+        "@fastify/cors": "^10.0.2",
+        "@fastify/jwt": "^9.0.4",
         "@fastify/websocket": "^11.0.2",
+        "@repo/auth": "workspace:^",
         "@repo/database": "^0.0.0",
         "@repo/trpc": "workspace:^",
         "@repo/tsconfig": "^0.0.0",
-        "@trpc/server": "^10.45.2",
+        "@trpc/server": "11.0.0-rc.764",
         "fastify": "^5.2.1"
     },
     "devDependencies": {

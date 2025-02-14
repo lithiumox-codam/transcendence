@@ -24,6 +24,20 @@ export const userRouter = createTRPCRouter({
     create: publicProcedure.input(userInputSchema).mutation(async (opts) => {
         return await db.insert(users).values(opts.input);
     }),
+    update: protectedProcedure
+        .input(
+            userInputSchema
+                .omit({ id: true, createdAt: true, password: true })
+                .optional(),
+        )
+        .mutation(async ({ ctx, input }) => {
+            return await db
+                .update(users)
+                .set({
+                    ...input,
+                })
+                .where(eq(users.id, ctx.user.id));
+        }),
     all: publicProcedure.query(async () => {
         return await db
             .select({

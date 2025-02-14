@@ -10,6 +10,9 @@
     let email = $state("");
     let name = $state("");
 
+    let old_password = $state("");
+    let new_password = $state("");
+
     $effect(() => {
         client.user.test.subscribe(undefined, {
             onData: (data) => {
@@ -23,7 +26,7 @@
         });
     });
 
-    async function handleSubmit(event: Event) {
+    async function updateUserSubmit(event: Event) {
         event.preventDefault();
         try {
             const res = await client.user.update.mutate({
@@ -35,10 +38,23 @@
             console.error(error);
         }
     }
+
+    async function changePasswordSubmit(event: Event) {
+        event.preventDefault();
+        try {
+            const res = await client.auth.changePassword.mutate({
+                old_password,
+                new_password,
+            });
+            console.log(res);
+        } catch (error) {
+            console.error(error);
+        }
+    }
 </script>
 
 <h2>Update user</h2>
-<form class="space-y-4" onsubmit={handleSubmit}>
+<form class="space-y-4" onsubmit={updateUserSubmit}>
     <div class="space-y-2">
         <label
             class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
@@ -71,6 +87,42 @@
         class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-10 px-4 py-2 bg-primary text-primary-foreground"
     >
         Update
+    </button>
+</form>
+
+<form class="space-y-4" onsubmit={changePasswordSubmit}>
+    <div class="space-y-2">
+        <label
+            class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+            for="old_password">Password</label
+        >
+        <input
+            type="password"
+            placeholder="Old Password"
+            required
+            class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            id="old_password"
+            bind:value={old_password}
+        />
+    </div>
+    <div class="space-y-2">
+        <label
+            class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+            for="new_password">New Password</label
+        >
+        <input
+            type="password"
+            placeholder="New Password"
+            required
+            class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            id="new_password"
+            bind:value={new_password}
+        />
+    </div>
+    <button
+        class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-10 px-4 py-2 bg-primary text-primary-foreground"
+    >
+        Change Password
     </button>
 </form>
 

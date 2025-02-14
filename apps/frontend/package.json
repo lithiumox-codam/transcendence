@@ -32,6 +32,8 @@
         "@inlang/paraglide-sveltekit": "^0.15.5",
         "@repo/trpc": "workspace:^",
         "@trpc/client": "^10.45.2",
+        "babylon": "^6.18.0",
+        "babylonjs": "^7.48.3",
         "superjson": "^2.2.2",
         "trpc-sveltekit": "^3.6.2"
     }

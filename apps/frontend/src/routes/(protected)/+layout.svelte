@@ -5,4 +5,6 @@
     let { data, children }: { data: LayoutData; children: Snippet } = $props();
 </script>
 
-{@render children()}
+<main class="container relative h-screen pt-18">
+    {@render children()}
+</main>

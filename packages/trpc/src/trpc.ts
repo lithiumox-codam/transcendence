@@ -1,8 +1,8 @@
 import { verify } from "@repo/auth";
-import { db, users } from "@repo/database";
+import { db, members, users } from "@repo/database";
 import { TRPCError, initTRPC } from "@trpc/server";
 import type { CreateFastifyContextOptions } from "@trpc/server/adapters/fastify";
-import { eq } from "drizzle-orm";
+import { and, count, eq } from "drizzle-orm";
 import superjson from "superjson";
 import { ZodError } from "zod";
 

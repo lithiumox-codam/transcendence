@@ -16,6 +16,7 @@
     "dependencies": {
         "@repo/database": "workspace:^0.0.0",
         "@repo/tsconfig": "workspace:^0.0.0",
+        "argon2": "^0.41.1",
         "bcrypt": "^5.1.1",
         "drizzle-orm": "0.39.2",
         "jose": "^5.9.6"

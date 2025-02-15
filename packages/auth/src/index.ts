@@ -1,3 +1,4 @@
+import argon2 from "argon2";
 import * as jose from "jose";
 import type { JWTPayload } from "jose";
 
@@ -53,4 +54,26 @@ export async function verify(token: string): Promise<JWTPayload> {
         console.error("JWT verification error:", error);
         throw new Error("Invalid JWT"); // Re-throw or handle as needed
     }
+}
+
+/**
+ * Hashes a password using Argon2.
+ * @param password The password to hash.
+ * @returns A promise that resolves to the hashed password.
+ */
+export async function hashPassword(password: string): Promise<string> {
+    return argon2.hash(password);
+}
+
+/**
+ * Verifies a password against a hashed password.
+ * @param hashedPassword The hashed password to verify against.
+ * @param password The password to verify.
+ * @returns A promise that resolves to true if the password is valid.
+ */
+export async function verifyPassword(
+    hashedPassword: string,
+    password: string,
+): Promise<boolean> {
+    return argon2.verify(hashedPassword, password);
 }

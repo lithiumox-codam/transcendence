@@ -6,7 +6,7 @@ import {
     users,
 } from "@repo/database";
 import { TRPCError } from "@trpc/server";
-import { and, count, eq, ilike, or } from "drizzle-orm";
+import { aliasedTable, and, count, eq, like, ne, or } from "drizzle-orm";
 import { z } from "zod";
 import {
     createTRPCRouter,
@@ -26,23 +26,27 @@ export async function checkFriendship(
     friendId: number,
 ): Promise<boolean> {
     try {
+        // Check for both friendship directions using OR
         const res = await db
-            .select({ count: count(friends.id) })
+            .select({ count: count() })
             .from(friends)
             .where(
                 or(
+                    // User → Friend relationship
                     and(
                         eq(friends.userId, userId),
                         eq(friends.friendId, friendId),
                     ),
+                    // Friend → User relationship
                     and(
                         eq(friends.userId, friendId),
                         eq(friends.friendId, userId),
                     ),
                 ),
             );
-        if (!res[0]) return false;
-        return res[0]?.count > 0;
+
+        // Mutual friendship exists if we find 2 records (both directions)
+        return res[0]?.count === 2;
     } catch (e) {
         console.error(e);
         return false;
@@ -51,25 +55,24 @@ export async function checkFriendship(
 
 const friendsRouter = createTRPCRouter({
     list: protectedProcedure.query(async ({ ctx }) => {
+        const f1 = aliasedTable(friends, "f1");
+        const f2 = aliasedTable(friends, "f2");
+
         return await db
-            .select({
+            .selectDistinct({
                 id: users.id,
                 name: users.name,
                 email: users.email,
+                createdAt: users.createdAt,
             })
             .from(users)
             .innerJoin(
-                friends,
-                or(
-                    and(
-                        eq(friends.userId, ctx.user.id),
-                        eq(users.id, friends.friendId),
-                    ),
-                    and(
-                        eq(friends.friendId, ctx.user.id),
-                        eq(users.id, friends.userId),
-                    ),
-                ),
+                f1,
+                and(eq(f1.userId, ctx.user.id), eq(users.id, f1.friendId)),
+            )
+            .innerJoin(
+                f2,
+                and(eq(f2.userId, users.id), eq(f2.friendId, ctx.user.id)),
             );
     }),
     // Create a new friendship.
@@ -94,6 +97,8 @@ const friendsRouter = createTRPCRouter({
                         friendId: input.friendId,
                     })
                     .returning();
+                // get the friend's user data
+
                 if (friendship[0]) events.emit("friend.new", friendship[0]);
                 return friendship[0];
             } catch (e) {
@@ -101,6 +106,58 @@ const friendsRouter = createTRPCRouter({
                 throw e;
             }
         }),
+    listRequests: protectedProcedure.query(async ({ ctx }) => {
+        const reciprocal = aliasedTable(friends, "reciprocal");
+
+        return await db
+            .select({
+                id: users.id,
+                name: users.name,
+                email: users.email,
+                createdAt: users.createdAt,
+            })
+            .from(users)
+            .innerJoin(
+                friends,
+                and(
+                    eq(friends.friendId, ctx.user.id),
+                    eq(users.id, friends.userId),
+                ),
+            )
+            .leftJoin(
+                reciprocal,
+                and(
+                    eq(reciprocal.userId, ctx.user.id),
+                    eq(reciprocal.friendId, users.id),
+                ),
+            );
+    }),
+    listSentRequests: protectedProcedure.query(async ({ ctx }) => {
+        const reciprocal = aliasedTable(friends, "reciprocal");
+
+        return await db
+            .select({
+                id: users.id,
+                name: users.name,
+                email: users.email,
+                createdAt: users.createdAt,
+            })
+            .from(users)
+            .innerJoin(
+                friends,
+                and(
+                    eq(friends.userId, ctx.user.id),
+                    eq(users.id, friends.friendId),
+                ),
+            )
+            .leftJoin(
+                reciprocal,
+                and(
+                    eq(reciprocal.userId, users.id),
+                    eq(reciprocal.friendId, ctx.user.id),
+                ),
+            );
+    }),
     listen: protectedProcedure.subscription(async function* ({ ctx }) {
         const friendStream = events.stream("friend");
         try {
@@ -127,6 +184,7 @@ export const userRouter = createTRPCRouter({
                 id: users.id,
                 name: users.name,
                 email: users.email,
+                createdAt: users.createdAt,
             })
             .from(users)
             .where(eq(users.id, ctx.user.id));
@@ -158,14 +216,21 @@ export const userRouter = createTRPCRouter({
             .from(users)
             .all();
     }),
-    search: publicProcedure.input(z.string()).query(async (input) => {
-        return await db
-            .select({
-                id: users.id,
-                name: users.name,
-                email: users.email,
-            })
-            .from(users)
-            .where(ilike(users.name, `%${input}%`));
-    }),
+    search: protectedProcedure
+        .input(z.string())
+        .query(async ({ input, ctx }) => {
+            return await db
+                .select({
+                    id: users.id,
+                    name: users.name,
+                    email: users.email,
+                })
+                .from(users)
+                .where(
+                    and(
+                        like(users.name, `%${input}%`),
+                        ne(users.id, ctx.user.id),
+                    ),
+                );
+        }),
 });

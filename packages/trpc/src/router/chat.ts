@@ -1,6 +1,6 @@
 import { type Message, db, message, messageInsertSchema } from "@repo/database";
 import { TRPCError } from "@trpc/server";
-import { desc, eq } from "drizzle-orm";
+import { and, asc, desc, eq, or } from "drizzle-orm";
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "../trpc.js";
 import { TypedEventEmitter } from "../utils.js";
@@ -28,19 +28,33 @@ export const chatRouter = createTRPCRouter({
                     message: "Not friends with the specified user",
                 });
             }
+
             return await db
                 .select({
                     id: message.id,
                     content: message.content,
                     createdAt: message.createdAt,
-                    userId: message,
+                    senderId: message.senderId,
+                    receiverId: message.receiverId,
                 })
                 .from(message)
-                .where(eq(message.receiverId, input.friendId))
+                .where(
+                    or(
+                        and(
+                            eq(message.senderId, ctx.user.id),
+                            eq(message.receiverId, input.friendId),
+                        ),
+                        and(
+                            eq(message.senderId, input.friendId),
+                            eq(message.receiverId, ctx.user.id),
+                        ),
+                    ),
+                )
+                .orderBy(desc(message.createdAt))
                 .limit(input.limit)
-                .offset(input.offset)
-                .orderBy(desc(message.createdAt));
+                .offset(input.offset);
         }),
+
     create: protectedProcedure
         .input(messageInsertSchema.omit({ senderId: true }))
         .mutation(async ({ ctx, input }) => {
@@ -50,8 +64,9 @@ export const chatRouter = createTRPCRouter({
                     message: "Not friends with the specified user",
                 });
             }
+
             try {
-                const msg = await db
+                const [msg] = await db
                     .insert(message)
                     .values({
                         ...input,
@@ -59,11 +74,22 @@ export const chatRouter = createTRPCRouter({
                         receiverId: input.receiverId,
                     })
                     .returning();
-                if (msg[0]) events.emit("message.new", msg[0]);
-                return message;
+
+                if (msg) {
+                    events.emit("message.new", msg);
+                    return msg;
+                }
+
+                throw new TRPCError({
+                    code: "INTERNAL_SERVER_ERROR",
+                    message: "Failed to create message",
+                });
             } catch (e) {
                 console.error(e);
-                throw e;
+                throw new TRPCError({
+                    code: "INTERNAL_SERVER_ERROR",
+                    message: "Failed to send message",
+                });
             }
         }),
 
@@ -72,12 +98,10 @@ export const chatRouter = createTRPCRouter({
         try {
             for await (const data of messageStream) {
                 if (
-                    data.message.senderId === ctx.user.id ||
-                    (await checkFriendship(
-                        ctx.user.id,
-                        data.message.receiverId,
-                    ))
+                    data.message.receiverId === ctx.user.id ||
+                    data.message.senderId === ctx.user.id
                 ) {
+                    console.log("user", ctx.user.id, "received message", data);
                     yield { data };
                 }
             }

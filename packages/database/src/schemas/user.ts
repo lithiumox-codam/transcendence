@@ -1,5 +1,10 @@
 import { sql } from "drizzle-orm";
-import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import {
+    integer,
+    primaryKey,
+    sqliteTable,
+    text,
+} from "drizzle-orm/sqlite-core";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -12,7 +17,8 @@ export const users = sqliteTable("users", {
 });
 
 export type UserInsert = typeof users.$inferInsert;
-export type User = typeof users.$inferSelect;
+export type UserFull = typeof users.$inferSelect;
+export type User = Omit<UserFull, "password">;
 
 export const passwordSchema = z
     .string()
@@ -27,16 +33,31 @@ export const userInputSchema = createInsertSchema(users).extend({
 });
 export const userSelectSchema = createSelectSchema(users);
 
-export const friends = sqliteTable("friends", {
-    id: integer("id").primaryKey({ autoIncrement: true }),
-    userId: integer("user_id")
-        .notNull()
-        .references(() => users.id),
-    friendId: integer("friend_id")
-        .notNull()
-        .references(() => users.id),
-    createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`),
-});
+/**
+ * The shared primary key for the friends table enables us to enforce that
+ * a user can only be friends with another user once. This is done by
+ * creating a unique constraint on the primary key. This way, if a user
+ * tries to add a friend that they are already friends with, the database
+ * will throw an error.
+ */
+export const friends = sqliteTable(
+    "friends",
+    {
+        userId: integer("user_id")
+            .notNull()
+            .references(() => users.id),
+        friendId: integer("friend_id")
+            .notNull()
+            .references(() => users.id),
+        createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`),
+    },
+    (table) => [
+        primaryKey({
+            name: "user_friend_pk",
+            columns: [table.userId, table.friendId],
+        }),
+    ],
+);
 
 export type FriendInsert = typeof friends.$inferInsert;
 export type Friend = typeof friends.$inferSelect;

@@ -1,18 +1,19 @@
 import { verify } from "@repo/auth";
-import { db, members, users } from "@repo/database";
+import { db, friends, users } from "@repo/database";
 import { TRPCError, initTRPC } from "@trpc/server";
 import type { CreateFastifyContextOptions } from "@trpc/server/adapters/fastify";
-import { and, count, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import superjson from "superjson";
 import { ZodError } from "zod";
 
-const extractToken = (url: string) => {
-    const tokenMatch = url.match(/token=([^&]*)/);
-    if (!tokenMatch) {
-        return null;
+function extractToken(url: string): string {
+    const token = url.split("?token=")[1];
+
+    if (!token || token === "null") {
+        return "";
     }
-    return tokenMatch[1];
-};
+    return token;
+}
 
 /**
  * 1. REQUEST CONTEXT
@@ -27,28 +28,35 @@ export async function createTRPCContext({
     let user: { id: number; name: string; email: string } | undefined =
         undefined;
 
-    const token = extractToken(req.url);
-
-    if (token) {
-        try {
-            const payload = await verify(token);
-            const userId: number = payload.userId as number;
-            if (!userId) {
-                throw new Error("No user id in token");
-            }
-            const res = await db
-                .select({
-                    id: users.id,
-                    name: users.name,
-                    email: users.email,
-                })
-                .from(users)
-                .where(eq(users.id, userId));
-            if (res.length === 0) {
-                throw new Error("User not found");
-            }
-            user = res[0];
-        } catch (e) {}
+    try {
+        const token = extractToken(req.url);
+        if (!token) {
+            return { req, res, user };
+        }
+        const payload = await verify(token);
+        const userId = payload.userId as number;
+        if (!userId)
+            throw new TRPCError({
+                code: "UNAUTHORIZED",
+                message: "Invalid token",
+            });
+        const dbResult = await db
+            .select({
+                id: users.id,
+                name: users.name,
+                email: users.email,
+            })
+            .from(users)
+            .where(eq(users.id, userId));
+        if (dbResult.length === 0) {
+            throw new TRPCError({
+                code: "UNAUTHORIZED",
+                message: "User not found",
+            });
+        }
+        user = dbResult[0];
+    } catch (e) {
+        console.error(e);
     }
 
     return { req, res, user };
@@ -102,7 +110,7 @@ const timingMiddleware = t.middleware(async ({ next, path }) => {
     let waitMs = 0;
     if (t._config.isDev) {
         // artificial delay in dev 100-500ms
-        waitMs = Math.floor(Math.random() * 0) + 0;
+        waitMs = Math.floor(Math.random() * 100) + 10;
         await new Promise((resolve) => setTimeout(resolve, waitMs));
     }
 
@@ -136,12 +144,11 @@ export const publicProcedure = t.procedure.use(timingMiddleware);
 export const protectedProcedure = t.procedure
     .use(timingMiddleware)
     .use(({ ctx, next }) => {
-        if (!ctx.user) {
+        if (ctx.user === undefined) {
             throw new TRPCError({ code: "UNAUTHORIZED" });
         }
         return next({
             ctx: {
-                // infers the `session` as non-nullable
                 user: ctx.user,
             },
         });

@@ -53,7 +53,7 @@ export const authRouter = createTRPCRouter({
                 message: "Failed to create user",
             });
         }
-
+        opts.ctx.user = user[0];
         const jwt = await sign({ userId: user[0].id });
 
         return jwt;
@@ -98,7 +98,7 @@ export const authRouter = createTRPCRouter({
     login: publicProcedure
         .input(z.object({ email: z.string(), password: z.string() }))
         .mutation(async (opts) => {
-            console.log(opts);
+
             const user = await db
                 .select()
                 .from(users)
@@ -120,7 +120,7 @@ export const authRouter = createTRPCRouter({
                     message: "Invalid credentials",
                 });
             }
-
+            opts.ctx.user = user[0];
             const jwt = await sign({ userId: user[0].id });
 
             return jwt;

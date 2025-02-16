@@ -93,7 +93,7 @@
                                 <!-- Message sent by the current user -->
                                 <div class="flex justify-end">
                                     <div
-                                        class="max-w-xs p-3 rounded-lg bg-blue-600 text-white shadow-sm"
+                                        class="max-w-xs p-3 rounded-lg bg-blue-600 text-white shadow-sm break-words"
                                     >
                                         <div
                                             class="text-xs text-right opacity-75 mb-1"
@@ -115,7 +115,7 @@
                                 <!-- Message sent by the friend -->
                                 <div class="flex justify-start">
                                     <div
-                                        class="max-w-xs p-3 rounded-lg bg-gray-200 text-gray-800 shadow-sm"
+                                        class="max-w-xs p-3 rounded-lg bg-gray-200 text-gray-800 shadow-sm break-words"
                                     >
                                         <div class="text-xs opacity-75 mb-1">
                                             {chat.friends.find(

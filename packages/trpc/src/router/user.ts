@@ -26,18 +26,15 @@ export async function checkFriendship(
     friendId: number,
 ): Promise<boolean> {
     try {
-        // Check for both friendship directions using OR
         const res = await db
             .select({ count: count() })
             .from(friends)
             .where(
                 or(
-                    // User → Friend relationship
                     and(
                         eq(friends.userId, userId),
                         eq(friends.friendId, friendId),
                     ),
-                    // Friend → User relationship
                     and(
                         eq(friends.userId, friendId),
                         eq(friends.friendId, userId),
@@ -75,7 +72,6 @@ const friendsRouter = createTRPCRouter({
                 and(eq(f2.userId, users.id), eq(f2.friendId, ctx.user.id)),
             );
     }),
-    // Create a new friendship.
     add: protectedProcedure
         .input(
             z.object({
@@ -105,6 +101,18 @@ const friendsRouter = createTRPCRouter({
                 console.error(e);
                 throw e;
             }
+        }),
+    remove: protectedProcedure
+        .input(z.number())
+        .mutation(async ({ ctx, input }) => {
+            return await db
+                .delete(friends)
+                .where(
+                    and(
+                        eq(friends.userId, ctx.user.id),
+                        eq(friends.friendId, input),
+                    ),
+                );
         }),
     listRequests: protectedProcedure.query(async ({ ctx }) => {
         const reciprocal = aliasedTable(friends, "reciprocal");

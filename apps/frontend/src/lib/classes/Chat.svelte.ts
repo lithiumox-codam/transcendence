@@ -22,10 +22,9 @@ export class Chat {
                 throw new Error("User not found");
             }
             this.user = res[0];
-            // Fetch list of friends
+
             this.friends = await client.user.friends.list.query();
 
-            // For each friend, load chat messages
             await Promise.all(
                 this.friends.map(async (friend) => {
                     try {
@@ -34,7 +33,6 @@ export class Chat {
                             limit: 20,
                             offset: 0,
                         });
-                        // Wrap messages in $state for reactivity
                         msgs.reverse();
                         const temp = $state(msgs);
                         this.messages.set(friend.id, temp);
@@ -47,10 +45,9 @@ export class Chat {
             this.listenFriends();
             this.listenMessages();
 
-            // Select the first friend by default (if available)
             if (this.friends.length > 0) {
                 this.selectedFriend = this.friends[0].id;
-                await tick(); // Wait for DOM updates
+                await tick();
                 this.scrollDown();
             }
             this.observeLoadMoreTrigger();
@@ -60,7 +57,6 @@ export class Chat {
     }
 
     private async listenFriends(): Promise<void> {
-        // Assuming there is a friends.listen subscription on the user endpoint
         client.user.friends.listen.subscribe(undefined, {
             onData: ({ data }) => {
                 switch (data.type) {
@@ -120,13 +116,25 @@ export class Chat {
         if (!messages) {
             return;
         }
+
+        const container = this.messagesContainer;
+        if (!container) return;
+
+        const prevScrollHeight = container.scrollHeight;
+        const prevScrollTop = container.scrollTop;
+
         const res = await client.chat.get.query({
             friendId: this.selectedFriend,
             limit: 20,
             offset: messages.length,
         });
-        if (res) {
+
+        if (res.length > 0) {
             messages.unshift(...res);
+            await tick();
+            const newScrollHeight = container.scrollHeight;
+            const heightDifference = newScrollHeight - prevScrollHeight;
+            container.scrollTop = prevScrollTop + heightDifference;
         }
     }
 }

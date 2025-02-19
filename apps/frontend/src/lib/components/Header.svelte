@@ -121,6 +121,6 @@
     /* Optional: Additional styling to ensure header content is visible */
     header {
         /* Fallback background when not scrolled */
-        background-color: transparent;
+        background-color: rgba(0, 0, 0, 0.5);
     }
 </style>

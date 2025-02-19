@@ -1,7 +1,18 @@
 import { browser } from "$app/environment";
 import type { AppRouter } from "@repo/trpc";
-import { createTRPCClient, createWSClient, wsLink } from "@trpc/client";
+import {
+    TRPCClientError,
+    createTRPCClient,
+    createWSClient,
+    wsLink,
+} from "@trpc/client";
 import superjson from "superjson";
+
+export function isTRPCClientError(
+    cause: unknown,
+): cause is TRPCClientError<AppRouter> {
+    return cause instanceof TRPCClientError;
+}
 
 const wsClient = createWSClient({
     url: (() => {

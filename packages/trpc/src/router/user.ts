@@ -6,7 +6,16 @@ import {
     users,
 } from "@repo/database";
 import { TRPCError } from "@trpc/server";
-import { aliasedTable, and, count, eq, like, ne, or } from "drizzle-orm";
+import {
+    aliasedTable,
+    and,
+    count,
+    eq,
+    isNull,
+    like,
+    ne,
+    or,
+} from "drizzle-orm";
 import { z } from "zod";
 import {
     createTRPCRouter,
@@ -114,7 +123,8 @@ const friendsRouter = createTRPCRouter({
                     ),
                 );
         }),
-    listRequests: protectedProcedure.query(async ({ ctx }) => {
+    // Update listRequests to exclude mutual friendships
+    listSentRequests: protectedProcedure.query(async ({ ctx }) => {
         const reciprocal = aliasedTable(friends, "reciprocal");
 
         return await db
@@ -138,9 +148,12 @@ const friendsRouter = createTRPCRouter({
                     eq(reciprocal.userId, ctx.user.id),
                     eq(reciprocal.friendId, users.id),
                 ),
-            );
+            )
+            .where(isNull(reciprocal.userId));
     }),
-    listSentRequests: protectedProcedure.query(async ({ ctx }) => {
+
+    // Update listSentRequests to exclude mutual friendships
+    listRequests: protectedProcedure.query(async ({ ctx }) => {
         const reciprocal = aliasedTable(friends, "reciprocal");
 
         return await db
@@ -164,7 +177,8 @@ const friendsRouter = createTRPCRouter({
                     eq(reciprocal.userId, users.id),
                     eq(reciprocal.friendId, ctx.user.id),
                 ),
-            );
+            )
+            .where(isNull(reciprocal.userId)); // Add this filter
     }),
     listen: protectedProcedure.subscription(async function* ({ ctx }) {
         const friendStream = events.stream("friend");

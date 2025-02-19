@@ -11,7 +11,9 @@
         (async () => {
             if (searchTerm.trim()) {
                 try {
-                    const res = await client.user.search.query(searchTerm.trim());
+                    const res = await client.user.search.query(
+                        searchTerm.trim(),
+                    );
                     console.log("Search results:", res);
                     results = res;
                 } catch (error) {

@@ -8,8 +8,8 @@
 
     let navItems = [
         { label: "Home", href: "/" },
-        { label: "About", href: "/about" },
-        { label: "Contact", href: "/contact" },
+        { label: "Chat", href: "/chat" },
+        { label: "User", href: "/user" },
     ] as const;
 
     // Language settings

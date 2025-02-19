@@ -10,6 +10,7 @@ export class Chat {
     messagesContainer: HTMLElement | null = $state(null);
     selectedFriend: number | null = $state(null);
     loadMoreTrigger: HTMLElement | null = $state(null);
+    endReached = $state(false);
 
     constructor() {
         this.initialize();
@@ -113,9 +114,7 @@ export class Chat {
             return;
         }
         const messages = this.messages.get(this.selectedFriend);
-        if (!messages) {
-            return;
-        }
+        if (!messages) return;
 
         const container = this.messagesContainer;
         if (!container) return;
@@ -131,6 +130,7 @@ export class Chat {
 
         if (res.length > 0) {
             messages.unshift(...res);
+            if (res.length < 20) this.endReached = true;
             await tick();
             const newScrollHeight = container.scrollHeight;
             const heightDifference = newScrollHeight - prevScrollHeight;

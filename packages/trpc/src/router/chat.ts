@@ -8,6 +8,7 @@ import { checkFriendship } from "./user.ts";
 
 interface ChatEvents {
     "message.new": Message;
+    "message.del": Message;
 }
 
 const events = new TypedEventEmitter<ChatEvents>();
@@ -101,7 +102,6 @@ export const chatRouter = createTRPCRouter({
                     data.message.receiverId === ctx.user.id ||
                     data.message.senderId === ctx.user.id
                 ) {
-                    console.log("user", ctx.user.id, "received message", data);
                     yield { data };
                 }
             }

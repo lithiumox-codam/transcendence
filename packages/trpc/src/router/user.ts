@@ -1,5 +1,6 @@
 import {
     type Friend,
+    type User,
     db,
     friends,
     userInputSchema,
@@ -26,6 +27,7 @@ import { TypedEventEmitter } from "../utils.ts";
 
 interface UserEvents {
     "friend.new": Friend;
+    "friend.del": Friend;
 }
 
 const events = new TypedEventEmitter<UserEvents>();
@@ -104,7 +106,9 @@ const friendsRouter = createTRPCRouter({
                     .returning();
                 // get the friend's user data
 
-                if (friendship[0]) events.emit("friend.new", friendship[0]);
+                if (friendship[0]) {
+                    events.emit("friend.new", friendship[0]);
+                }
                 return friendship[0];
             } catch (e) {
                 console.error(e);
@@ -178,16 +182,13 @@ const friendsRouter = createTRPCRouter({
                     eq(reciprocal.friendId, ctx.user.id),
                 ),
             )
-            .where(isNull(reciprocal.userId)); // Add this filter
+            .where(isNull(reciprocal.userId));
     }),
     listen: protectedProcedure.subscription(async function* ({ ctx }) {
         const friendStream = events.stream("friend");
         try {
             for await (const data of friendStream) {
-                if (
-                    data.friend.friendId === ctx.user.id ||
-                    data.friend.userId === ctx.user.id
-                ) {
+                if (data.friend.friendId === ctx.user.id) {
                     yield { data };
                 }
             }
@@ -210,6 +211,17 @@ export const userRouter = createTRPCRouter({
             })
             .from(users)
             .where(eq(users.id, ctx.user.id));
+    }),
+    getById: protectedProcedure.input(z.number()).query(async ({ input }) => {
+        return await db
+            .select({
+                id: users.id,
+                name: users.name,
+                email: users.email,
+                createdAt: users.createdAt,
+            })
+            .from(users)
+            .where(eq(users.id, input));
     }),
     create: publicProcedure.input(userInputSchema).mutation(async (opts) => {
         return await db.insert(users).values(opts.input);

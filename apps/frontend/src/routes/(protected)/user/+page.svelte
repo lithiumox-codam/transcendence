@@ -40,7 +40,9 @@
                     alt="Friend Avatar"
                 />
                 <div class="flex-1">
-                    <h3 class="text-xl font-semibold text-white tracking-tighter">
+                    <h3
+                        class="text-xl font-semibold text-white tracking-tighter"
+                    >
                         {friend.name}
                     </h3>
                     <p class="text-gray-300">
@@ -48,10 +50,20 @@
                     </p>
                 </div>
                 <button
-                    onclick={() => window.location.href = `/user/${friend.id}`}
+                    onclick={() =>
+                        (window.location.href = `/user/${friend.id}`)}
                     class="ml-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
                 >
                     View
+                </button>
+
+                <button
+                    onclick={() => {
+                        user.removeFriend(friend.id);
+                    }}
+                    class="ml-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition"
+                >
+                    Remove
                 </button>
             </li>
         {/each}

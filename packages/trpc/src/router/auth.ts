@@ -125,4 +125,80 @@ export const authRouter = createTRPCRouter({
 
             return jwt;
         }),
+    oauthLogin: publicProcedure
+        .input(z.string())
+        .mutation(async ({ input }) => {
+            const tokenUrl = "https://oauth2.googleapis.com/token";
+
+            const { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET } = process.env;
+            if (
+                GOOGLE_CLIENT_ID === undefined ||
+                GOOGLE_CLIENT_SECRET === undefined
+            ) {
+                throw new TRPCError({
+                    code: "INTERNAL_SERVER_ERROR",
+                    message: "Google OAuth not configured",
+                });
+            }
+            const data = {
+                grant_type: "authorization_code",
+                scope: "openid email",
+                code: input,
+                client_id: GOOGLE_CLIENT_ID,
+                client_secret: GOOGLE_CLIENT_SECRET,
+                redirect_uri: "http://localhost:5173/oauth/callback",
+            };
+
+            const response = await fetch(tokenUrl, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded",
+                },
+                body: new URLSearchParams(data).toString(),
+            });
+
+            try {
+                const { access_token } = await response.json();
+
+                const userResponse = await fetch(
+                    "https://www.googleapis.com/oauth2/v1/userinfo",
+                    {
+                        headers: {
+                            Authorization: `Bearer ${access_token}`,
+                        },
+                    },
+                );
+
+                const { email } = await userResponse.json();
+
+                let user = await db
+                    .select()
+                    .from(users)
+                    .where(eq(users.email, email));
+
+                if (user.length === 0 || !user[0]) {
+                    user = await db
+                        .insert(users)
+                        .values({
+                            email,
+                            name: email.split("@")[0],
+                            password: "",
+                        })
+                        .returning();
+
+                    if (user.length === 0 || !user[0]) {
+                        throw new TRPCError({
+                            code: "INTERNAL_SERVER_ERROR",
+                            message: "Failed to create user",
+                        });
+                    }
+                }
+
+                const jwt = await sign({ userId: user[0].id });
+
+                return jwt;
+            } catch (e) {
+                console.log(e);
+            }
+        }),
 });

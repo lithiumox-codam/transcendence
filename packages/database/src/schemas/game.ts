@@ -5,17 +5,34 @@ import { users } from "./user.ts";
 
 export const games = sqliteTable("games", {
     id: integer("id").primaryKey({ autoIncrement: true }),
-    name: text("name", { length: 255 }).notNull(),
-    player1: integer("player1")
+    status: text("status", {
+        enum: ["waiting", "playing", "finished"],
+    })
         .notNull()
-        .references(() => users.id),
-    player2: integer("player2")
-        .notNull()
-        .references(() => users.id),
+        .default("waiting"),
+    maxPlayers: integer("max_players").notNull().default(2),
     createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`),
+    updatedAt: text("updated_at")
+        .default(sql`(CURRENT_TIMESTAMP)`)
+        .$onUpdateFn(() => sql`(CURRENT_TIMESTAMP)`),
 });
 
 export type GameInsert = typeof games.$inferInsert;
 export type Game = typeof games.$inferSelect;
 export const gameInsertSchema = createInsertSchema(games);
 export const gameSelectSchema = createSelectSchema(games);
+
+export const players = sqliteTable("players", {
+    gameId: integer("game_id")
+        .notNull()
+        .references(() => games.id),
+    userId: integer("user_id")
+        .notNull()
+        .references(() => users.id),
+    createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`),
+});
+
+export type PlayerInsert = typeof players.$inferInsert;
+export type Player = typeof players.$inferSelect;
+export const playerInsertSchema = createInsertSchema(players);
+export const playerSelectSchema = createSelectSchema(players);

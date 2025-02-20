@@ -17,7 +17,8 @@
                 password,
             });
             if (browser) localStorage.setItem("token", res);
-            goto("/demo/trpc");
+            if (data.redirect) goto(data.redirect);
+            else goto("/demo/trpc");
         } catch (error) {
             console.error(error);
         }

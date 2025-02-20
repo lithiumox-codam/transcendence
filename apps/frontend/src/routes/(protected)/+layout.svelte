@@ -3,10 +3,6 @@
     import type { LayoutData } from "./$types";
     import { client, isTRPCClientError } from "$lib/trpc";
     import { goto } from "$app/navigation";
-    import { UserClass } from "$lib/classes/User.svelte";
-
-    const user = new UserClass();
-    setContext("user", user);
 
     async function checkAuth() {
         try {
@@ -16,10 +12,10 @@
             if (isTRPCClientError(error)) {
                 switch (error.data?.code) {
                     case "UNAUTHORIZED":
-                        goto("/login");
+                        goto(`/login?redirect=${location.pathname}`);
                         break;
                     case "FORBIDDEN":
-                        goto("/login");
+                        goto(`/login?redirect=${location.pathname}`);
                         break;
                     default:
                         console.error(error);
@@ -36,6 +32,6 @@
     let { data, children }: { data: LayoutData; children: Snippet } = $props();
 </script>
 
-<main class=" h-screen pt-18 bg-zinc-800">
+<main class=" h-screen pt-17 bg-zinc-800">
     {@render children()}
 </main>

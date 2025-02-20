@@ -1,10 +1,14 @@
 <script lang="ts">
     import { goto } from "$app/navigation";
     import { page } from "$app/state";
+    import type { UserClass } from "$lib/classes/User.svelte";
     import { i18n } from "$lib/i18n";
     import * as m from "$lib/paraglide/messages.js";
     import type { AvailableLanguageTag } from "$lib/paraglide/runtime";
     import { clickOutside } from "$lib/utils/clickOutside";
+    import { getContext } from "svelte";
+
+    const user = getContext<UserClass>("user");
 
     let navItems = [
         { label: "Home", href: "/" },
@@ -12,27 +16,22 @@
         { label: "User", href: "/user" },
     ] as const;
 
-    // Language settings
     let languages: { code: AvailableLanguageTag; flag: string }[] = [
         { code: "en", flag: "🇬🇧" },
         { code: "nl", flag: "🇳🇱" },
     ];
 
-    // Use the first language as the default reactive currentLanguage.
     let languageDropdownOpen = $state(false);
     let showUserDropdown = $state(false);
     let scrolled = $state(false);
 
-    // Switch the current language and close dropdown.
     function switchLanguage(newCode: AvailableLanguageTag) {
         const canonicalPath = i18n.route(page.url.pathname);
         const localisedPath = i18n.resolveRoute(canonicalPath, newCode);
         goto(localisedPath);
-
         languageDropdownOpen = false;
     }
 
-    // Listen to scroll events: add blur when scrolled down.
     $effect(() => {
         function handleScroll() {
             scrolled = window.scrollY > 50;
@@ -48,7 +47,7 @@
     class:shadow-lg={scrolled}
 >
     <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-        <!-- Typed Navigation -->
+        <!-- Navigation -->
         <nav class="flex space-x-6">
             {#each navItems as item (item.href)}
                 <a href={item.href} class="text-white hover:underline">
@@ -57,68 +56,89 @@
             {/each}
         </nav>
 
-        <div class="flex items-center">
-            <!-- Language Changer Dropdown -->
+        <div class="flex items-center space-x-4">
+            <!-- Language Dropdown -->
             <div class="relative">
                 <button
-                    class="flex items-center text-white hover:bg-gray-700 px-3 py-1 rounded"
+                    class="flex items-center text-white hover:bg-gray-700 px-3 py-1 rounded focus:outline-none"
                     onclick={() =>
                         (languageDropdownOpen = !languageDropdownOpen)}
                 >
                     <span class="mr-2 text-xl">{m.flag()}</span>
+                    <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20">
+                        <path d="M5.25 7.5l4.5 4.5 4.5-4.5z" />
+                    </svg>
                 </button>
                 {#if languageDropdownOpen}
                     <div
-                        class="absolute right-0 mt-2 bg-black border border-white/30 rounded shadow-md flex flex-col"
+                        class="absolute right-0 mt-2 w-40 bg-black border border-white/30 rounded shadow-md"
                     >
                         {#each languages as lang (lang.code)}
                             <button
-                                class="text-white hover:bg-gray-700 px-3 py-1"
+                                class="w-full text-left text-white hover:bg-gray-700 px-4 py-2"
                                 onclick={() => switchLanguage(lang.code)}
                             >
-                                <span class="mr-2 text-xl">{lang.flag}</span>
+                                <span class="mr-2">{lang.flag}</span>
+                                {lang.code.toUpperCase()}
                             </button>
                         {/each}
                     </div>
                 {/if}
             </div>
 
-            <!-- User Settings Dropdown (inspired by shadcn) -->
-            <div class="relative">
-                <button
-                    class="flex items-center text-white hover:bg-gray-700 px-3 py-1 rounded"
-                    onclick={() => (showUserDropdown = !showUserDropdown)}
+            <!-- User Settings Dropdown -->
+            {#if user.data !== null}
+                <div class="relative">
+                    <button
+                        class="flex items-center text-white hover:bg-gray-700 px-3 py-1 rounded focus:outline-none"
+                        onclick={() => (showUserDropdown = !showUserDropdown)}
+                    >
+                        <span>User</span>
+                        <svg
+                            class="w-4 h-4 fill-current ml-1"
+                            viewBox="0 0 20 20"
+                        >
+                            <path d="M5.25 7.5l4.5 4.5 4.5-4.5z" />
+                        </svg>
+                    </button>
+                    {#if showUserDropdown}
+                        <div
+                            use:clickOutside={() => (showUserDropdown = false)}
+                            class="absolute right-0 mt-2 w-40 bg-black border border-white/30 rounded shadow-md flex flex-col"
+                        >
+                            <a
+                                href="/user"
+                                class="text-white hover:bg-gray-700 px-4 py-2"
+                                >Profile</a
+                            >
+                            <a
+                                href="/settings"
+                                class="text-white hover:bg-gray-700 px-4 py-2"
+                                >Settings</a
+                            >
+                            <button
+                                onclick={() => {
+                                    localStorage.removeItem("token");
+                                    goto("/");
+                                }}
+                                class="text-white hover:bg-gray-700 px-4 py-2"
+                                >Logout</button
+                            >
+                        </div>
+                    {/if}
+                </div>
+            {:else}
+                <a
+                    href="/login"
+                    class="text-white hover:bg-gray-700 px-3 py-1 rounded"
+                    >Login</a
                 >
-                    <span>User</span>
-                </button>
-                {#if showUserDropdown}
-                    <div use:clickOutside={() => (showUserDropdown = false)}>
-                        class="absolute right-0 mt-2 bg-black border
-                        border-white/30 rounded shadow-md flex flex-col" >
-                        <a
-                            href="/profile"
-                            class="text-white hover:bg-gray-700 px-3 py-1"
-                            >Profile</a
-                        >
-                        <a
-                            href="/settings"
-                            class="text-white hover:bg-gray-700 px-3 py-1"
-                            >Settings</a
-                        >
-                        <a
-                            href="/logout"
-                            class="text-white hover:bg-gray-700 px-3 py-1"
-                            >Logout</a
-                        >
-                    </div>
-                {/if}
-            </div>
+            {/if}
         </div>
     </div>
 </header>
 
 <style>
-    /* Optional: Additional styling to ensure header content is visible */
     header {
         /* Fallback background when not scrolled */
         background-color: rgba(0, 0, 0, 0.5);

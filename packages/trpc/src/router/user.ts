@@ -1,6 +1,5 @@
 import {
     type Friend,
-    type User,
     db,
     friends,
     userInputSchema,

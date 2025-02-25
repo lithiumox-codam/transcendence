@@ -14,6 +14,7 @@ import {
     publicProcedure,
 } from "../trpc.js";
 import { TypedEventEmitter } from "../utils.ts";
+import { gdprRouter } from "./gpdr.js";
 
 interface UserEvents {
     "friend.new": Friend;
@@ -186,6 +187,7 @@ const friendsRouter = createTRPCRouter({
 
 export const userRouter = createTRPCRouter({
     friends: friendsRouter,
+	privacy: gdprRouter,
     get: protectedProcedure.query(async ({ ctx }) => {
         return await db
             .select({

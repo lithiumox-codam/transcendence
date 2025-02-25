@@ -6,8 +6,7 @@
 
     async function checkAuth() {
         try {
-            const user = await client.user.get.query();
-            setContext("user", user[0]);
+            await client.user.get.query();
         } catch (error) {
             if (isTRPCClientError(error)) {
                 switch (error.data?.code) {

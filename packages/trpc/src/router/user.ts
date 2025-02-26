@@ -1,5 +1,4 @@
 import {
-    type Friend,
     db,
     friends,
     userInputSchema,
@@ -17,19 +16,12 @@ import {
     or,
 } from "drizzle-orm";
 import { z } from "zod";
+import { emitter } from "../events/index.ts";
 import {
     createTRPCRouter,
     protectedProcedure,
     publicProcedure,
 } from "../trpc.js";
-import { TypedEventEmitter } from "../utils.ts";
-
-interface UserEvents {
-    "friend.new": Friend;
-    "friend.del": Friend;
-}
-
-const events = new TypedEventEmitter<UserEvents>();
 
 export async function checkFriendship(
     userId: number,
@@ -106,7 +98,7 @@ const friendsRouter = createTRPCRouter({
                 // get the friend's user data
 
                 if (friendship[0]) {
-                    events.emit("friend.new", friendship[0]);
+                    emitter.emit("user:friendAdded", friendship[0]);
                 }
                 return friendship[0];
             } catch (e) {
@@ -117,14 +109,20 @@ const friendsRouter = createTRPCRouter({
     remove: protectedProcedure
         .input(z.number())
         .mutation(async ({ ctx, input }) => {
-            return await db
+            const friendship = await db
                 .delete(friends)
                 .where(
                     and(
                         eq(friends.userId, ctx.user.id),
                         eq(friends.friendId, input),
                     ),
-                );
+                )
+                .returning();
+
+            if (friendship[0]) {
+                emitter.emit("user:friendDeleted", friendship[0]);
+            }
+            return friendship[0];
         }),
     // Update listRequests to exclude mutual friendships
     listSentRequests: protectedProcedure.query(async ({ ctx }) => {
@@ -183,19 +181,11 @@ const friendsRouter = createTRPCRouter({
             )
             .where(isNull(reciprocal.userId));
     }),
-    listen: protectedProcedure.subscription(async function* ({ ctx }) {
-        const friendStream = events.stream("friend");
-        try {
-            for await (const data of friendStream) {
-                if (data.friend.friendId === ctx.user.id) {
-                    yield { data };
-                }
-            }
-        } catch (e) {
-            console.error(e);
-            throw e;
-        }
-    }),
+    listen: protectedProcedure.subscription(({ ctx }) =>
+        emitter.subscribeDomain("user", (event) => {
+            return event.data.friendId === ctx.user.id || event.data.userId === ctx.user.id;
+        })
+    ),
 });
 
 export const userRouter = createTRPCRouter({

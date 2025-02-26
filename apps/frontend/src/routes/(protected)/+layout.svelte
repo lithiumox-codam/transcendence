@@ -31,6 +31,6 @@
     let { data, children }: { data: LayoutData; children: Snippet } = $props();
 </script>
 
-<main class=" h-screen pt-17 bg-zinc-800">
+<main class="h-[94vh] bg-zinc-800">
     {@render children()}
 </main>

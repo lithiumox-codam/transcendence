@@ -1,17 +1,10 @@
-import { type Message, db, message, messageInsertSchema } from "@repo/database";
+import { db, message, messageInsertSchema } from "@repo/database";
 import { TRPCError } from "@trpc/server";
-import { and, asc, desc, eq, or } from "drizzle-orm";
+import { and, desc, eq, or } from "drizzle-orm";
 import { z } from "zod";
+import { emitter } from "../events/index.ts";
 import { createTRPCRouter, protectedProcedure } from "../trpc.js";
-import { TypedEventEmitter } from "../utils.js";
 import { checkFriendship } from "./user.ts";
-
-interface ChatEvents {
-    "message.new": Message;
-    "message.del": Message;
-}
-
-const events = new TypedEventEmitter<ChatEvents>();
 
 export const chatRouter = createTRPCRouter({
     get: protectedProcedure
@@ -77,7 +70,7 @@ export const chatRouter = createTRPCRouter({
                     .returning();
 
                 if (msg) {
-                    events.emit("message.new", msg);
+                    emitter.emit("chat:messageCreated", msg);
                     return msg;
                 }
 
@@ -94,20 +87,9 @@ export const chatRouter = createTRPCRouter({
             }
         }),
 
-    listen: protectedProcedure.subscription(async function* ({ ctx }) {
-        const messageStream = events.stream("message");
-        try {
-            for await (const data of messageStream) {
-                if (
-                    data.message.receiverId === ctx.user.id ||
-                    data.message.senderId === ctx.user.id
-                ) {
-                    yield { data };
-                }
-            }
-        } catch (e) {
-            console.error(e);
-            throw e;
-        }
-    }),
+    listen: protectedProcedure.subscription(({ ctx }) =>
+        emitter.subscribeDomain("chat", (event) => {
+            return event.data.receiverId === ctx.user.id || event.data.senderId === ctx.user.id;
+        }),
+    ), 
 });

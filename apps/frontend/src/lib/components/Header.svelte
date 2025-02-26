@@ -23,7 +23,6 @@
 
     let languageDropdownOpen = $state(false);
     let showUserDropdown = $state(false);
-    let scrolled = $state(false);
 
     function switchLanguage(newCode: AvailableLanguageTag) {
         const canonicalPath = i18n.route(page.url.pathname);
@@ -31,21 +30,9 @@
         goto(localisedPath);
         languageDropdownOpen = false;
     }
-
-    $effect(() => {
-        function handleScroll() {
-            scrolled = window.scrollY > 50;
-        }
-        window.addEventListener("scroll", handleScroll);
-        return () => window.removeEventListener("scroll", handleScroll);
-    });
 </script>
 
-<header
-    class="fixed top-0 left-0 right-0 z-50 transition-all duration-300"
-    class:backdrop-blur-lg={scrolled}
-    class:shadow-lg={scrolled}
->
+<header class="bg-black bg-opacity-50">
     <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
         <!-- Navigation -->
         <nav class="flex space-x-6">
@@ -140,7 +127,6 @@
 
 <style>
     header {
-        /* Fallback background when not scrolled */
         background-color: rgba(0, 0, 0, 0.5);
     }
 </style>

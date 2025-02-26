@@ -59,31 +59,33 @@ export class Chat {
 
     private async listenFriends(): Promise<void> {
         client.user.friends.listen.subscribe(undefined, {
-            onData: ({ data }) => {
-                switch (data.type) {
-                }
+            onData: ({ data, type }) => {
+                // TODO: Handle friend added/removed
             },
         });
     }
 
     private async listenMessages(): Promise<void> {
         client.chat.listen.subscribe(undefined, {
-            onData: async ({ data }) => {
-                switch (data.type) {
-                    case "new":
-                        {
-                            const user =
-                                data.message.senderId === this.user?.id
-                                    ? data.message.receiverId
-                                    : data.message.senderId;
-                            const messages = this.messages.get(user);
-                            if (messages) {
-                                messages.push(data.message);
-                                await tick();
-                                this.scrollDown();
-                            }
+            onData: async ({ data, type }) => {
+                const messages = this.messages.get(data.receiverId);
+                if (!messages) return;
+
+                switch (type) {
+                    case "messageCreated": {
+                        messages.push(data);
+                        await tick();
+                        this.scrollDown();
+                        break;
+                    }
+                    case "messageDeleted": {
+                        const index = messages.findIndex((msg) => msg.id === data.id);
+                        if (index !== -1) {
+                            messages.splice(index, 1);
+                            await tick();
                         }
                         break;
+                    }
                 }
             },
         });

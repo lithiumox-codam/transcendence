@@ -70,7 +70,7 @@ export const chatRouter = createTRPCRouter({
                     .returning();
 
                 if (msg) {
-                    emitter.emit("chat:messageCreated", msg);
+                    emitter.emit("chat:message", msg);
                     return msg;
                 }
 

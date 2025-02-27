@@ -6,12 +6,12 @@ import type { Friend, Message } from "@repo/database";
  */
 export interface EventMap {
   chat: {
-    messageCreated: Message;
-    messageDeleted: Message;
+    message: Message;
+    removal: Message;
   };
   user: {
-    friendAdded: Friend;
-    friendDeleted: Friend;
+    friend: Friend;
+    friendRemoval: Friend;
   };
   [key: string]: Record<string, unknown>; // Added to tell TypeScript that the key is a string
 }

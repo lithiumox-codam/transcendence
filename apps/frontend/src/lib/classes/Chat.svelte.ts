@@ -59,8 +59,22 @@ export class Chat {
 
     private async listenFriends(): Promise<void> {
         client.user.friends.listen.subscribe(undefined, {
-            onData: ({ data, type }) => {
-                // TODO: Handle friend added/removed
+            onData: async ({ data, type }) => {
+                switch (type) {
+                    case "friend": {
+                        const friend = await client.user.getById.query(data.friendId);
+                        if (friend) this.friends.push(friend);
+                        break;
+                    }
+                    case "friendRemoval": {
+                        const index = this.friends.findIndex((f) => f.id === data.friendId);
+                        if (index !== -1) {
+                            this.friends.splice(index, 1);
+                            this.messages.delete(data.friendId);
+                        }
+                        break;
+                    }
+                }
             },
         });
     }
@@ -68,17 +82,17 @@ export class Chat {
     private async listenMessages(): Promise<void> {
         client.chat.listen.subscribe(undefined, {
             onData: async ({ data, type }) => {
-                const messages = this.messages.get(data.receiverId);
+                const messages = this.messages.get(this.user?.id ? data.receiverId : data.senderId);
                 if (!messages) return;
 
                 switch (type) {
-                    case "messageCreated": {
+                    case "message": {
                         messages.push(data);
                         await tick();
                         this.scrollDown();
                         break;
                     }
-                    case "messageDeleted": {
+                    case "removal": {
                         const index = messages.findIndex((msg) => msg.id === data.id);
                         if (index !== -1) {
                             messages.splice(index, 1);

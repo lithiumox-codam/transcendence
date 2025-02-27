@@ -98,7 +98,7 @@ const friendsRouter = createTRPCRouter({
                 // get the friend's user data
 
                 if (friendship[0]) {
-                    emitter.emit("user:friendAdded", friendship[0]);
+                    emitter.emit("user:friend", friendship[0]);
                 }
                 return friendship[0];
             } catch (e) {
@@ -120,7 +120,7 @@ const friendsRouter = createTRPCRouter({
                 .returning();
 
             if (friendship[0]) {
-                emitter.emit("user:friendDeleted", friendship[0]);
+                emitter.emit("user:friendRemoval", friendship[0]);
             }
             return friendship[0];
         }),
@@ -202,7 +202,7 @@ export const userRouter = createTRPCRouter({
             .where(eq(users.id, ctx.user.id));
     }),
     getById: protectedProcedure.input(z.number()).query(async ({ input }) => {
-        return await db
+        const res = await db
             .select({
                 id: users.id,
                 name: users.name,
@@ -211,6 +211,7 @@ export const userRouter = createTRPCRouter({
             })
             .from(users)
             .where(eq(users.id, input));
+        return res[0];
     }),
     create: publicProcedure.input(userInputSchema).mutation(async (opts) => {
         return await db.insert(users).values(opts.input);

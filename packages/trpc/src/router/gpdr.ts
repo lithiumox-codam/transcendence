@@ -10,10 +10,38 @@ import {
 } from "../trpc.ts";
 
 export const gdprRouter = createTRPCRouter({
-	deleteAccount: protectedProcedure.mutation(async ({ ctx }) => {
-		await db.update(users).set({
-			name: "[DELETED]",
-			email: "[DELETED]",
-		}).where(eq(users.id, ctx.user.id));
-	}),
+	deleteAccount: protectedProcedure
+		.input(z.object({ password: z.string() }))
+		.mutation(async ({ ctx, input }) => {
+
+			const user = await db
+				.select()
+				.from(users)
+				.where(eq(users.id, ctx.user.id));
+
+			if (user.length === 0 || !user[0]) {
+				throw new TRPCError({
+					code: "FORBIDDEN",
+					message: "Invalid credentials",
+				});
+			}
+
+			const isValid = await verifyPassword(
+				user[0].password,
+				input.password,
+			);
+
+			if (!isValid) {
+				throw new TRPCError({
+					code: "FORBIDDEN",
+					message: "Invalid credentials",
+				});
+			}
+
+			await db.update(users).set({
+				name: "[DELETED]",
+				email: "[DELETED]",
+				password: "[DELETED]",
+			}).where(eq(users.id, ctx.user.id));
+		}),
 });

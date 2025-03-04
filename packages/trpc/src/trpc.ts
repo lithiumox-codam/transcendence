@@ -2,7 +2,7 @@ import { verify } from "@repo/auth";
 import { db, friends, users } from "@repo/database";
 import { TRPCError, initTRPC } from "@trpc/server";
 import type { CreateFastifyContextOptions } from "@trpc/server/adapters/fastify";
-import { eq } from "drizzle-orm";
+import { and, eq, ne } from "drizzle-orm";
 import superjson from "superjson";
 import { ZodError } from "zod";
 
@@ -47,7 +47,8 @@ export async function createTRPCContext({
                 email: users.email,
             })
             .from(users)
-            .where(eq(users.id, userId));
+			.where(and(eq(users.id, userId), ne(users.password, "[DELETED]")));
+            // .where(eq(users.id, userId));
         if (dbResult.length === 0) {
             throw new TRPCError({
                 code: "UNAUTHORIZED",

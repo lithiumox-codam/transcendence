@@ -16,6 +16,7 @@
     "dependencies": {
         "@repo/tsconfig": "workspace:^0.0.0",
         "drizzle-orm": "0.39.2",
+        "gl-matrix": "^3.4.3",
         "node": "^23.8.0"
     }
 }

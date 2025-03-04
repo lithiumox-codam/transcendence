@@ -8,7 +8,7 @@ import {
     games,
     players,
 } from "@repo/database";
-import type { GameState, PlayerIputs } from "@repo/game";
+import type { GameState, inputs } from "@repo/game";
 import { GameEngine } from "@repo/game";
 import { z } from "zod";
 import {
@@ -37,7 +37,7 @@ export const gameRouter = createTRPCRouter({
                     userId: ctx.user.id,
                 });
                 events.emit("game.created", game[0]);
-                gamesMap.set(game[0].id, new GameEngine());
+                gamesMap.set(game[0].id, new GameEngine(2));
             }
         }),
     listen: protectedProcedure.subscription(async function* ({ ctx }) {

@@ -1,4 +1,10 @@
-import { hashPassword, sign, verify, verifyPassword } from "@repo/auth";
+import {
+    hashPassword,
+    sign,
+    verifyPassword,
+    googleProvider,
+    TokenPayload,
+} from "@repo/auth";
 import { db, passwordSchema, userInputSchema, users } from "@repo/database";
 import { TRPCError } from "@trpc/server";
 import { and, eq } from "drizzle-orm";
@@ -128,36 +134,32 @@ export const authRouter = createTRPCRouter({
     oauthLogin: publicProcedure
         .input(z.string())
         .mutation(async ({ input }) => {
-            const tokenUrl = "https://oauth2.googleapis.com/token";
+            const provider = googleProvider;
 
-            const { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET } = process.env;
-            if (
-                GOOGLE_CLIENT_ID === undefined ||
-                GOOGLE_CLIENT_SECRET === undefined
-            ) {
+            const { clientId, clientSecret } = provider;
+            if (!clientId || !clientSecret) {
                 throw new TRPCError({
                     code: "INTERNAL_SERVER_ERROR",
-                    message: "Google OAuth not configured",
+                    message: `Google Sign-in not configured`,
                 });
             }
-            const data = {
-                grant_type: "authorization_code",
-                scope: "openid email",
-                code: input,
-                client_id: GOOGLE_CLIENT_ID,
-                client_secret: GOOGLE_CLIENT_SECRET,
-                redirect_uri: "http://localhost:5173/oauth/callback",
-            };
 
-            const response = await fetch(tokenUrl, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/x-www-form-urlencoded",
-                },
-                body: new URLSearchParams(data).toString(),
-            });
+            const tokenUrl = provider.tokenHost + provider.tokenPath;
+            const tokenPayload = new TokenPayload(
+                clientId,
+                clientSecret,
+                input,
+            );
 
             try {
+                const response = await fetch(tokenUrl, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/x-www-form-urlencoded",
+                    },
+                    body: tokenPayload.toQueryString(),
+                });
+
                 const { access_token } = await response.json();
 
                 const userResponse = await fetch(
@@ -203,7 +205,7 @@ export const authRouter = createTRPCRouter({
 
             throw new TRPCError({
                 code: "INTERNAL_SERVER_ERROR",
-                message: "Google OAuth not configured",
+                message: "Failed to login",
             });
         }),
 });

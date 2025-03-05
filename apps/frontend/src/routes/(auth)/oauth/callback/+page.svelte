@@ -4,11 +4,6 @@
 
     const code = page.url.searchParams.get("code");
 
-    onMount(() => {
-        if (code) {
-        }
-    });
-
     import { client } from "$lib/trpc";
     import { browser } from "$app/environment";
     import { goto } from "$app/navigation";

@@ -1,11 +1,18 @@
 <script lang="ts">
-    const CLIENT_ID =
-        "709994218195-j4td5sbsg0i3vhpnnei9ea0kq8avi462.apps.googleusercontent.com";
+    import type { ClientProviderConfig } from "@repo/auth";
+    let { data } = $props();
 
-    async function handleGoogleLogin() {
-        const baseUrl = "https://accounts.google.com/o/oauth2/v2/auth";
+    async function handleGoogleSignIn() {
+        const providerConfig = data as ClientProviderConfig;
+
+        if (!providerConfig.clientId) {
+            console.error("Client ID is missing");
+            return;
+        }
+
+        const baseUrl = providerConfig.authHost + providerConfig.authPath;
         const params = new URLSearchParams({
-            client_id: CLIENT_ID,
+            client_id: providerConfig.clientId,
             redirect_uri: "http://localhost:5173/oauth/callback",
             response_type: "code",
             scope: "openid profile email",
@@ -15,4 +22,6 @@
     }
 </script>
 
-<button class="mt-20" on:click={handleGoogleLogin}>Login with Google</button>
+<button class="mt-20" onclick={() => handleGoogleSignIn()}
+    >Login with Google</button
+>

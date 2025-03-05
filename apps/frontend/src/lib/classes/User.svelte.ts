@@ -35,14 +35,16 @@ export class UserClass {
 
     async listenFriends() {
         client.user.friends.listen.subscribe(undefined, {
-            onData: ({ data }) => {
-                switch (data.type) {
-                    case "new":
-                        this.addFriend(data.friend);
-                        break;
-                    case "del":
+            onData: async ({ data, type }) => {
+                switch (type) {
+                    case "friend": {
+                        const friend = await client.user.getById.query(data.friendId);
+                        if (!friend) return;
+                        this.friends.push(friend);
+                    } break;
+                    case "friendRemoval":
                         this.friends = this.friends.filter(
-                            (f) => f.id !== data.friend.friendId,
+                            (f) => f.id !== data.friendId,
                         );
                         break;
                 }
@@ -68,7 +70,7 @@ export class UserClass {
         try {
             const res = await client.user.getById.query(id);
             if (!res) return;
-            this.friends.push(res[0]);
+            this.friends.push(res);
             this.incomingRequests = this.incomingRequests.filter(
                 (f) => f.id !== id,
             );

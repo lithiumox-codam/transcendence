@@ -97,9 +97,8 @@ const friendsRouter = createTRPCRouter({
                     .returning();
                 // get the friend's user data
 
-                if (friendship[0]) {
-                    emitter.emit("user:friend", friendship[0]);
-                }
+                if (friendship[0]) emitter.emit("user:friend", friendship[0]);
+                
                 return friendship[0];
             } catch (e) {
                 console.error(e);

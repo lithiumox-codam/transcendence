@@ -22,6 +22,7 @@ import {
     protectedProcedure,
     publicProcedure,
 } from "../trpc.js";
+import { gdprRouter } from "./gdpr.ts";
 
 export async function checkFriendship(
     userId: number,
@@ -189,6 +190,7 @@ const friendsRouter = createTRPCRouter({
 
 export const userRouter = createTRPCRouter({
     friends: friendsRouter,
+	privacy: gdprRouter,
     get: protectedProcedure.query(async ({ ctx }) => {
         return await db
             .select({

@@ -1,10 +1,9 @@
 <script lang="ts">
     import type { ClientProviderConfig } from "@repo/auth";
-    let { data } = $props();
+    export let providerConfig: ClientProviderConfig;
 
     async function handleGoogleSignIn() {
-        const providerConfig = data as ClientProviderConfig;
-
+        console.log(providerConfig);
         if (!providerConfig.clientId) {
             console.error("Client ID is missing");
             return;

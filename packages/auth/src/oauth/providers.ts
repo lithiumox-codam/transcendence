@@ -18,4 +18,4 @@ export const googleProvider: ProviderConfig = {
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
 };
 
-export const clientGoogleProvider = googleProvider as ClientProviderConfig;
+export const { clientSecret, ...clientGoogleProvider } = googleProvider;

@@ -3,7 +3,6 @@
     export let providerConfig: ClientProviderConfig;
 
     async function handleGoogleSignIn() {
-        console.log(providerConfig);
         if (!providerConfig.clientId) {
             console.error("Client ID is missing");
             return;

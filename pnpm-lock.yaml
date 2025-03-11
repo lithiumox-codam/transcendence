@@ -76,6 +76,9 @@ importers:
       '@inlang/paraglide-sveltekit':
         specifier: ^0.15.5
         version: 0.15.5(@sveltejs/kit@2.17.0)
+      '@repo/auth':
+        specifier: workspace:^
+        version: link:../../packages/auth
       '@repo/database':
         specifier: workspace:^
         version: link:../../packages/database
@@ -149,6 +152,9 @@ importers:
       jose:
         specifier: ^5.9.6
         version: 5.9.6
+      zod:
+        specifier: ^3.24.1
+        version: 3.24.1
     devDependencies:
       '@types/bcrypt':
         specifier: ^5.0.2

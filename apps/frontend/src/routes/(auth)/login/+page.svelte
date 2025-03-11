@@ -1,10 +1,10 @@
 <script lang="ts">
     import { client } from "$lib/trpc";
     import { browser } from "$app/environment";
-    import type { PageData } from "./$types";
     import { goto } from "$app/navigation";
+    import GoogleButton from "$lib/components/GoogleButton.svelte";
 
-    let { data }: { data: PageData } = $props();
+    let { data } = $props();
 
     let email = $state("");
     let password = $state("");
@@ -73,6 +73,9 @@
                     Login
                 </button>
             </form>
+        </div>
+        <div class="p-6">
+            <GoogleButton providerConfig={data} />
         </div>
     </div>
 </main>

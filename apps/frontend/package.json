@@ -4,7 +4,7 @@
     "version": "0.0.1",
     "type": "module",
     "scripts": {
-        "dev": "vite dev",
+        "dev": "dotenvx run -f ../../.env --debug -- vite dev",
         "build": "vite build",
         "preview": "vite preview",
         "prepare": "svelte-kit sync || echo ''",
@@ -30,6 +30,7 @@
     },
     "dependencies": {
         "@inlang/paraglide-sveltekit": "^0.15.5",
+        "@repo/auth": "workspace:^",
         "@repo/database": "workspace:^",
         "@repo/trpc": "workspace:^",
         "@trpc/client": "11.0.0-rc.764",

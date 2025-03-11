@@ -165,3 +165,15 @@ export class TypedEventEmitter<T extends object = Record<never, never>> {
         return generator;
     }
 }
+
+export function getEnv<T extends string>(...vars: T[]): Record<T, string> {
+    const result: Record<T, string> = {} as Record<T, string>;
+    for (const v of vars) {
+        const value = process.env[v];
+        if (value === undefined) {
+            throw new Error(`Missing environment variable: ${v}`);
+        }
+        result[v] = value;
+    }
+    return result;
+}

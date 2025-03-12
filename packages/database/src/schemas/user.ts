@@ -63,17 +63,3 @@ export type FriendInsert = typeof friends.$inferInsert;
 export type Friend = typeof friends.$inferSelect;
 export const friendInsertSchema = createInsertSchema(friends);
 export const friendSelectSchema = createSelectSchema(friends);
-
-export const refreshToken = sqliteTable("refresh_tokens", {
-    id: integer("id").primaryKey({ autoIncrement: true }),
-    userId: integer("user_id")
-        .notNull()
-        .references(() => users.id),
-    token: text("token").notNull(),
-    createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`),
-});
-
-export type RefreshTokenInsert = typeof refreshToken.$inferInsert;
-export type RefreshToken = typeof refreshToken.$inferSelect;
-export const refreshTokenInsertSchema = createInsertSchema(refreshToken);
-export const refreshTokenSelectSchema = createSelectSchema(refreshToken);

@@ -8,8 +8,6 @@
     import { clickOutside } from "$lib/utils/clickOutside";
     import { getContext } from "svelte";
 
-    const user = getContext<UserClass>("user");
-
     let navItems = [
         { label: "Home", href: "/" },
         { label: "Chat", href: "/chat" },
@@ -74,53 +72,6 @@
             </div>
 
             <!-- User Settings Dropdown -->
-            {#if user.data !== null}
-                <div class="relative">
-                    <button
-                        class="flex items-center text-white hover:bg-gray-700 px-3 py-1 rounded focus:outline-none"
-                        onclick={() => (showUserDropdown = !showUserDropdown)}
-                    >
-                        <span>User</span>
-                        <svg
-                            class="w-4 h-4 fill-current ml-1"
-                            viewBox="0 0 20 20"
-                        >
-                            <path d="M5.25 7.5l4.5 4.5 4.5-4.5z" />
-                        </svg>
-                    </button>
-                    {#if showUserDropdown}
-                        <div
-                            use:clickOutside={() => (showUserDropdown = false)}
-                            class="absolute right-0 mt-2 w-40 bg-black border border-white/30 rounded shadow-md flex flex-col"
-                        >
-                            <a
-                                href="/user"
-                                class="text-white hover:bg-gray-700 px-4 py-2"
-                                >Profile</a
-                            >
-                            <a
-                                href="/settings"
-                                class="text-white hover:bg-gray-700 px-4 py-2"
-                                >Settings</a
-                            >
-                            <button
-                                onclick={() => {
-                                    localStorage.removeItem("token");
-                                    goto("/");
-                                }}
-                                class="text-white hover:bg-gray-700 px-4 py-2"
-                                >Logout</button
-                            >
-                        </div>
-                    {/if}
-                </div>
-            {:else}
-                <a
-                    href="/login"
-                    class="text-white hover:bg-gray-700 px-3 py-1 rounded"
-                    >Login</a
-                >
-            {/if}
         </div>
     </div>
 </header>

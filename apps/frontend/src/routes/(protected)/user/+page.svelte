@@ -1,8 +1,15 @@
 <script lang="ts">
     import { UserClass } from "$lib/classes/User.svelte";
+    import FriendSearch from "$lib/components/FriendSearch.svelte";
+    import { client } from "$lib/trpc";
     import { getContext } from "svelte";
 
     const user = getContext<UserClass>("user");
+
+    // Check if there are any incoming friend requests
+    const hasIncomingRequests = $derived(
+        user.incomingRequests && user.incomingRequests.length > 0,
+    );
 </script>
 
 <header
@@ -70,29 +77,59 @@
         <li
             class="flex items-center p-6 bg-gray-700 shadow-lg rounded-lg border border-gray-500 cursor-pointer transition-all hover:scale-105 hover:shadow-2xl"
         >
-            <div
-                class="flex items-center justify-center w-20 h-20 bg-gray-600 rounded-full mr-6 border border-gray-400 filter drop-shadow"
-            >
-                <svg
-                    class="w-10 h-10 text-gray-300"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                    xmlns="http://www.w3.org/2000/svg"
-                >
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                    ></path>
-                </svg>
-            </div>
             <div>
                 <h3 class="text-xl font-semibold text-gray-300 tracking-wide">
                     Add Friend
                 </h3>
+                <FriendSearch />
             </div>
         </li>
     </ul>
+
+    {#if hasIncomingRequests}
+        <div class="mt-12">
+            <h2
+                class="text-2xl sm:text-3xl font-bold text-white mb-8 tracking-wide border-b pb-2 border-gray-600"
+            >
+                Friend Requests
+            </h2>
+            <ul class="grid grid-cols-1 gap-4">
+                {#each user.incomingRequests as request (request.id)}
+                    <li
+                        class="flex items-center p-4 bg-gray-700 shadow-lg rounded-lg border border-gray-500"
+                    >
+                        <img
+                            class="w-12 h-12 rounded-full mr-4 object-cover border-2 border-double border-gray-400"
+                            src="/favicon.png"
+                            alt="Requestor Avatar"
+                        />
+                        <div class="flex-1">
+                            <h3 class="text-lg font-semibold text-white">
+                                {request.name}
+                            </h3>
+                            <p class="text-sm text-gray-300">
+                                {request.email}
+                            </p>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button
+                                onclick={() =>
+                                    client.user.friends.add.mutate({
+                                        friendId: request.id,
+                                    })}
+                                class="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 transition"
+                            >
+                                Accept
+                            </button>
+                            <button
+                                class="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition"
+                            >
+                                Block
+                            </button>
+                        </div>
+                    </li>
+                {/each}
+            </ul>
+        </div>
+    {/if}
 </main>

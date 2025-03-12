@@ -4,7 +4,7 @@ import { and, desc, eq, or } from "drizzle-orm";
 import { z } from "zod";
 import { emitter } from "../events/index.ts";
 import { createTRPCRouter, protectedProcedure } from "../trpc.js";
-import { checkFriendship } from "./user.ts";
+import { checkFriendship } from "./friends.ts";
 
 export const chatRouter = createTRPCRouter({
     get: protectedProcedure
@@ -89,7 +89,10 @@ export const chatRouter = createTRPCRouter({
 
     listen: protectedProcedure.subscription(({ ctx }) =>
         emitter.subscribeDomain("chat", (event) => {
-            return event.data.receiverId === ctx.user.id || event.data.senderId === ctx.user.id;
+            return (
+                event.data.receiverId === ctx.user.id ||
+                event.data.senderId === ctx.user.id
+            );
         }),
-    ), 
+    ),
 });

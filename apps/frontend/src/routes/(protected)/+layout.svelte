@@ -3,6 +3,13 @@
     import type { LayoutData } from "./$types";
     import { client, isTRPCClientError } from "$lib/trpc";
     import { goto } from "$app/navigation";
+    import { UserClass } from "$lib/classes/User.svelte";
+    import { Chat } from "$lib/classes/Chat.svelte";
+
+    const user = new UserClass();
+    setContext("user", user);
+    const chat = new Chat(user);
+    setContext("chat", chat);
 
     async function checkAuth() {
         try {

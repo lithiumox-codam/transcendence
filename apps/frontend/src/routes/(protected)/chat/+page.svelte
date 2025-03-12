@@ -2,9 +2,11 @@
     import { client } from "$lib/trpc";
     import type { PageData } from "./$types";
     import { Chat } from "$lib/classes/Chat.svelte";
+    import { UserClass } from "$lib/classes/User.svelte";
+    import { getContext } from "svelte";
 
-    let { data }: { data: PageData } = $props();
-    const chat = new Chat();
+    let userClass = getContext<UserClass>("user");
+    let chat = $state(new Chat(userClass));
 
     let newMessage = $state("");
 
@@ -33,9 +35,9 @@
             <h2 class="text-lg font-medium text-cyan-400">Friends</h2>
         </div>
         <div class="flex-grow overflow-y-auto">
-            {#if chat.friends}
+            {#if userClass.friends?.length}
                 <ul class="divide-y divide-zinc-700">
-                    {#each chat.friends as friend (friend.id)}
+                    {#each userClass.friends as friend (friend.id)}
                         {@const messages = chat.messages.get(friend.id) ?? []}
                         <li>
                             <button
@@ -70,7 +72,7 @@
                flex items-center"
             >
                 <h3 class="text-xl font-semibold text-cyan-400">
-                    {chat.friends.find(
+                    {userClass.friends.find(
                         (friend) => friend.id === chat.selectedFriend,
                     )?.name}
                 </h3>
@@ -102,7 +104,7 @@
                         </div>
 
                         {#each chat.messages.get(chat.selectedFriend) ?? [] as message (message.id)}
-                            {#if message.senderId === chat.user?.id}
+                            {#if message.senderId === userClass.data?.id}
                                 <!-- Message sent by the current user -->
                                 <div class="flex justify-end">
                                     <div
@@ -131,7 +133,7 @@
                                         class="max-w-xs p-3 rounded-lg bg-zinc-700 text-white shadow-sm break-words animate-fade-in"
                                     >
                                         <div class="text-xs opacity-75 mb-1">
-                                            {chat.friends.find(
+                                            {userClass.friends.find(
                                                 (friend) =>
                                                     friend.id ===
                                                     message.senderId,

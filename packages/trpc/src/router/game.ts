@@ -8,8 +8,9 @@ import {
     games,
     players,
 } from "@repo/database";
-import type { GameState, inputs } from "@repo/game";
-import { GameEngine } from "@repo/game";
+import type { GameState } from "@repo/game";
+import { GameEngine, playerInputs } from "@repo/game";
+import { observable } from "@trpc/server/observable";
 import { z } from "zod";
 import {
     createTRPCRouter,
@@ -20,7 +21,7 @@ import { TypedEventEmitter } from "../utils.ts";
 
 interface GameEvents {
     "game.created": Game;
-    "game.update": GameState;
+    "game.state": GameState;
 }
 
 const events = new TypedEventEmitter<GameEvents>();
@@ -44,5 +45,53 @@ export const gameRouter = createTRPCRouter({
         for await (const game of events.stream("game")) {
             yield game;
         }
+    }),
+    join: protectedProcedure
+        .input(z.number())
+        .mutation(async ({ ctx, input }) => {
+            const game = gamesMap.get(input);
+            if (!game) {
+                throw new Error("Game not found");
+            }
+            const [player] = await db
+                .insert(players)
+                .values({
+                    gameId: input,
+                    userId: ctx.user.id,
+                })
+                .returning();
+            if (!player) {
+                throw new Error("Failed to join game");
+            }
+            game.addPlayer(player.userId);
+        }),
+    sendInput: protectedProcedure
+        .input(
+            z.object({
+                gameId: z.number(),
+                playerId: z.number(),
+                input: z.number(),
+            }),
+        )
+        .mutation(({ input }) => {
+            const game = gamesMap.get(input.gameId);
+            if (!game) {
+                throw new Error("Game not found");
+            }
+            game.setPlayerInput(input.playerId, input.input);
+        }),
+    state: publicProcedure.input(z.number()).query(async ({ input }) => {
+        const game = gamesMap.get(input);
+        if (!game) {
+            throw new Error("Game not found");
+        }
+        events.emit("game.state", game.getState());
+    }),
+    reset: protectedProcedure.input(z.number()).mutation(async ({ input }) => {
+        const game = gamesMap.get(input);
+        if (!game) {
+            throw new Error("Game not found");
+        }
+        game.reset();
     }),
 });

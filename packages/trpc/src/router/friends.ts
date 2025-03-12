@@ -5,10 +5,10 @@ import { z } from "zod";
 import { emitter } from "../events/index.ts";
 import { createTRPCRouter, protectedProcedure } from "../trpc.js";
 
-export async function checkFriendship(
+export async function checkFriendshipExists(
     userId: number,
     friendId: number,
-): Promise<boolean> {
+): Promise<{ mutual: boolean; exists: boolean }> {
     try {
         const res = await db
             .select({ count: count() })
@@ -26,11 +26,21 @@ export async function checkFriendship(
                 ),
             );
 
-        // Mutual friendship exists if we find 2 records (both directions)
-        return res[0]?.count === 2;
+        // Check if the specific relationship already exists
+        const specificRes = await db
+            .select({ count: count() })
+            .from(friends)
+            .where(
+                and(eq(friends.userId, userId), eq(friends.friendId, friendId)),
+            );
+
+        return {
+            mutual: res[0]?.count === 2, // Added optional chaining
+            exists: (specificRes[0]?.count ?? 0) > 0, // Added optional chaining with fallback
+        };
     } catch (e) {
         console.error(e);
-        return false;
+        return { mutual: false, exists: false };
     }
 }
 
@@ -57,43 +67,73 @@ export const friendsRouter = createTRPCRouter({
             );
     }),
     add: protectedProcedure
-        .input(
-            z.object({
-                friendId: z.number(),
-            }),
-        )
+        .input(z.number())
         .mutation(async ({ ctx, input }) => {
-            if (await checkFriendship(ctx.user.id, input.friendId)) {
+            console.log("Adding friend", input);
+            console.log("User", ctx.user.id);
+
+            // Prevent adding yourself as a friend
+            if (ctx.user.id === input) {
+                throw new TRPCError({
+                    code: "BAD_REQUEST",
+                    message: "Cannot add yourself as a friend",
+                });
+            }
+
+            const check = await checkFriendshipExists(ctx.user.id, input);
+
+            if (check.mutual) {
                 throw new TRPCError({
                     code: "CONFLICT",
                     message: "Friendship already exists",
                 });
             }
+
+            if (check.exists) {
+                throw new TRPCError({
+                    code: "CONFLICT",
+                    message: "Friend request already sent",
+                });
+            }
+
             try {
                 const friendship = await db
                     .insert(friends)
                     .values({
                         userId: ctx.user.id,
-                        friendId: input.friendId,
+                        friendId: input,
                     })
                     .returning();
-                if (
-                    friendship[0] &&
-                    (await checkFriendship(
-                        friendship[0].friendId,
-                        friendship[0].userId,
-                    ))
-                ) {
-                    emitter.emit("friends:new", friendship[0]);
-                } else {
-                    if (friendship[0])
+
+                // Check if this completes a mutual friendship
+                const isNowMutual = await db
+                    .select({ count: count() })
+                    .from(friends)
+                    .where(
+                        and(
+                            eq(friends.userId, input),
+                            eq(friends.friendId, ctx.user.id),
+                        ),
+                    );
+
+                if (friendship[0]) {
+                    if ((isNowMutual[0]?.count ?? 0) > 0) {
+                        // Both users have now added each other - it's a mutual friendship
+                        emitter.emit("friends:new", friendship[0]);
+                    } else {
+                        // This is just a one-way friend request
                         emitter.emit("friends:request", friendship[0]);
+                    }
                 }
 
                 return friendship[0];
             } catch (e) {
                 console.error(e);
-                throw e;
+                throw new TRPCError({
+                    code: "INTERNAL_SERVER_ERROR",
+                    message: "Failed to add friend",
+                    cause: e,
+                });
             }
         }),
     remove: protectedProcedure

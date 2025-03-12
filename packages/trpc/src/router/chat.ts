@@ -4,7 +4,7 @@ import { and, desc, eq, or } from "drizzle-orm";
 import { z } from "zod";
 import { emitter } from "../events/index.ts";
 import { createTRPCRouter, protectedProcedure } from "../trpc.js";
-import { checkFriendship } from "./friends.ts";
+import { checkFriendshipExists } from "./friends.ts";
 
 export const chatRouter = createTRPCRouter({
     get: protectedProcedure
@@ -16,7 +16,10 @@ export const chatRouter = createTRPCRouter({
             }),
         )
         .query(async ({ ctx, input }) => {
-            if (!(await checkFriendship(ctx.user.id, input.friendId))) {
+            if (
+                !(await checkFriendshipExists(ctx.user.id, input.friendId))
+                    .mutual
+            ) {
                 throw new TRPCError({
                     code: "FORBIDDEN",
                     message: "Not friends with the specified user",
@@ -52,7 +55,10 @@ export const chatRouter = createTRPCRouter({
     create: protectedProcedure
         .input(messageInsertSchema.omit({ senderId: true }))
         .mutation(async ({ ctx, input }) => {
-            if (!(await checkFriendship(ctx.user.id, input.receiverId))) {
+            if (
+                !(await checkFriendshipExists(ctx.user.id, input.receiverId))
+                    .mutual
+            ) {
                 throw new TRPCError({
                     code: "FORBIDDEN",
                     message: "Not friends with the specified user",

@@ -113,10 +113,10 @@
                         </div>
                         <div class="flex space-x-2">
                             <button
-                                onclick={() =>
-                                    client.user.friends.add.mutate({
-                                        friendId: request.id,
-                                    })}
+                                onclick={() => {
+                                    console.log(request.id);
+                                    client.user.friends.add.mutate(request.id);
+                                }}
                                 class="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 transition"
                             >
                                 Accept

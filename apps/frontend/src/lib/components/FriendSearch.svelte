@@ -29,7 +29,7 @@
     // Handler to add a friend when a result is clicked.
     async function addFriend(friendId: number) {
         try {
-            await client.user.friends.add.mutate({ friendId });
+            await client.user.friends.add.mutate(friendId);
             // Optionally, clear the search input or provide feedback here.
         } catch (error) {
             console.error("Error adding friend:", error);

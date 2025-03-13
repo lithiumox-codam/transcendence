@@ -14,7 +14,7 @@ export interface EventMap {
     };
     friends: {
         new: Friend;
-        removed: Friend;
+        removed: Friend[];
         update: number;
         request: Friend;
     };

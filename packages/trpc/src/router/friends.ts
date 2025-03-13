@@ -1,6 +1,6 @@
 import { db, friends, users } from "@repo/database";
 import { TRPCError } from "@trpc/server";
-import { aliasedTable, and, count, eq, isNull, or } from "drizzle-orm";
+import { aliasedTable, and, count, desc, eq, isNull, or } from "drizzle-orm";
 import { z } from "zod";
 import { emitter } from "../events/index.ts";
 import { createTRPCRouter, protectedProcedure } from "../trpc.js";
@@ -142,9 +142,15 @@ export const friendsRouter = createTRPCRouter({
             const friendship = await db
                 .delete(friends)
                 .where(
-                    and(
-                        eq(friends.userId, ctx.user.id),
-                        eq(friends.friendId, input),
+                    or(
+                        and(
+                            eq(friends.userId, ctx.user.id),
+                            eq(friends.friendId, input),
+                        ),
+                        and(
+                            eq(friends.userId, input),
+                            eq(friends.friendId, ctx.user.id),
+                        ),
                     ),
                 )
                 .returning();
@@ -156,7 +162,7 @@ export const friendsRouter = createTRPCRouter({
         }),
     // Update listRequests to exclude mutual friendships
     listSentRequests: protectedProcedure.query(async ({ ctx }) => {
-        const reciprocal = aliasedTable(friends, "reciprocal");
+        const mutual = aliasedTable(friends, "mutual");
 
         return await db
             .select({
@@ -169,21 +175,21 @@ export const friendsRouter = createTRPCRouter({
             .innerJoin(
                 friends,
                 and(
-                    eq(friends.friendId, ctx.user.id),
-                    eq(users.id, friends.userId),
+                    eq(friends.userId, ctx.user.id), // Current user SENT the request
+                    eq(users.id, friends.friendId), // to this user
                 ),
             )
             .leftJoin(
-                reciprocal,
+                mutual,
                 and(
-                    eq(reciprocal.userId, ctx.user.id),
-                    eq(reciprocal.friendId, users.id),
+                    eq(mutual.userId, users.id), // Other user
+                    eq(mutual.friendId, ctx.user.id), // added current user back
                 ),
             )
-            .where(isNull(reciprocal.userId));
+            .where(isNull(mutual.userId)); // Exclude mutual friendships
     }),
     listRequests: protectedProcedure.query(async ({ ctx }) => {
-        const reciprocal = aliasedTable(friends, "reciprocal");
+        const mutual = aliasedTable(friends, "mutual");
 
         return await db
             .select({
@@ -196,31 +202,39 @@ export const friendsRouter = createTRPCRouter({
             .innerJoin(
                 friends,
                 and(
-                    eq(friends.userId, ctx.user.id),
-                    eq(users.id, friends.friendId),
+                    eq(friends.friendId, ctx.user.id), // Current user RECEIVED the request
+                    eq(users.id, friends.userId), // from this user
                 ),
             )
             .leftJoin(
-                reciprocal,
+                mutual,
                 and(
-                    eq(reciprocal.userId, users.id),
-                    eq(reciprocal.friendId, ctx.user.id),
+                    eq(mutual.userId, ctx.user.id), // Current user
+                    eq(mutual.friendId, users.id), // added other user back
                 ),
             )
-            .where(isNull(reciprocal.userId));
+            .where(isNull(mutual.userId)); // Exclude mutual friendships
     }),
     listen: protectedProcedure.subscription(({ ctx }) =>
         emitter.subscribeDomain("friends", (event) => {
-            if (event.type === "update" && event.data !== ctx.user.id) {
-                return true;
+            switch (event.type) {
+                case "update":
+                    return event.data !== ctx.user.id;
+                case "new":
+                case "request":
+                    return (
+                        event.data.friendId === ctx.user.id ||
+                        event.data.userId === ctx.user.id
+                    );
+                case "removed":
+                    return event.data.some(
+                        (friend) =>
+                            friend.userId === ctx.user.id ||
+                            friend.friendId === ctx.user.id,
+                    );
+                default:
+                    return false;
             }
-            if (event.type !== "update") {
-                return (
-                    event.data.userId === ctx.user.id ||
-                    event.data.friendId === ctx.user.id
-                );
-            }
-            return false;
         }),
     ),
 });

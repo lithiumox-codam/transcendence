@@ -1,6 +1,6 @@
 import { goto } from "$app/navigation";
 import { client } from "$lib/trpc";
-import type { Friend, User } from "@repo/database";
+import type { User } from "@repo/database";
 
 export class UserClass {
     data = $state<User | null>(null);
@@ -16,7 +16,7 @@ export class UserClass {
     async initialize() {
         try {
             const res = await client.user.get.query();
-            if (!res) goto("/login");
+            if (!res || res.length === 0) goto("/login");
             this.friends = await client.user.friends.list.query();
             this.incomingRequests =
                 await client.user.friends.listRequests.query();
@@ -34,50 +34,67 @@ export class UserClass {
 
     async listenUser() {
         client.user.listen.subscribe(undefined, {
-            onData: async ({ data }) => {
-                this.data = data;
+            onData: (event) => {
+                this.data = event.data;
             },
         });
     }
 
     async listenFriends() {
         client.user.friends.listen.subscribe(undefined, {
-            onData: async ({ data, type }) => {
+            onData: async (event) => {
+                const { type, data } = event;
+                
                 switch (type) {
                     case "new":
                         {
-                            const friend = await client.user.getById.query(
-                                data.friendId,
-                            );
+                            const friendId =
+                                data.friendId === this.data?.id
+                                    ? data.userId
+                                    : data.friendId;
+                            const friend =
+                                await client.user.getById.query(friendId);
                             if (!friend) return;
-                            this.friends.push(friend);
+                            this.friends = [...this.friends, friend];
+                            
+                            // Remove from requests if it was there
+                            this.incomingRequests = this.incomingRequests.filter(
+                                (f) => f.id !== friendId
+                            );
                         }
                         break;
                     case "removed":
-                        this.friends = this.friends.filter(
-                            (f) => f.id !== data.friendId,
-                        );
+                        {
+                            // The endpoint returns an array with the removed friendship entries
+                            const friendIds = data.map(item => 
+                                item.userId === this.data?.id ? item.friendId : item.userId
+                            );
+                            this.friends = this.friends.filter(
+                                (f) => !friendIds.includes(f.id)
+                            );
+                        }
                         break;
                     case "update":
                         {
-                            const friend = this.friends.find(
-                                (f) => f.id === data,
-                            );
-                            if (!friend) return;
-                            const res = await client.user.getById.query(data);
-                            if (!res) return;
-                            this.friends = this.friends.map((f) =>
-                                f.id === data ? res : f,
-                            );
+                            // data is the user ID that was updated
+                            const friendId = data;
+                            if (this.friends.some(f => f.id === friendId)) {
+                                const updatedFriend = await client.user.getById.query(friendId);
+                                if (!updatedFriend) return;
+                                this.friends = this.friends.map((f) =>
+                                    f.id === friendId ? updatedFriend : f
+                                );
+                            }
                         }
                         break;
                     case "request":
                         {
-                            const friend = await client.user.getById.query(
-                                data.friendId,
-                            );
-                            if (!friend) return;
-                            this.incomingRequests.push(friend);
+                            // data is the friendship object
+                            if (data.friendId === this.data?.id) {
+                                const requester = await client.user.getById.query(data.userId);
+                                if (!requester) return;
+                                this.incomingRequests = [...this.incomingRequests, requester];
+                            }
                         }
                         break;
                 }
@@ -95,20 +112,68 @@ export class UserClass {
     }
 
     /**
-     * This is a helper function that takes in a friend object and adds it to the user's friends list.
+     * Sends a friend request to a user by their ID
      */
-    async addFriend(friend: Friend) {
-        const id =
-            friend.userId === this.data?.id ? friend.friendId : friend.userId;
+    async sendFriendRequest(userId: number) {
         try {
-            const res = await client.user.getById.query(id);
-            if (!res) return;
-            this.friends.push(res);
-            this.incomingRequests = this.incomingRequests.filter(
-                (f) => f.id !== id,
-            );
+            await client.user.friends.add.mutate(userId);
+            const user = await client.user.getById.query(userId);
+            if (!user) return;
+            this.outgoingRequests = [...this.outgoingRequests, user];
         } catch (e) {
             console.error(e);
         }
+    }
+
+    /**
+     * Accepts an incoming friend request by adding them back
+     */
+    async acceptFriendRequest(userId: number) {
+        try {
+            await client.user.friends.add.mutate(userId);
+            const user = this.incomingRequests.find(u => u.id === userId);
+            if (user) {
+                this.friends = [...this.friends, user];
+                this.incomingRequests = this.incomingRequests.filter(u => u.id !== userId);
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    /**
+     * Rejects an incoming friend request by removing the one-way relationship
+     */
+    async rejectFriendRequest(userId: number) {
+        try {
+            await client.user.friends.remove.mutate(userId);
+            this.incomingRequests = this.incomingRequests.filter(u => u.id !== userId);
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    /**
+     * Cancels an outgoing friend request by removing it
+     */
+    async cancelFriendRequest(userId: number) {
+        try {
+            await client.user.friends.remove.mutate(userId);
+            this.outgoingRequests = this.outgoingRequests.filter(u => u.id !== userId);
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    isFriend(userId: number): boolean {
+        return this.friends.some(f => f.id === userId);
+    }
+
+    hasIncomingRequestFrom(userId: number): boolean {
+        return this.incomingRequests.some(u => u.id === userId);
+    }
+
+    hasSentRequestTo(userId: number): boolean {
+        return this.outgoingRequests.some(u => u.id === userId);
     }
 }

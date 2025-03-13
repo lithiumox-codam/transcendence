@@ -154,10 +154,8 @@ export const friendsRouter = createTRPCRouter({
                     ),
                 )
                 .returning();
+            if (friendship) emitter.emit("friends:removed", friendship);
 
-            if (friendship[0]) {
-                emitter.emit("friend:removed", friendship[0]);
-            }
             return friendship[0];
         }),
     // Update listRequests to exclude mutual friendships
@@ -226,12 +224,14 @@ export const friendsRouter = createTRPCRouter({
                         event.data.friendId === ctx.user.id ||
                         event.data.userId === ctx.user.id
                     );
-                case "removed":
+                case "removed": {
+                    console.log("Friend removed", event.data);
                     return event.data.some(
-                        (friend) =>
-                            friend.userId === ctx.user.id ||
-                            friend.friendId === ctx.user.id,
+                        (item) =>
+                            item.friendId === ctx.user.id ||
+                            item.userId === ctx.user.id,
                     );
+                }
                 default:
                     return false;
             }

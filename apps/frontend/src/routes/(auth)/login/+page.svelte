@@ -76,7 +76,7 @@
             </form>
         </div>
         <div class="p-6">
-            <GoogleButton providerConfig={data} />
+            <GoogleButton providerConfig={data.clientGoogleProvider} />
         </div>
     </div>
 </main>

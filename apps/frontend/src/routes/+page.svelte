@@ -4,7 +4,6 @@
     let letters = $state(Array.from("TRANCENDENCE"));
     let letterStates = $state(letters.map(() => false));
 
-    // Animate letters with retro flicker
     $effect(() => {
         const letterInterval = setInterval(
             () => {

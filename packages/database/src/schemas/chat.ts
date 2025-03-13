@@ -5,7 +5,7 @@ import { users } from "./user.ts";
 
 export const message = sqliteTable("messages", {
     id: integer("id").primaryKey({ autoIncrement: true }),
-    content: text("content", { length: 255 }).notNull(),
+    content: text("content").notNull(),
     senderId: integer("sender")
         .notNull()
         .references(() => users.id),

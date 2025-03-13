@@ -1,32 +1,33 @@
+import type { UserClass } from "$lib/classes/User.svelte";
 import { client } from "$lib/trpc";
 import type { Message, User } from "@repo/database";
 import { tick } from "svelte";
 import { SvelteMap } from "svelte/reactivity";
 
 export class Chat {
-    user = $state<User>();
-    friends = $state<User[]>([]);
     messages = new SvelteMap<number, Message[]>();
-    messagesContainer: HTMLElement | null = $state(null);
-    selectedFriend: number | null = $state(null);
-    loadMoreTrigger: HTMLElement | null = $state(null);
+    messagesContainer = $state<HTMLElement | null>(null);
+    selectedFriend = $state<number | null>(null);
+    loadMoreTrigger = $state<HTMLElement | null>(null);
+    endReached = $state(false);
 
-    constructor() {
+    constructor(private userClass: UserClass) {
         this.initialize();
     }
 
     private async initialize() {
         try {
-            const res = await client.user.get.query();
-            if (!res) {
+            // Wait until user data is loaded
+            while (this.userClass.isLoading) {
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
+
+            if (!this.userClass.data) {
                 throw new Error("User not found");
             }
-            this.user = res[0];
-
-            this.friends = await client.user.friends.list.query();
 
             await Promise.all(
-                this.friends.map(async (friend) => {
+                this.userClass.friends.map(async (friend) => {
                     try {
                         const msgs = await client.chat.get.query({
                             friendId: friend.id,
@@ -42,11 +43,10 @@ export class Chat {
                 }),
             );
 
-            this.listenFriends();
             this.listenMessages();
 
-            if (this.friends.length > 0) {
-                this.selectedFriend = this.friends[0].id;
+            if (this.userClass.friends.length > 0) {
+                this.selectedFriend = this.userClass.friends[0].id;
                 await tick();
                 this.scrollDown();
             }
@@ -56,33 +56,31 @@ export class Chat {
         }
     }
 
-    private async listenFriends(): Promise<void> {
-        client.user.friends.listen.subscribe(undefined, {
-            onData: ({ data }) => {
-                switch (data.type) {
-                }
-            },
-        });
-    }
-
     private async listenMessages(): Promise<void> {
         client.chat.listen.subscribe(undefined, {
-            onData: async ({ data }) => {
-                switch (data.type) {
-                    case "new":
-                        {
-                            const user =
-                                data.message.senderId === this.user?.id
-                                    ? data.message.receiverId
-                                    : data.message.senderId;
-                            const messages = this.messages.get(user);
-                            if (messages) {
-                                messages.push(data.message);
-                                await tick();
-                                this.scrollDown();
-                            }
+            onData: async ({ data, type }) => {
+                const otherUserId = this.userClass.data?.id === data.senderId 
+                    ? data.receiverId 
+                    : data.senderId;
+                    
+                const messages = this.messages.get(otherUserId);
+                if (!messages) return;
+
+                switch (type) {
+                    case "message": {
+                        messages.push(data);
+                        await tick();
+                        this.scrollDown();
+                        break;
+                    }
+                    case "removal": {
+                        const index = messages.findIndex((msg) => msg.id === data.id);
+                        if (index !== -1) {
+                            messages.splice(index, 1);
+                            await tick();
                         }
                         break;
+                    }
                 }
             },
         });
@@ -113,9 +111,7 @@ export class Chat {
             return;
         }
         const messages = this.messages.get(this.selectedFriend);
-        if (!messages) {
-            return;
-        }
+        if (!messages) return;
 
         const container = this.messagesContainer;
         if (!container) return;
@@ -131,6 +127,7 @@ export class Chat {
 
         if (res.length > 0) {
             messages.unshift(...res);
+            if (res.length < 20) this.endReached = true;
             await tick();
             const newScrollHeight = container.scrollHeight;
             const heightDifference = newScrollHeight - prevScrollHeight;

@@ -2,9 +2,11 @@
     import { client } from "$lib/trpc";
     import type { PageData } from "./$types";
     import { Chat } from "$lib/classes/Chat.svelte";
+    import { UserClass } from "$lib/classes/User.svelte";
+    import { getContext } from "svelte";
 
-    let { data }: { data: PageData } = $props();
-    const chat = new Chat();
+    let userClass = getContext<UserClass>("user");
+    let chat = $state(new Chat(userClass));
 
     let newMessage = $state("");
 
@@ -23,31 +25,27 @@
     }
 </script>
 
-<main class="flex h-full w-full bg-gray-100 overflow-hidden">
+<main class="flex h-full w-full bg-zinc-800 overflow-hidden">
     <!-- Chat Friends Sidebar -->
-    <aside class="w-72 bg-white border-r border-gray-300 flex flex-col">
+    <aside class="w-72 bg-zinc-900 border-r border-zinc-700 flex flex-col">
         <div
-            class="sticky top-0 z-10 p-4 border-b border-gray-300 bg-white
+            class="sticky top-0 z-10 p-4 border-b border-zinc-700 bg-zinc-900
              flex justify-between items-center"
         >
-            <h2 class="text-lg font-medium text-cyan-400 retro-glow">
-                Friends
-            </h2>
+            <h2 class="text-lg font-medium text-cyan-400">Friends</h2>
         </div>
         <div class="flex-grow overflow-y-auto">
-            {#if chat.friends}
-                <ul class="divide-y divide-gray-200">
-                    {#each chat.friends as friend (friend.id)}
+            {#if userClass.friends?.length}
+                <ul class="divide-y divide-zinc-700">
+                    {#each userClass.friends as friend (friend.id)}
                         {@const messages = chat.messages.get(friend.id) ?? []}
                         <li>
                             <button
-                                class="w-full text-left p-4 hover:bg-gray-100 transition-colors"
+                                class="w-full text-left p-4 hover:bg-zinc-800 transition-colors"
                                 onclick={() =>
                                     (chat.selectedFriend = friend.id)}
                             >
-                                <div
-                                    class="font-medium text-cyan-400 retro-glow"
-                                >
+                                <div class="font-medium text-cyan-400">
                                     {friend.name}
                                 </div>
                                 <div
@@ -67,14 +65,14 @@
     </aside>
 
     <!-- Chat Conversation -->
-    <section class="flex-grow flex flex-col bg-gray-50">
+    <section class="flex-grow flex flex-col bg-zinc-800">
         {#if chat.selectedFriend}
             <header
-                class="sticky top-0 z-10 p-4 bg-white border-b border-gray-300
+                class="sticky top-0 z-10 p-4 bg-zinc-900 border-b border-zinc-700
                flex items-center"
             >
-                <h3 class="text-xl font-semibold text-cyan-400 retro-glow">
-                    {chat.friends.find(
+                <h3 class="text-xl font-semibold text-cyan-400">
+                    {userClass.friends.find(
                         (friend) => friend.id === chat.selectedFriend,
                     )?.name}
                 </h3>
@@ -86,14 +84,31 @@
                     bind:this={chat.messagesContainer}
                 >
                     {#if chat.messages.get(chat.selectedFriend)}
-                        <div bind:this={chat.loadMoreTrigger}></div>
+                        <div bind:this={chat.loadMoreTrigger}>
+                            {#if chat.endReached}
+                                <p class="text-gray-500 text-sm text-center">
+                                    No more messages.
+                                </p>
+                            {:else}
+                                <svg class="animate-spin h-6 w-6 mx-auto">
+                                    <circle
+                                        cx="16"
+                                        cy="16"
+                                        r="14"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        stroke-width="2"
+                                    />
+                                </svg>
+                            {/if}
+                        </div>
 
                         {#each chat.messages.get(chat.selectedFriend) ?? [] as message (message.id)}
-                            {#if message.senderId === chat.user?.id}
+                            {#if message.senderId === userClass.data?.id}
                                 <!-- Message sent by the current user -->
                                 <div class="flex justify-end">
                                     <div
-                                        class="max-w-xs p-3 rounded-lg bg-blue-600 text-white shadow-sm break-words"
+                                        class="max-w-xs p-3 rounded-lg bg-blue-600 text-white shadow-sm break-words animate-fade-in"
                                     >
                                         <div
                                             class="text-xs text-right opacity-75 mb-1"
@@ -115,10 +130,10 @@
                                 <!-- Message sent by the friend -->
                                 <div class="flex justify-start">
                                     <div
-                                        class="max-w-xs p-3 rounded-lg bg-gray-200 text-gray-800 shadow-sm break-words"
+                                        class="max-w-xs p-3 rounded-lg bg-zinc-700 text-white shadow-sm break-words animate-fade-in"
                                     >
                                         <div class="text-xs opacity-75 mb-1">
-                                            {chat.friends.find(
+                                            {userClass.friends.find(
                                                 (friend) =>
                                                     friend.id ===
                                                     message.senderId,
@@ -143,15 +158,15 @@
                 </div>
             </div>
             <footer
-                class="sticky bottom-0 p-4 bg-white border-t border-gray-300"
+                class="sticky bottom-0 p-4 bg-zinc-900 border-t border-zinc-700"
             >
                 <div class="flex items-center space-x-2">
                     <input
                         type="text"
                         placeholder="Type a message..."
                         bind:value={newMessage}
-                        class="flex-grow border border-gray-300 rounded-full py-2 px-4 bg-gray-100
-                   text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        class="flex-grow border border-zinc-700 rounded-full py-2 px-4 bg-zinc-800
+                   text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                         onkeydown={(e) =>
                             e.key === "Enter" &&
                             sendMessage(chat.selectedFriend)}
@@ -176,8 +191,19 @@
 </main>
 
 <style global>
-    /* Retains retro glow effect on highlighted text */
-    .retro-glow {
-        text-shadow: 0 0 5px rgba(0, 255, 255, 0.5);
+    /* Fade-in animation for messages */
+    .animate-fade-in {
+        animation: fadeIn 0.5s ease-out forwards;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateX(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(10px);
+        }
     }
 </style>

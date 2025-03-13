@@ -26,7 +26,7 @@
             "quickfix.biome": "explicit",
             "source.organizeImports.biome": "always"
         },
-        "workbench.editor.labelFormat": "short"
+
     },
     "extensions": {
         "recommendations": ["yoavbls.pretty-ts-errors"]

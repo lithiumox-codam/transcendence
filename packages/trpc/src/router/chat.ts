@@ -1,16 +1,10 @@
-import { type Message, db, message, messageInsertSchema } from "@repo/database";
+import { db, message, messageInsertSchema } from "@repo/database";
 import { TRPCError } from "@trpc/server";
-import { and, asc, desc, eq, or } from "drizzle-orm";
+import { and, desc, eq, or } from "drizzle-orm";
 import { z } from "zod";
+import { emitter } from "../events/index.ts";
 import { createTRPCRouter, protectedProcedure } from "../trpc.js";
-import { TypedEventEmitter } from "../utils.js";
-import { checkFriendship } from "./user.ts";
-
-interface ChatEvents {
-    "message.new": Message;
-}
-
-const events = new TypedEventEmitter<ChatEvents>();
+import { checkFriendshipExists } from "./friends.ts";
 
 export const chatRouter = createTRPCRouter({
     get: protectedProcedure
@@ -22,7 +16,10 @@ export const chatRouter = createTRPCRouter({
             }),
         )
         .query(async ({ ctx, input }) => {
-            if (!(await checkFriendship(ctx.user.id, input.friendId))) {
+            if (
+                !(await checkFriendshipExists(ctx.user.id, input.friendId))
+                    .mutual
+            ) {
                 throw new TRPCError({
                     code: "FORBIDDEN",
                     message: "Not friends with the specified user",
@@ -58,7 +55,10 @@ export const chatRouter = createTRPCRouter({
     create: protectedProcedure
         .input(messageInsertSchema.omit({ senderId: true }))
         .mutation(async ({ ctx, input }) => {
-            if (!(await checkFriendship(ctx.user.id, input.receiverId))) {
+            if (
+                !(await checkFriendshipExists(ctx.user.id, input.receiverId))
+                    .mutual
+            ) {
                 throw new TRPCError({
                     code: "FORBIDDEN",
                     message: "Not friends with the specified user",
@@ -76,7 +76,7 @@ export const chatRouter = createTRPCRouter({
                     .returning();
 
                 if (msg) {
-                    events.emit("message.new", msg);
+                    emitter.emit("chat:message", msg);
                     return msg;
                 }
 
@@ -93,21 +93,12 @@ export const chatRouter = createTRPCRouter({
             }
         }),
 
-    listen: protectedProcedure.subscription(async function* ({ ctx }) {
-        const messageStream = events.stream("message");
-        try {
-            for await (const data of messageStream) {
-                if (
-                    data.message.receiverId === ctx.user.id ||
-                    data.message.senderId === ctx.user.id
-                ) {
-                    console.log("user", ctx.user.id, "received message", data);
-                    yield { data };
-                }
-            }
-        } catch (e) {
-            console.error(e);
-            throw e;
-        }
-    }),
+    listen: protectedProcedure.subscription(({ ctx }) =>
+        emitter.subscribeDomain("chat", (event) => {
+            return (
+                event.data.receiverId === ctx.user.id ||
+                event.data.senderId === ctx.user.id
+            );
+        }),
+    ),
 });

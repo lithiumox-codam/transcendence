@@ -1,8 +1,15 @@
 <script lang="ts">
-    import type { Snippet } from "svelte";
+    import { setContext, type Snippet } from "svelte";
     import type { LayoutData } from "./$types";
     import { client, isTRPCClientError } from "$lib/trpc";
     import { goto } from "$app/navigation";
+    import { UserClass } from "$lib/classes/User.svelte";
+    import { Chat } from "$lib/classes/Chat.svelte";
+
+    const user = new UserClass();
+    setContext("user", user);
+    const chat = new Chat(user);
+    setContext("chat", chat);
 
     async function checkAuth() {
         try {
@@ -11,10 +18,10 @@
             if (isTRPCClientError(error)) {
                 switch (error.data?.code) {
                     case "UNAUTHORIZED":
-                        goto("/auth/login");
+                        goto(`/login?redirect=${location.pathname}`);
                         break;
                     case "FORBIDDEN":
-                        goto("/auth/login");
+                        goto(`/login?redirect=${location.pathname}`);
                         break;
                     default:
                         console.error(error);
@@ -31,6 +38,6 @@
 	let { data, children }: { data: LayoutData; children: Snippet } = $props();
 </script>
 
-<main class=" h-screen pt-18">
+<main class="h-[94vh] bg-zinc-800">
     {@render children()}
 </main>

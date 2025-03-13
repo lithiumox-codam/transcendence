@@ -2,7 +2,7 @@ import { verify } from "@repo/auth";
 import { db, friends, users } from "@repo/database";
 import { TRPCError, initTRPC } from "@trpc/server";
 import type { CreateFastifyContextOptions } from "@trpc/server/adapters/fastify";
-import { and, count, eq } from "drizzle-orm";
+import { and, eq, ne } from "drizzle-orm";
 import superjson from "superjson";
 import { ZodError } from "zod";
 
@@ -47,7 +47,7 @@ export async function createTRPCContext({
                 email: users.email,
             })
             .from(users)
-            .where(eq(users.id, userId));
+            .where(and(eq(users.id, userId), ne(users.password, "[DELETED]")));
         if (dbResult.length === 0) {
             throw new TRPCError({
                 code: "UNAUTHORIZED",
@@ -110,7 +110,7 @@ const timingMiddleware = t.middleware(async ({ next, path }) => {
     let waitMs = 0;
     if (t._config.isDev) {
         // artificial delay in dev 100-500ms
-        waitMs = Math.floor(Math.random() * 100) + 10;
+        waitMs = Math.floor(Math.random() * 0) + 0;
         await new Promise((resolve) => setTimeout(resolve, waitMs));
     }
 

@@ -1,10 +1,10 @@
 <script lang="ts">
     import { client } from "$lib/trpc";
     import { browser } from "$app/environment";
-    import type { PageData } from "./$types";
     import { goto } from "$app/navigation";
+    import GoogleButton from "$lib/components/GoogleButton.svelte";
 
-    let { data }: { data: PageData } = $props();
+    let { data } = $props();
 
     let email = $state("");
     let password = $state("");
@@ -17,7 +17,8 @@
                 password,
             });
             if (browser) localStorage.setItem("token", res);
-            goto("/demo/trpc");
+            if (data.redirect) goto(data.redirect);
+            else goto("/demo/trpc");
         } catch (error) {
             console.error(error);
         }
@@ -73,6 +74,9 @@
                     Login
                 </button>
             </form>
+        </div>
+        <div class="p-6">
+            <GoogleButton providerConfig={data.clientGoogleProvider} />
         </div>
     </div>
 </main>

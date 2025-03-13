@@ -77,3 +77,5 @@ export async function verifyPassword(
 ): Promise<boolean> {
     return argon2.verify(hashedPassword, password);
 }
+
+export * from "./oauth/index.ts";

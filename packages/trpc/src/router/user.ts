@@ -17,14 +17,6 @@ import {
 import { friendsRouter } from "./friends.ts";
 import { gdprRouter } from "./gdpr.ts";
 
-function stripFullUser(user: UserFull): User {
-    return Object.fromEntries(
-        Object.entries(user).filter(
-            ([key]) => key !== "password" && key !== "createdAt",
-        ),
-    ) as User;
-}
-
 export const userRouter = createTRPCRouter({
     friends: friendsRouter,
     privacy: gdprRouter,

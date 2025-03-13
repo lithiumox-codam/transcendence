@@ -1,4 +1,10 @@
-import { hashPassword, sign, verify, verifyPassword } from "@repo/auth";
+import {
+    hashPassword,
+    sign,
+    verifyPassword,
+    googleProvider,
+    TokenPayload,
+} from "@repo/auth";
 import { db, passwordSchema, userInputSchema, users } from "@repo/database";
 import { TRPCError } from "@trpc/server";
 import { and, eq } from "drizzle-orm";
@@ -124,5 +130,82 @@ export const authRouter = createTRPCRouter({
             const jwt = await sign({ userId: user[0].id });
 
             return jwt;
+        }),
+    oauthLogin: publicProcedure
+        .input(z.string())
+        .mutation(async ({ input }) => {
+            const provider = googleProvider;
+
+            const { clientId, clientSecret } = provider;
+            if (!clientId || !clientSecret) {
+                throw new TRPCError({
+                    code: "INTERNAL_SERVER_ERROR",
+                    message: `Google Sign-in not configured`,
+                });
+            }
+
+            const tokenUrl = provider.tokenHost + provider.tokenPath;
+            const tokenPayload = new TokenPayload(
+                clientId,
+                clientSecret,
+                input,
+            );
+
+            try {
+                const response = await fetch(tokenUrl, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/x-www-form-urlencoded",
+                    },
+                    body: tokenPayload.toQueryString(),
+                });
+
+                const { access_token } = await response.json();
+
+                const userResponse = await fetch(
+                    "https://www.googleapis.com/oauth2/v1/userinfo",
+                    {
+                        headers: {
+                            Authorization: `Bearer ${access_token}`,
+                        },
+                    },
+                );
+
+                const { email } = await userResponse.json();
+
+                let user = await db
+                    .select()
+                    .from(users)
+                    .where(eq(users.email, email));
+
+                if (user.length === 0 || !user[0]) {
+                    user = await db
+                        .insert(users)
+                        .values({
+                            email,
+                            name: email.split("@")[0],
+                            password: "",
+                        })
+                        .returning();
+
+                    if (user.length === 0 || !user[0]) {
+                        throw new TRPCError({
+                            code: "INTERNAL_SERVER_ERROR",
+                            message: "Failed to create user",
+                        });
+                    }
+                }
+
+                const jwt = await sign({ userId: user[0].id });
+
+                return jwt;
+            } catch (e) {
+                console.log(e);
+            }
+
+            throw new TRPCError({
+                code: "INTERNAL_SERVER_ERROR",
+                message: "Failed to login",
+            });
         }),
 });

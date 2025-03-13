@@ -29,17 +29,22 @@ const gamesMap = new Map<number, GameEngine>();
 
 export const gameRouter = createTRPCRouter({
     create: protectedProcedure
-        .input(gameInsertSchema)
+        .input(z.union([z.literal(2), z.literal(4)]))
         .mutation(async ({ ctx, input }) => {
-            const game = await db.insert(games).values(input).returning();
-            if (game.length > 0 && game[0]) {
+            const [game] = await db
+                .insert(games)
+                .values({ maxPlayers: input })
+                .returning();
+            if (game) {
                 await db.insert(players).values({
-                    gameId: game[0].id,
+                    gameId: game.id,
                     userId: ctx.user.id,
                 });
-                events.emit("game.created", game[0]);
-                gamesMap.set(game[0].id, new GameEngine(2));
+                events.emit("game.created", game);
+                gamesMap.set(game.id, new GameEngine(input));
+                return game.id;
             }
+            return null;
         }),
     listen: protectedProcedure.subscription(async function* ({ ctx }) {
         for await (const game of events.stream("game")) {

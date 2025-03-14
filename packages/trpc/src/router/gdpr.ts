@@ -11,7 +11,7 @@ import {
 
 export const gdprRouter = createTRPCRouter({
 	deleteAccount: protectedProcedure
-		.input(z.object({ password: z.string() }))
+		.input(z.object({ username: z.string(), password: z.string() }))
 		.mutation(async ({ ctx, input }) => {
 
 			const user = await db
@@ -26,12 +26,14 @@ export const gdprRouter = createTRPCRouter({
 				});
 			}
 
-			const isValid = await verifyPassword(
+			const validPassword = await verifyPassword(
 				user[0].password,
 				input.password,
 			);
 
-			if (!isValid) {
+			const validUsername = user[0].name === input.username;
+
+			if (!validPassword || !validUsername) {
 				throw new TRPCError({
 					code: "FORBIDDEN",
 					message: "Invalid credentials",

@@ -4,6 +4,9 @@
 	function handleLogout() {
 		localStorage.removeItem("token");
 		goto("/");
+		setTimeout(() => {
+			location.reload();
+		}, 100);
 	}
 </script>
 

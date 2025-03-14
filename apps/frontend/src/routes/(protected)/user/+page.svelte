@@ -69,7 +69,6 @@
 		background-color: rgba(255, 255, 255, 0.1);
 	}
 
-	/* Scrollable Content Area */
 	.content-area {
 		flex: 1;
 		overflow-y: auto;

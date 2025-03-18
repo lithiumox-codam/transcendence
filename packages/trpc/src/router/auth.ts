@@ -14,6 +14,7 @@ import {
     protectedProcedure,
     publicProcedure,
 } from "../trpc.ts";
+import { authenticator } from "otplib";
 
 export const authRouter = createTRPCRouter({
     signup: publicProcedure.input(userInputSchema).mutation(async (opts) => {
@@ -102,9 +103,14 @@ export const authRouter = createTRPCRouter({
             return true;
         }),
     login: publicProcedure
-        .input(z.object({ email: z.string(), password: z.string() }))
+        .input(
+            z.object({
+                email: z.string(),
+                password: z.string(),
+                otpToken: z.string().optional(),
+            }),
+        )
         .mutation(async (opts) => {
-
             const user = await db
                 .select()
                 .from(users)
@@ -126,6 +132,23 @@ export const authRouter = createTRPCRouter({
                     message: "Invalid credentials",
                 });
             }
+
+            if (user[0].secret) {
+                if (!opts.input.otpToken) {
+                    return "2fa";
+                }
+                const isValidOtp = authenticator.verify({
+                    token: opts.input.otpToken,
+                    secret: user[0].secret,
+                });
+                if (!isValidOtp) {
+                    throw new TRPCError({
+                        code: "FORBIDDEN",
+                        message: "Invalid OTP",
+                    });
+                }
+            }
+
             opts.ctx.user = user[0];
             const jwt = await sign({ userId: user[0].id });
 
@@ -208,4 +231,43 @@ export const authRouter = createTRPCRouter({
                 message: "Failed to login",
             });
         }),
+    toggle2FA: protectedProcedure.mutation(async ({ ctx }) => {
+        const user = await db
+            .select()
+            .from(users)
+            .where(eq(users.id, ctx.user.id));
+
+        if (user.length === 0 || !user[0]) {
+            throw new TRPCError({
+                code: "FORBIDDEN",
+                message: "Invalid credentials",
+            });
+        }
+
+        if (user[0].secret) {
+            await db
+                .update(users)
+                .set({
+                    secret: null,
+                })
+                .where(eq(users.id, ctx.user.id));
+        } else {
+            const secret = authenticator.generateSecret();
+            await db
+                .update(users)
+                .set({
+                    secret,
+                })
+                .where(eq(users.id, ctx.user.id));
+
+            const otp = authenticator.keyuri(
+                user[0].name,
+                "transcendence",
+                secret,
+            );
+            return otp;
+        }
+
+        return null;
+    }),
 });

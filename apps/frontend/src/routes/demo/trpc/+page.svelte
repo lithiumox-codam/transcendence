@@ -1,6 +1,7 @@
 <script lang="ts">
     import { client } from "$lib/trpc";
     import type { PageData } from "./$types";
+    import TFA from "$lib/components/2FA.svelte";
 
     let { data }: { data: PageData } = $props();
 
@@ -125,6 +126,10 @@
         Change Password
     </button>
 </form>
+
+<br />
+
+<TFA />
 
 <br />
 

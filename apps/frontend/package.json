@@ -34,6 +34,7 @@
         "@repo/database": "workspace:^",
         "@repo/trpc": "workspace:^",
         "@trpc/client": "11.0.0-rc.764",
-        "superjson": "^2.2.2"
+        "superjson": "^2.2.2",
+        "svelte-qrcode": "^1.0.1"
     }
 }

@@ -138,72 +138,66 @@
     ></div>
 </div>
 
-<div
-    class="fixed bottom-0 left-0 right-0 w-full pb-[calc(env(safe-area-inset-bottom,16px)+12px)] pt-3 z-50 flex justify-center"
+<nav
+    class="absolute bottom-0 left-0 right-0 pb-[calc(env(safe-area-inset-bottom,16px)+12px)] pt-3 z-50
+    bg-gray-800/90 mx-auto max-w-fit p-3 rounded-full shadow-lg flex items-center justify-between
+    backdrop-blur-lg border border-cyan-600/30 animate-[float_6s_ease-in-out_infinite] gap-1"
+    style="left: 50%; transform: translateX(-50%);"
 >
-    <nav
-        class="bg-gray-800/90 p-3 rounded-full shadow-lg flex items-center justify-between relative backdrop-blur-lg border border-cyan-600/30 animate-[float_6s_ease-in-out_infinite] gap-1"
+    {#each navItems.slice(0, 2) as item}
+        {@render navItem(item)}
+    {/each}
+
+    <div
+        class="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10"
     >
-        {#each navItems.slice(0, 2) as item}
-            {@render navItem(item)}
-        {/each}
-
-        <div
-            class="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10"
+        <button
+            onmouseenter={() => (showPopout = true)}
+            class="flex items-center justify-center w-16 h-16 rounded-full text-white
+                bg-gradient-to-br from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500
+                shadow-lg transition-all duration-300 border-4 border-gray-800
+                hover:scale-110 hover:rotate-3 group relative"
         >
-            <button
-                onmouseenter={() => (showPopout = true)}
-                class="flex items-center justify-center w-16 h-16 rounded-full text-white
-                    bg-gradient-to-br from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500
-                    shadow-lg transition-all duration-300 border-4 border-gray-800
-                    hover:scale-110 hover:rotate-3 group relative"
+            <svg
+                class="w-8 h-8 fill-white transition-transform duration-300 group-hover:translate-x-0.5 stroke-2 stroke-white"
             >
-                <svg
-                    class="w-8 h-8 fill-white transition-transform duration-300 group-hover:translate-x-0.5 stroke-2 stroke-white"
-                >
-                    <style type="text/css">
-                        .st0 {
-                            fill: none;
-                            /* stroke: #ffffff; */
-                            /* stroke-width: 1.7; */
-                            /* stroke-linecap: round; */
-                            /* stroke-linejoin: round; */
-                            /* stroke-miterlimit: 10; */
-                        }
-                    </style>
-                    <path
-                        class="st0"
-                        d="M27,6.5v7c0,0.8-0.7,1.5-1.5,1.5h0c-0.8,0-1.5-0.7-1.5-1.5v-7C24,5.7,24.7,5,25.5,5h0C26.3,5,27,5.7,27,6.5z"
-                    />
-                    <path
-                        class="st0"
-                        d="M8,18.5v7C8,26.3,7.3,27,6.5,27h0C5.7,27,5,26.3,5,25.5v-7C5,17.7,5.7,17,6.5,17h0C7.3,17,8,17.7,8,18.5z"
-                    />
-                    <circle class="st0" cx="15" cy="18" r="2" />
-                    <path
-                        class="st0"
-                        d="M26,30H6c-2.2,0-4-1.8-4-4V6c0-2.2,1.8-4,4-4h20c2.2,0,4,1.8,4,4v20C30,28.2,28.2,30,26,30z"
-                    />
-                    <line class="st0" x1="16" y1="16" x2="16" y2="2" />
-                    <line class="st0" x1="16" y1="30" x2="16" y2="20" />
-                </svg>
-            </button>
-        </div>
+                <style type="text/css">
+                    .st0 {
+                        fill: none;
+                    }
+                </style>
+                <path
+                    class="st0"
+                    d="M27,6.5v7c0,0.8-0.7,1.5-1.5,1.5h0c-0.8,0-1.5-0.7-1.5-1.5v-7C24,5.7,24.7,5,25.5,5h0C26.3,5,27,5.7,27,6.5z"
+                />
+                <path
+                    class="st0"
+                    d="M8,18.5v7C8,26.3,7.3,27,6.5,27h0C5.7,27,5,26.3,5,25.5v-7C5,17.7,5.7,17,6.5,17h0C7.3,17,8,17.7,8,18.5z"
+                />
+                <circle class="st0" cx="15" cy="18" r="2" />
+                <path
+                    class="st0"
+                    d="M26,30H6c-2.2,0-4-1.8-4-4V6c0-2.2,1.8-4,4-4h20c2.2,0,4,1.8,4,4v20C30,28.2,28.2,30,26,30z"
+                />
+                <line class="st0" x1="16" y1="16" x2="16" y2="2" />
+                <line class="st0" x1="16" y1="30" x2="16" y2="20" />
+            </svg>
+        </button>
+    </div>
 
-        {#each navItems.slice(2) as item}
-            {@render navItem(item)}
-        {/each}
-    </nav>
-</div>
+    {#each navItems.slice(2) as item}
+        {@render navItem(item)}
+    {/each}
+</nav>
 
 <style>
     @keyframes float {
         0%,
         100% {
-            transform: translateY(0);
+            transform: translateX(-50%) translateY(0);
         }
         50% {
-            transform: translateY(-5px);
+            transform: translateX(-50%) translateY(-5px);
         }
     }
 </style>

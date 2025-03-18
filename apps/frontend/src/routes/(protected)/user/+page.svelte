@@ -15,19 +15,21 @@
 		<!-- Navigation Options -->
 		<nav class="flex flex-col space-y-4 flex-grow mt-6">
 			<button
-				class="nav-button"
+				class="nav-button {activeSection === 'profile' ? 'active' : ''}"
 				onclick={() => (activeSection = "profile")}
 			>
 				Profile
 			</button>
 			<button
-				class="nav-button"
+				class="nav-button {activeSection === 'friends' ? 'active' : ''}"
 				onclick={() => (activeSection = "friends")}
 			>
 				Friends
 			</button>
 			<button
-				class="nav-button"
+				class="nav-button {activeSection === 'settings'
+					? 'active'
+					: ''}"
 				onclick={() => (activeSection = "settings")}
 			>
 				Settings
@@ -89,5 +91,12 @@
 
 	.content-area::-webkit-scrollbar-track {
 		background: rgba(255, 255, 255, 0.05);
+	}
+
+	.nav-button.active {
+		background-color: rgba(255, 255, 255, 0.2);
+		color: #ffffff;
+		font-weight: bold;
+		border-left: 4px solid #007bff;
 	}
 </style>

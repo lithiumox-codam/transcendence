@@ -29,42 +29,11 @@
 		</div>
 	</header>
 
-	<!-- Game Stats -->
-	<section
-		class="mt-8 bg-gray-700 p-6 rounded-lg shadow-lg border border-gray-600"
-	>
-		<h2 class="text-2xl font-semibold mb-4 text-white">Game Stats</h2>
-		<div class="grid grid-cols-2 gap-6">
-			<div class="stat-box">
-				<span class="stat-label">Wins</span>
-			</div>
-			<div class="stat-box">
-				<span class="stat-label">Losses</span>
-			</div>
-			<div class="stat-box">
-				<span class="stat-label">Leaderboard Rank</span>
-			</div>
-			<div class="stat-box">
-				<span class="stat-label">Time Played</span>
-			</div>
-		</div>
-	</section>
-
-	<!-- Achievements -->
-	<section
-		class="mt-8 bg-gray-700 p-6 rounded-lg shadow-lg border border-gray-600"
-	>
-		<h2 class="text-2xl font-semibold mb-4 text-white">Achievements 🏆</h2>
-		<p class="text-gray-400 text-center">No achievements unlocked yet.</p>
-	</section>
-
 	<!-- Bio -->
 	<section
 		class="mt-8 bg-gray-700 p-6 rounded-lg shadow-lg border border-gray-600"
 	>
-		<h2 class="text-2xl font-semibold mb-4 text-white">
-			Bio & Customization
-		</h2>
+		<h2 class="text-2xl font-semibold mb-4 text-white">Bio</h2>
 		<button class="edit-button mt-4">Edit Bio</button>
 	</section>
 </main>
@@ -82,11 +51,5 @@
 	}
 	.edit-button:hover {
 		background: #0056b3;
-	}
-	.stat-box {
-		text-align: center;
-		background: rgba(255, 255, 255, 0.1);
-		padding: 12px;
-		border-radius: 8px;
 	}
 </style>

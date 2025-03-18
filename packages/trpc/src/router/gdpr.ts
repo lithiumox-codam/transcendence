@@ -11,7 +11,7 @@ import {
 
 export const gdprRouter = createTRPCRouter({
 	deleteAccount: protectedProcedure
-		.input(z.object({ username: z.string(), password: z.string() }))
+		.input(z.object({ username: z.string() }))
 		.mutation(async ({ ctx, input }) => {
 
 			const user = await db
@@ -26,14 +26,9 @@ export const gdprRouter = createTRPCRouter({
 				});
 			}
 
-			const validPassword = await verifyPassword(
-				user[0].password,
-				input.password,
-			);
-
 			const validUsername = user[0].name === input.username;
 
-			if (!validPassword || !validUsername) {
+			if (!validUsername) {
 				throw new TRPCError({
 					code: "FORBIDDEN",
 					message: "Invalid credentials",
@@ -43,7 +38,36 @@ export const gdprRouter = createTRPCRouter({
 			await db.update(users).set({
 				name: "[DELETED]",
 				email: "[DELETED]",
-				password: "[DELETED]",
+				password: "",
 			}).where(eq(users.id, ctx.user.id));
+		}),
+
+		changePassword: protectedProcedure
+		.input(z.object({ oldPassword: passwordSchema, newPassword: passwordSchema }))
+		.mutation(async ({ ctx, input }) => {
+			const user = await db
+				.select()
+				.from(users)
+				.where(eq(users.id, ctx.user.id));
+
+			if (user.length === 0 || !user[0]) {
+				throw new TRPCError({
+					code: "FORBIDDEN",
+					message: "Invalid credentials",
+				});
+			}
+
+			const validPassword = await verifyPassword(user[0].password, input.oldPassword);
+
+			if (!validPassword) {
+				throw new TRPCError({
+					code: "FORBIDDEN",
+					message: "Invalid credentials",
+				});
+			}
+
+			const hashedPassword = await hashPassword(input.newPassword);
+
+			await db.update(users).set({ password: hashedPassword }).where(eq(users.id, ctx.user.id));
 		}),
 });

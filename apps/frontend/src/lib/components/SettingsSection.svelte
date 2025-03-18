@@ -4,39 +4,84 @@
 
 	let showDeleteModal = $state(false);
 	let showPolicyModal = $state(false);
+	let showPasswordModal = $state(false);
 	let username = $state("");
-	let password = $state("");
+	let oldPassword = $state("");
+	let newPassword = $state("");
+	let confirmPassword = $state("");
 	let errorMessage = $state("");
+	let isLoading = $state(false); // For button loading state
+	let successMessage = $state("");
+
+	async function handleChangePassword() {
+		try {
+			// Ensure all fields are filled
+			if (!oldPassword || !newPassword || !confirmPassword) {
+				errorMessage = "Please enter all fields.";
+				return;
+			}
+
+			// Validate password confirmation
+			if (newPassword !== confirmPassword) {
+				errorMessage = "Passwords do not match.";
+				return;
+			}
+
+			// Make API request to change password
+			await client.user.privacy.changePassword.mutate({
+				oldPassword,
+				newPassword,
+			});
+
+			// Reset inputs after success
+			oldPassword = "";
+			newPassword = "";
+			confirmPassword = "";
+
+			// Close modal automatically
+			togglePasswordModal();
+		} catch (error) {
+			console.error(error);
+			errorMessage = "Incorrect password.";
+		}
+	}
 
 	async function handleDeletion() {
 		try {
-			if (!username || !password) {
-				errorMessage = "Please enter both your username and password.";
+			if (!username) {
+				errorMessage = "Please enter your username.";
 				return;
 			}
 
 			await client.user.privacy.deleteAccount.mutate({
 				username,
-				password,
 			});
 			alert("Your account has been deleted.");
 			localStorage.removeItem("token");
 			goto("/");
+			setTimeout(() => location.reload(), 100);
 		} catch (error) {
 			console.error(error);
-			errorMessage = "Incorrect username and/or password.";
+			errorMessage = "Incorrect username";
 		}
 	}
 
 	function toggleDeleteModal() {
 		showDeleteModal = !showDeleteModal;
 		username = "";
-		password = "";
 		errorMessage = "";
 	}
 
 	function togglePolicyModal() {
 		showPolicyModal = !showPolicyModal;
+	}
+
+	function togglePasswordModal() {
+		showPasswordModal = !showPasswordModal;
+		oldPassword = "";
+		newPassword = "";
+		confirmPassword = "";
+		errorMessage = "";
 	}
 </script>
 
@@ -44,14 +89,69 @@
 	<h2 class="section-title">Settings</h2>
 
 	<div class="settings-list">
-		<!-- Change Password -->
+		<!-- Password Change UI -->
 		<div class="setting-item">
 			<div class="setting-text">
 				<h3>Change Password</h3>
 				<p>Update your password to keep your account secure.</p>
 			</div>
-			<button class="button">Change</button>
+			<button class="button" onclick={togglePasswordModal}>Change</button>
 		</div>
+
+		<!-- Password Change Modal -->
+		{#if showPasswordModal}
+			<button
+				type="button"
+				class="modal-overlay"
+				onclick={togglePasswordModal}
+				aria-label="Close modal"
+				onkeydown={(e) => e.key === "Enter" && togglePasswordModal()}
+			></button>
+			<div class="modal">
+				<h2 class="modal-title">Change Password</h2>
+				<p class="modal-text">
+					Enter your current password and choose a new one.
+				</p>
+
+				<div class="input-group">
+					<input
+						class="modal-input"
+						type="password"
+						placeholder="Current Password"
+						bind:value={oldPassword}
+					/>
+					<input
+						class="modal-input"
+						type="password"
+						placeholder="New Password"
+						bind:value={newPassword}
+					/>
+					<input
+						class="modal-input"
+						type="password"
+						placeholder="Confirm New Password"
+						bind:value={confirmPassword}
+					/>
+				</div>
+
+				<!-- Show Error Message if needed -->
+				{#if errorMessage}
+					<p class="error-message">{errorMessage}</p>
+				{/if}
+
+				<div class="modal-footer">
+					<button
+						class="confirm-button"
+						onclick={handleChangePassword}
+					>
+						Save
+					</button>
+					<button class="cancel-button" onclick={togglePasswordModal}>
+						Cancel
+					</button>
+				</div>
+			</div>
+		{/if}
 
 		<!-- Delete Account -->
 		<div class="setting-item delete-item">
@@ -93,8 +193,8 @@
 			<!-- Modal Content -->
 			<div class="modal-content">
 				<p class="modal-text">
-					To proceed with account deletion, please enter your username
-					and password.
+					To proceed with account deletion, please enter your
+					username.
 				</p>
 
 				<!-- Username Input -->
@@ -105,17 +205,6 @@
 						type="text"
 						placeholder="Enter your username"
 						bind:value={username}
-					/>
-				</div>
-
-				<!-- Password Input -->
-				<div class="input-group">
-					<input
-						id="password"
-						class="modal-input"
-						type="password"
-						placeholder="Enter your password"
-						bind:value={password}
 					/>
 				</div>
 
@@ -295,6 +384,7 @@
 
 	.button:hover {
 		background-color: #0056b3;
+		box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
 	}
 
 	.delete-button {
@@ -342,8 +432,8 @@
 		left: 0;
 		width: 100%;
 		height: 100%;
-		background: rgba(0, 0, 0, 0.6);
-		backdrop-filter: blur(5px);
+		background: rgba(0, 0, 0, 0.7); /* Darker for better contrast */
+		backdrop-filter: blur(3px); /* Slightly reduced blur */
 		z-index: 10;
 	}
 
@@ -363,10 +453,12 @@
 
 	.modal-text {
 		font-size: 1.1rem;
-		color: #bbb;
-		margin-bottom: 15px;
+		color: #ddd; /* Slightly brighter for better readability */
+		margin: 20px auto;
+		padding-top: 10px; /* Creates spacing from modal title */
 		text-align: center;
-		line-height: 1.5;
+		line-height: 1.6;
+		max-width: 90%;
 	}
 
 	.modal-content {
@@ -413,13 +505,20 @@
 
 	.modal-input {
 		padding: 12px;
-		border: 1px solid rgba(255, 255, 255, 0.2);
+		border: 1px solid rgba(255, 255, 255, 0.3);
 		border-radius: 6px;
-		width: 90%;
-		background: rgba(255, 255, 255, 0.05);
+		width: 100%; /* Ensures input takes full width */
+		max-width: 320px; /* Limits width so it's not too wide */
+		background: rgba(255, 255, 255, 0.08);
 		color: white;
 		font-size: 1rem;
 		text-align: center;
+		outline: none;
+	}
+
+	.modal-input:focus {
+		border-color: #007bff; /* Highlight input when focused */
+		background: rgba(255, 255, 255, 0.15);
 	}
 
 	.cancel-button {
@@ -449,17 +548,20 @@
 	}
 
 	.input-group {
-		margin-bottom: 15px;
 		display: flex;
 		flex-direction: column;
 		align-items: center;
+		gap: 10px; /* Adds spacing between inputs */
+		width: 100%;
 	}
 
 	.error-message {
-		color: #ff4d4d !important;
+		color: #ff4d4d;
 		font-size: 14px;
-		margin-top: 10px;
+		margin-top: 5px;
+		margin-bottom: 10px; /* Adds space below the error */
 		text-align: center;
+		font-weight: bold;
 	}
 
 	@keyframes fadeIn {

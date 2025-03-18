@@ -28,18 +28,20 @@
             showNotification: false,
         },
         {
-            href: "/leaderboard",
+            href: "/chat",
             icon: MessageCircle,
             label: "Chat",
             showNotification: false,
         },
         {
-            href: "/profile",
+            href: "/user",
             icon: User,
             label: "You",
             showNotification: false,
         },
     ];
+
+    let showPopout = $state(false);
 </script>
 
 {#snippet navItem(item: {
@@ -67,6 +69,26 @@
         <span class="text-xs truncate">{item.label}</span>
     </a>
 {/snippet}
+
+<!-- container for popout menu  -->
+{#if showPopout}
+    <div
+        class="fixed inset-0 bg-gray-800/90 backdrop-blur-lg z-50 flex items-center justify-center"
+    >
+        <div class="bg-gray-900 rounded-lg p-4 shadow-lg w-[90%] max-w-md">
+            <h2 class="text-white text-lg font-semibold mb-4">Popout Menu</h2>
+            <p class="text-gray-400 mb-4">
+                This is a popout menu. Click outside to close it.
+            </p>
+            <button
+                class="bg-cyan-500 text-white px-4 py-2 rounded-lg hover:bg-cyan-400 transition-all duration-300"
+                onclick={() => (showPopout = false)}
+            >
+                Close
+            </button>
+        </div>
+    </div>
+{/if}
 
 <div
     class="fixed bottom-0 left-0 right-0 w-full pb-[calc(env(safe-area-inset-bottom,16px)+12px)] pt-3 z-50 flex justify-center"

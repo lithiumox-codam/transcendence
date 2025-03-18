@@ -1,5 +1,5 @@
 import { goto } from "$app/navigation";
-import { client } from "$lib/trpc";
+import { client, isTRPCClientError } from "$lib/trpc";
 import type { User } from "@repo/database";
 
 export class UserClass {
@@ -9,7 +9,6 @@ export class UserClass {
     outgoingRequests = $state<User[]>([]);
     isLoading = $state(true);
 
-    // Track recently processed actions to avoid duplicate updates
     #recentActions = $state.raw(new Map<string, number>());
 
     constructor() {
@@ -18,15 +17,10 @@ export class UserClass {
 
     async initialize() {
         try {
-            const res = await client.user.get.query();
-            if (!res || res.length === 0) {
-                goto("/login");
-                return;
-            }
+            const [user] = await client.user.get.query();
 
-            this.data = res[0];
+            this.data = user;
 
-            // Load data in parallel to improve performance
             const [friendsList, incomingReqs, outgoingReqs] = await Promise.all(
                 [
                     client.user.friends.list.query(),
@@ -42,6 +36,20 @@ export class UserClass {
             this.listenUser();
             this.listenFriends();
         } catch (e) {
+            if (isTRPCClientError(e)) {
+                switch (e.data?.code) {
+                    case "UNAUTHORIZED":
+                        goto(`/login?redirect=${location.pathname}`);
+                        break;
+                    case "FORBIDDEN":
+                        goto(`/login?redirect=${location.pathname}`);
+                        break;
+                    default:
+                        console.error(e);
+                        break;
+                }
+            }
+
             console.error("Failed to initialize user data:", e);
         } finally {
             this.isLoading = false;
@@ -50,9 +58,15 @@ export class UserClass {
 
     async listenUser() {
         client.user.listen.subscribe(undefined, {
-            onData: (event) => {
-                if (this.data?.id === event.data.id) {
-                    this.data = event.data;
+            onData: ({ type, data }) => {
+                switch (type) {
+                    case "update":
+                        if (this.data?.id === data.id) {
+                            this.data = data;
+                        }
+                        break;
+                    default:
+                        break;
                 }
             },
         });

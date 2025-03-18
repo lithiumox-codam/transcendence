@@ -12,30 +12,6 @@
     const chat = new Chat(user);
     setContext("chat", chat);
 
-    async function checkAuth() {
-        try {
-            await client.user.get.query();
-        } catch (error) {
-            if (isTRPCClientError(error)) {
-                switch (error.data?.code) {
-                    case "UNAUTHORIZED":
-                        goto(`/login?redirect=${location.pathname}`);
-                        break;
-                    case "FORBIDDEN":
-                        goto(`/login?redirect=${location.pathname}`);
-                        break;
-                    default:
-                        console.error(error);
-                        break;
-                }
-            }
-        }
-    }
-
-    $effect(() => {
-        checkAuth();
-    });
-
     let { data, children }: { data: LayoutData; children: Snippet } = $props();
 </script>
 

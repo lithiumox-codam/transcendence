@@ -9,7 +9,7 @@
 
 <main class="dark">
 	<ParaglideJS {i18n}>
-		<Header />
+		<!-- <Header /> -->
 		{@render children()}
 	</ParaglideJS>
 </main>

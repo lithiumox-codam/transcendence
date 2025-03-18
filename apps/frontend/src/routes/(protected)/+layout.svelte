@@ -39,7 +39,7 @@
     let { data, children }: { data: LayoutData; children: Snippet } = $props();
 </script>
 
-<main class="h-[94vh] bg-zinc-800">
+<main class="h-[100vh] bg-zinc-800">
     {@render children()}
     <Nav />
 </main>

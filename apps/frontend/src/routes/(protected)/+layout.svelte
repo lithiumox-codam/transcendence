@@ -5,6 +5,7 @@
     import { goto } from "$app/navigation";
     import { UserClass } from "$lib/classes/User.svelte";
     import { Chat } from "$lib/classes/Chat.svelte";
+    import Nav from "$lib/components/Nav/Nav.svelte";
 
     const user = new UserClass();
     setContext("user", user);
@@ -40,4 +41,5 @@
 
 <main class="h-[94vh] bg-zinc-800">
     {@render children()}
+    <Nav />
 </main>

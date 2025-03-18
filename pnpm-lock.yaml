@@ -76,6 +76,9 @@ importers:
       '@inlang/paraglide-sveltekit':
         specifier: ^0.15.5
         version: 0.15.5(@sveltejs/kit@2.17.0)
+      '@lucide/svelte':
+        specifier: ^0.482.0
+        version: 0.482.0(svelte@5.19.6)
       '@repo/auth':
         specifier: workspace:^
         version: link:../../packages/auth
@@ -1677,6 +1680,14 @@ packages:
     resolution: {integrity: sha512-B9X3FjD8WmdG7tbA44JuniSO0KdKBWnjfxl8zpgrDCkavrp/GP7U0xxBkc0WgeeoHjQ/pkqq9VqtWB2kS9jIUg==}
     dependencies:
       typescript: 5.2.2
+    dev: false
+
+  /@lucide/svelte@0.482.0(svelte@5.19.6):
+    resolution: {integrity: sha512-n2ycHU9cNcleRDwwpEHBJ6pYzVhHIaL3a+9dQa8kns9hB2g05bY+v2p2KP8v0pZwtNhYTHk/F2o2uZ1bVtQGhw==}
+    peerDependencies:
+      svelte: ^5
+    dependencies:
+      svelte: 5.19.6
     dev: false
 
   /@lukeed/ms@2.0.2:

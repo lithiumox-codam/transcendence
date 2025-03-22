@@ -25,7 +25,11 @@
 				{user.data?.name}
 			</h1>
 			<p class="text-lg text-gray-300 italic">{user.data?.email}</p>
-			<button class="edit-button mt-4">Edit Profile</button>
+			<button
+				class="mt-4 px-4 py-2 text-sm font-bold bg-blue-500 text-white rounded-md transition-all duration-300 hover:bg-blue-700"
+			>
+				Edit Profile
+			</button>
 		</div>
 	</header>
 
@@ -34,22 +38,10 @@
 		class="mt-8 bg-gray-700 p-6 rounded-lg shadow-lg border border-gray-600"
 	>
 		<h2 class="text-2xl font-semibold mb-4 text-white">Bio</h2>
-		<button class="edit-button mt-4">Edit Bio</button>
+		<button
+			class="mt-4 px-4 py-2 text-sm font-bold bg-blue-500 text-white rounded-md transition-all duration-300 hover:bg-blue-700"
+		>
+			Edit Bio
+		</button>
 	</section>
 </main>
-
-<!-- Styles -->
-<style>
-	.edit-button {
-		padding: 8px 16px;
-		font-size: 14px;
-		font-weight: bold;
-		background: #007bff;
-		color: white;
-		border-radius: 6px;
-		transition: all 0.3s;
-	}
-	.edit-button:hover {
-		background: #0056b3;
-	}
-</style>

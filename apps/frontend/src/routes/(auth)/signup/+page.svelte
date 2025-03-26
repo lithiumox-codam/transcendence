@@ -1,118 +1,128 @@
 <script lang="ts">
-    import type { UserInsert } from "@repo/database";
-    import type { PageData } from "./$types";
-    import { client } from "$lib/trpc";
-    import { browser } from "$app/environment";
+	import { client } from "$lib/trpc";
+	import { browser } from "$app/environment";
+	import { goto } from "$app/navigation";
+	import GoogleButton from "$lib/components/GoogleButton.svelte";
 
-    let { data }: { data: PageData } = $props();
+	let { data } = $props();
 
-    let newUser: UserInsert = $state({
-        name: "",
-        email: "",
-        password: "",
-    });
+	let name = $state("");
+	let email = $state("");
+	let password = $state("");
+	let confirmPassword = $state("");
 
-    let confirmPassword = $state("");
+	async function handleSubmit(event: Event) {
+		event.preventDefault();
+		if (password !== confirmPassword) {
+			console.error("Passwords do not match");
+			return;
+		}
+		try {
+			const res = await client.auth.signup.mutate({
+				name,
+				email,
+				password,
+			});
+			if (browser) localStorage.setItem("token", res);
+			goto("/user");
+		} catch (error) {
+			console.error(error);
+		}
+	}
 
-    async function handleSubmit(event: Event) {
-        event.preventDefault();
-
-        try {
-            const res = await client.auth.signup.mutate(newUser);
-            if (browser) localStorage.setItem("token", res);
-        } catch (error) {
-            console.error(error);
-        }
-    }
+	function redirectToLogin() {
+		goto("/login");
+	}
 </script>
 
-<main class="container relative h-screen grid place-items-center">
-    <div
-        class="relative flex w-[380px] flex-col rounded-md border bg-card text-card-foreground shadow-sm"
-        data-v0-t="card"
-    >
-        <div class="flex flex-col space-y-1.5 p-6">
-            <h3 class="font-semibold whitespace-nowrap tracking-tight text-2xl">
-                Create an account
-            </h3>
-            <p class="text-sm text-muted-foreground">
-                Enter your email below to create your account
-            </p>
-        </div>
-        <div class="p-6">
-            <form onsubmit={handleSubmit} class="space-y-4">
-                <div class="space-y-2">
-                    <label
-                        class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                        for="name">Name</label
-                    >
-                    <input
-                        type="text"
-                        bind:value={newUser.name}
-                        placeholder="Enter your name"
-                        required
-                        class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                        id="name"
-                    />
-                </div>
-                <div class="space-y-2">
-                    <label
-                        class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                        for="email">Email</label
-                    >
-                    <input
-                        type="email"
-                        bind:value={newUser.email}
-                        placeholder="Enter your email"
-                        required
-                        class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                        id="email"
-                    />
-                </div>
-                <div class="space-y-2">
-                    <label
-                        class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                        for="password">Password</label
-                    >
-                    <input
-                        type="password"
-                        bind:value={newUser.password}
-                        placeholder="Enter your password"
-                        required
-                        class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                        id="password"
-                    />
-                </div>
-                <div class="space-y-2">
-                    <label
-                        class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                        for="confirm-password">Confirm Password</label
-                    >
-                    <input
-                        type="password"
-                        bind:value={confirmPassword}
-                        placeholder="Confirm your password"
-                        required
-                        class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                        id="confirm-password"
-                    />
-                </div>
-                {#if newUser.password !== confirmPassword}
-                    <button
-                        disabled
-                        class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-10 px-4 py-2 bg-primary text-primary-foreground"
-                    >
-                        Sign up
-                    </button>
-                {:else}
-                    <button
-                        type="submit"
-                        class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-10 px-4 py-2 bg-primary text-primary-foreground"
-                    >
-                        Sign up
-                    </button>
-                {/if}
-            </form>
-        </div>
-    </div>
+<main
+	class="flex min-h-screen bg-gray-900 text-white items-center justify-center"
+>
+	<div
+		class="flex flex-col w-[380px] rounded-md border border-gray-700 bg-gray-800 text-white shadow-lg"
+	>
+		<!-- Header -->
+		<div class="flex flex-col space-y-1.5 p-6">
+			<h3 class="text-2xl font-semibold tracking-tight">Sign Up</h3>
+			<p class="text-sm text-gray-400">
+				Enter your details below to create your account
+			</p>
+		</div>
+
+		<!-- Signup Form -->
+		<div class="p-6">
+			<form class="space-y-4" onsubmit={handleSubmit}>
+				<div class="space-y-2">
+					<label class="text-sm font-medium" for="name">Name</label>
+					<input
+						type="text"
+						placeholder="Enter your name"
+						required
+						class="flex h-10 w-full rounded-md border border-gray-700 bg-gray-900 px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+						id="name"
+						bind:value={name}
+					/>
+				</div>
+				<div class="space-y-2">
+					<label class="text-sm font-medium" for="email">Email</label>
+					<input
+						type="email"
+						placeholder="Enter your email"
+						required
+						class="flex h-10 w-full rounded-md border border-gray-700 bg-gray-900 px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+						id="email"
+						bind:value={email}
+					/>
+				</div>
+				<div class="space-y-2">
+					<label class="text-sm font-medium" for="password"
+						>Password</label
+					>
+					<input
+						type="password"
+						placeholder="Enter your password"
+						required
+						class="flex h-10 w-full rounded-md border border-gray-700 bg-gray-900 px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+						id="password"
+						bind:value={password}
+					/>
+				</div>
+				<div class="space-y-2">
+					<label class="text-sm font-medium" for="confirm-password"
+						>Confirm Password</label
+					>
+					<input
+						type="password"
+						placeholder="Confirm your password"
+						required
+						class="flex h-10 w-full rounded-md border border-gray-700 bg-gray-900 px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+						id="confirm-password"
+						bind:value={confirmPassword}
+					/>
+				</div>
+				<button
+					type="submit"
+					class="w-full h-10 rounded-md bg-blue-600 text-white font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+				>
+					Sign Up
+				</button>
+			</form>
+		</div>
+
+		<!-- Google Signup -->
+		<div class="mt-2 flex justify-center">
+			<GoogleButton providerConfig={data.clientGoogleProvider} />
+		</div>
+
+		<!-- Login Redirect -->
+		<div class="p-6 text-center">
+			<p class="text-sm text-gray-400">Already have an account?</p>
+			<button
+				class="mt-2 w-full h-10 rounded-md bg-gray-700 text-white font-medium hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+				onclick={redirectToLogin}
+			>
+				Login
+			</button>
+		</div>
+	</div>
 </main>

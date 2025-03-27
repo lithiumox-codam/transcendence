@@ -9,40 +9,76 @@
         User,
     } from "@lucide/svelte";
     import type { Component } from "svelte";
+    import type { Popout } from "$lib/classes/Popout.svelte";
+    import { getContext } from "svelte";
+    import ChatPopout from "../Popouts/ChatPopout.svelte";
+    import UserPopout from "../Popouts/UserPopout.svelte";
+
+    let popout = getContext<Popout>("popout");
+
+    // Component mapping for each nav item
+    const componentMap: Record<string, Component> = {
+        Chat: ChatPopout,
+        User: UserPopout,
+    };
 
     const navItems: {
         href: string;
         icon: Component;
         label: string;
         showNotification?: boolean;
+        popoutId?: string;
     }[] = [
         {
             href: "/leaderboard",
             icon: Info,
-            label: "Info",
+            label: "Friends",
             showNotification: false,
+            popoutId: "friends",
         },
         {
             href: "/leaderboard",
             icon: AlignHorizontalDistributeCenter,
             label: "Stats",
             showNotification: false,
+            popoutId: "stats",
         },
         {
             href: "/chat",
             icon: MessageCircle,
             label: "Chat",
             showNotification: false,
+            popoutId: "Chat",
         },
         {
             href: "/user",
             icon: User,
             label: "You",
             showNotification: false,
+            popoutId: "User",
         },
     ];
 
     let showPopout = $state(false);
+
+    // Function to toggle a specific popout
+    function togglePopout(popoutId: string | undefined) {
+        if (!popoutId || !componentMap[popoutId]) return;
+
+        // If this popout is already open, close it
+        if (popout.shown && popout.componentId === popoutId) {
+            popout.hide();
+            return;
+        }
+
+        // Otherwise show the requested component
+        popout.show(componentMap[popoutId], popoutId);
+    }
+
+    // Function to check if a specific popout is active
+    function isPopoutActive(popoutId: string | undefined): boolean {
+        return popout.shown && popout.componentId === popoutId;
+    }
 </script>
 
 {#snippet navItem(item: {
@@ -50,16 +86,22 @@
     icon: Component;
     label: string;
     showNotification?: boolean;
+    popoutId?: string;
 })}
-    <a
-        href={item.href}
-        class="px-6 py-2 rounded-full text-white text-lg font-semibold transition-all duration-300
-        bg-gradient-to-r from-gray-700 to-gray-600 hover:from-cyan-500 hover:to-cyan-400
-        hover:text-gray-900 shadow-md flex flex-col items-center justify-center gap-1 group min-w-[115px]"
+    <button
+        onclick={() => togglePopout(item.popoutId)}
+        class={`px-6 py-3 rounded-full text-white text-lg font-semibold transition-all duration-300
+        ${
+            isPopoutActive(item.popoutId)
+                ? "bg-gradient-to-r from-cyan-600 to-cyan-500 text-gray-900"
+                : "bg-gradient-to-r from-gray-700 to-gray-600 hover:from-cyan-500 hover:to-cyan-400 hover:text-gray-900"
+        } 
+        shadow-md flex flex-col items-center justify-center gap-1 group min-w-[115px]
+        ${isPopoutActive(item.popoutId) ? "ring-2 ring-cyan-300" : ""}`}
     >
         <div class="relative">
             <item.icon
-                class="w-5 h-5 stroke-current transition-all duration-300 group-hover:scale-110 "
+                class="w-5 h-5 stroke-current transition-all duration-300 group-hover:scale-110"
             />
             {#if item.showNotification}
                 <div
@@ -68,11 +110,11 @@
             {/if}
         </div>
         <span class="text-xs truncate">{item.label}</span>
-    </a>
+    </button>
 {/snippet}
 
 <div
-    class={`absolute bottom-30 left-1/2 transform -translate-x-1/2 transition-all duration-300 z-40 w-[90%] max-w-md ${showPopout ? "opacity-100 scale-100" : "opacity-0 scale-95 pointer-events-none"}`}
+    class={`absolute bottom-36 right-6 transform transition-all duration-300 z-40 w-[90%] max-w-md ${showPopout ? "opacity-100 scale-100" : "opacity-0 scale-95 pointer-events-none"}`}
 >
     <div
         class="bg-gray-800/95 backdrop-blur-md rounded-xl p-4 shadow-2xl border border-cyan-600/30 overflow-hidden"
@@ -134,70 +176,41 @@
 
     <!-- Decorative triangle pointer -->
     <div
-        class="w-6 h-6 bg-gray-800/95 transform rotate-45 absolute -bottom-3 left-1/2 -translate-x-1/2 border-r border-b border-cyan-600/30"
+        class="w-6 h-6 bg-gray-800/95 transform rotate-45 absolute -bottom-3 right-8 border-r border-b border-cyan-600/30"
     ></div>
 </div>
 
 <nav
-    class="absolute bottom-0 left-0 right-0 pb-[calc(env(safe-area-inset-bottom,16px)+12px)] pt-3 z-50
-    bg-gray-800/90 mx-auto max-w-fit p-3 rounded-full shadow-lg flex items-center justify-between
-    backdrop-blur-lg border border-cyan-600/30 animate-[float_6s_ease-in-out_infinite] gap-1"
-    style="left: 50%; transform: translateX(-50%);"
+    class="fixed bottom-5 right-5 bg-gray-800/90 p-3 rounded-full shadow-lg flex items-center justify-between backdrop-blur-lg border border-cyan-600/30 z-50 gap-1"
 >
-    {#each navItems.slice(0, 2) as item}
+    {#each navItems as item}
         {@render navItem(item)}
     {/each}
 
-    <div
-        class="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10"
+    <button
+        onclick={() => (showPopout = !showPopout)}
+        class={`px-6 py-3 rounded-full text-white text-lg font-semibold transition-all duration-300
+        bg-gradient-to-tr from-green-500 to-green-900 hover:from-green-400 hover:to-green-600
+        hover:text-gray-900 shadow-md flex flex-col items-center justify-center gap-1 group min-w-[115px]
+        ${showPopout ? "ring-2 ring-green-300" : ""}`}
     >
-        <button
-            onmouseenter={() => (showPopout = true)}
-            class="flex items-center justify-center w-16 h-16 rounded-full text-white
-                bg-gradient-to-br from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500
-                shadow-lg transition-all duration-300 border-4 border-gray-800
-                hover:scale-110 hover:rotate-3 group relative"
-        >
-            <svg
-                class="w-8 h-8 fill-white transition-transform duration-300 group-hover:translate-x-0.5 stroke-2 stroke-white"
-            >
-                <style type="text/css">
-                    .st0 {
-                        fill: none;
-                    }
-                </style>
-                <path
-                    class="st0"
-                    d="M27,6.5v7c0,0.8-0.7,1.5-1.5,1.5h0c-0.8,0-1.5-0.7-1.5-1.5v-7C24,5.7,24.7,5,25.5,5h0C26.3,5,27,5.7,27,6.5z"
-                />
-                <path
-                    class="st0"
-                    d="M8,18.5v7C8,26.3,7.3,27,6.5,27h0C5.7,27,5,26.3,5,25.5v-7C5,17.7,5.7,17,6.5,17h0C7.3,17,8,17.7,8,18.5z"
-                />
-                <circle class="st0" cx="15" cy="18" r="2" />
-                <path
-                    class="st0"
-                    d="M26,30H6c-2.2,0-4-1.8-4-4V6c0-2.2,1.8-4,4-4h20c2.2,0,4,1.8,4,4v20C30,28.2,28.2,30,26,30z"
-                />
-                <line class="st0" x1="16" y1="16" x2="16" y2="2" />
-                <line class="st0" x1="16" y1="30" x2="16" y2="20" />
-            </svg>
-        </button>
-    </div>
-
-    {#each navItems.slice(2) as item}
-        {@render navItem(item)}
-    {/each}
+        <div class="relative">
+            <Play
+                class="w-5 h-5 stroke-current transition-all duration-300 group-hover:scale-110"
+            />
+        </div>
+        <span class="text-xs truncate">Play</span>
+    </button>
 </nav>
 
 <style>
-    @keyframes float {
+    @keyframes pulse {
         0%,
         100% {
-            transform: translateX(-50%) translateY(0);
+            box-shadow: 0 0 10px 0 rgba(6, 182, 212, 0.3);
         }
         50% {
-            transform: translateX(-50%) translateY(-5px);
+            box-shadow: 0 0 15px 2px rgba(6, 182, 212, 0.5);
         }
     }
 </style>

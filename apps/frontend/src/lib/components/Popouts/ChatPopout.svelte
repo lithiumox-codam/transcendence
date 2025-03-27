@@ -1,6 +1,5 @@
 <script lang="ts">
     import { client } from "$lib/trpc";
-    import type { PageData } from "./$types";
     import { Chat } from "$lib/classes/Chat.svelte";
     import { UserClass } from "$lib/classes/User.svelte";
     import { getContext } from "svelte";

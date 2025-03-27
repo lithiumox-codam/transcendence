@@ -3,19 +3,21 @@
 	import { goto } from "$app/navigation";
 
 	let showDeleteModal = $state(false);
-	let showPolicyModal = $state(false);
 	let showPasswordModal = $state(false);
+
 	let username = $state("");
 	let oldPassword = $state("");
 	let newPassword = $state("");
 	let confirmPassword = $state("");
 	let errorMessage = $state("");
-	let isLoading = $state(false); // For button loading state
-	let successMessage = $state("");
 
-	async function handleChangePassword() {
+	let isOAuth = $state(false);
+	let isPasswordSet = $state(false);
+
+	async function handleSetOrChangePassword() {
 		try {
 			// Ensure all fields are filled
+			// oldpassword? with isOAuth && !isPasswordSet
 			if (!oldPassword || !newPassword || !confirmPassword) {
 				errorMessage = "Please enter all fields.";
 				return;
@@ -26,6 +28,8 @@
 				errorMessage = "Passwords do not match.";
 				return;
 			}
+
+			// Validate password strength
 
 			// Make API request to change password
 			await client.user.privacy.changePassword.mutate({
@@ -42,7 +46,10 @@
 			togglePasswordModal();
 		} catch (error) {
 			console.error(error);
-			errorMessage = "Incorrect password.";
+			errorMessage =
+				isOAuth && !isPasswordSet
+					? "Failed to set password."
+					: "Incorrect password.";
 		}
 	}
 
@@ -66,14 +73,11 @@
 		}
 	}
 
+	// not needed ?
 	function toggleDeleteModal() {
 		showDeleteModal = !showDeleteModal;
 		username = "";
 		errorMessage = "";
-	}
-
-	function togglePolicyModal() {
-		showPolicyModal = !showPolicyModal;
 	}
 
 	function togglePasswordModal() {
@@ -94,72 +98,20 @@
 			class="flex justify-between items-center bg-white/5 p-4 rounded-lg transition duration-300 hover:bg-white/10"
 		>
 			<div class="text-left">
-				<h3 class="text-xl text-white mb-1">Change Password</h3>
+				{isOAuth && !isPasswordSet ? "Set Password" : "Change Password"}
 				<p class="text-gray-400">
-					Update your password to keep your account secure.
+					{isOAuth && !isPasswordSet
+						? "Set a password for your account to enable regular login."
+						: "Update your password to keep your account secure."}
 				</p>
 			</div>
 			<button
 				class="bg-blue-500 text-white px-4 py-2 rounded-md transition duration-300 hover:bg-blue-700"
-				onclick={togglePasswordModal}>Change</button
-			>
-		</div>
-
-		<!-- Password Change Modal -->
-		{#if showPasswordModal}
-			<button
-				type="button"
-				class="fixed inset-0 bg-black/70 backdrop-blur-sm z-10"
 				onclick={togglePasswordModal}
-				aria-label="Close modal"
-				onkeydown={(e) => e.key === "Enter" && togglePasswordModal()}
-			></button>
-			<div
-				class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-gray-800 p-6 rounded-lg shadow-lg z-20 w-96 max-w-full"
 			>
-				<h2 class="text-xl text-white mb-4">Change Password</h2>
-				<p class="text-gray-300 mb-4">
-					Enter your current password and choose a new one.
-				</p>
-
-				<div class="flex flex-col gap-3">
-					<input
-						class="p-3 border border-gray-600 rounded-md bg-gray-700 text-white"
-						type="password"
-						placeholder="Current Password"
-						bind:value={oldPassword}
-					/>
-					<input
-						class="p-3 border border-gray-600 rounded-md bg-gray-700 text-white"
-						type="password"
-						placeholder="New Password"
-						bind:value={newPassword}
-					/>
-					<input
-						class="p-3 border border-gray-600 rounded-md bg-gray-700 text-white"
-						type="password"
-						placeholder="Confirm New Password"
-						bind:value={confirmPassword}
-					/>
-				</div>
-
-				<!-- Show Error Message if needed -->
-				{#if errorMessage}
-					<p class="text-red-500 text-sm mt-2">{errorMessage}</p>
-				{/if}
-
-				<div class="flex justify-center gap-3 mt-4">
-					<button
-						class="bg-blue-500 text-white px-4 py-2 rounded-md transition duration-300 hover:bg-blue-700"
-						onclick={handleChangePassword}>Save</button
-					>
-					<button
-						class="bg-gray-600 text-white px-4 py-2 rounded-md transition duration-300 hover:bg-gray-700"
-						onclick={togglePasswordModal}>Cancel</button
-					>
-				</div>
-			</div>
-		{/if}
+				{isOAuth && !isPasswordSet ? "Set Password" : "Change Password"}
+			</button>
+		</div>
 
 		<!-- Delete Account -->
 		<div
@@ -181,6 +133,71 @@
 			>
 		</div>
 	</div>
+
+	<!-- Password Modal -->
+	{#if showPasswordModal}
+		<button
+			type="button"
+			class="fixed inset-0 bg-black/70 backdrop-blur-sm z-10"
+			onclick={togglePasswordModal}
+			aria-label="Close modal"
+			onkeydown={(e) => e.key === "Enter" && togglePasswordModal()}
+		></button>
+		<div
+			class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-gray-800 p-6 rounded-lg shadow-lg z-20 w-96 max-w-full"
+		>
+			<h2 class="text-xl text-white mb-4">
+				{isOAuth && !isPasswordSet ? "Set Password" : "Change Password"}
+			</h2>
+			<p class="text-gray-300 mb-4">
+				{isOAuth && !isPasswordSet
+					? "Set a password for your account to enable regular login."
+					: "Enter your current password and choose a new one."}
+			</p>
+
+			<div class="flex flex-col gap-3">
+				{#if !(isOAuth && !isPasswordSet)}
+					<input
+						class="p-3 border border-gray-600 rounded-md bg-gray-700 text-white"
+						type="password"
+						placeholder="Current Password"
+						bind:value={oldPassword}
+					/>
+				{/if}
+				<input
+					class="p-3 border border-gray-600 rounded-md bg-gray-700 text-white"
+					type="password"
+					placeholder="New Password"
+					bind:value={newPassword}
+				/>
+				<input
+					class="p-3 border border-gray-600 rounded-md bg-gray-700 text-white"
+					type="password"
+					placeholder="Confirm New Password"
+					bind:value={confirmPassword}
+				/>
+			</div>
+
+			{#if errorMessage}
+				<p class="text-red-500 text-sm mt-2">{errorMessage}</p>
+			{/if}
+
+			<div class="flex justify-center gap-3 mt-4">
+				<button
+					class="bg-blue-500 text-white px-4 py-2 rounded-md transition duration-300 hover:bg-blue-700"
+					onclick={handleSetOrChangePassword}
+				>
+					{isOAuth && !isPasswordSet ? "Set Password" : "Save"}
+				</button>
+				<button
+					class="bg-gray-600 text-white px-4 py-2 rounded-md transition duration-300 hover:bg-gray-700"
+					onclick={togglePasswordModal}
+				>
+					Cancel
+				</button>
+			</div>
+		</div>
+	{/if}
 
 	<!-- Delete Account Modal -->
 	{#if showDeleteModal}

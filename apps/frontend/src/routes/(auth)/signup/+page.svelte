@@ -42,7 +42,7 @@
 		class="flex flex-col w-[380px] rounded-md border border-gray-700 bg-gray-800 text-white shadow-lg"
 	>
 		<!-- Header -->
-		<div class="flex flex-col space-y-1.5 p-6">
+		<div class="flex flex-col space-y-1.5 p-6 text-center">
 			<h3 class="text-2xl font-semibold tracking-tight">Sign Up</h3>
 			<p class="text-sm text-gray-400">
 				Enter your details below to create your account
@@ -107,11 +107,13 @@
 					Sign Up
 				</button>
 			</form>
-		</div>
-
-		<!-- Google Signup -->
-		<div class="mt-2 flex justify-center">
-			<GoogleButton providerConfig={data.clientGoogleProvider} />
+			<!-- Google Signup -->
+			<div class="mt-2 flex justify-center">
+				<GoogleButton
+					providerConfig={data.clientGoogleProvider}
+					text="Or sign up with Google"
+				/>
+			</div>
 		</div>
 
 		<!-- Login Redirect -->

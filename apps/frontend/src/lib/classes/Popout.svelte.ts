@@ -11,10 +11,14 @@ interface PopoutPosition {
     y: number;
 }
 
+// Constants
 const DEFAULT_MIN_SIZE: PopoutSize = { width: 300, height: 300 };
 const DEFAULT_MAX_SIZE: PopoutSize = { width: 1080, height: 1920 };
-const DEFAULT_SIZE: PopoutSize = { width: 400, height: 300 };
+const DEFAULT_SIZE: PopoutSize = { width: 600, height: 900 };
 const DEFAULT_POSITION: PopoutPosition = { x: 20, y: 20 };
+const NAVBAR_HEIGHT = 80; // Estimated height including padding
+const NAVBAR_MARGIN = 20; // 5rem converted to px approximation
+const POPOUT_MARGIN = 20; // Equal spacing from edges
 
 export class Popout {
     shown = $state<boolean>(false);
@@ -24,15 +28,22 @@ export class Popout {
     size = $state<PopoutSize>(DEFAULT_SIZE);
     position = $state<PopoutPosition>(DEFAULT_POSITION);
     private resizeHandler: (() => void) | null = null;
+    private hasCustomPosition = $state<boolean>(false);
 
     constructor() {
+        // Load saved state from localStorage first
         this.loadStateFromStorage();
+
+        // Check if we have a position saved in localStorage
+        this.hasCustomPosition = this.checkForSavedPosition();
 
         // Set up resize handler
         this.resizeHandler = this.adjustToWindow.bind(this);
 
-        // Initial adjustment
-        this.adjustToWindow();
+        // Only calculate initial position if no custom position exists
+        if (!this.hasCustomPosition) {
+            this.calculateInitialPosition();
+        }
 
         // Watch for window resize
         if (typeof window !== "undefined") {
@@ -47,10 +58,52 @@ export class Popout {
         }
     }
 
+    private checkForSavedPosition(): boolean {
+        if (typeof localStorage === "undefined") return false;
+
+        try {
+            const savedPosition = localStorage.getItem("popout-position");
+            return savedPosition !== null;
+        } catch (error) {
+            console.error("Failed to check for saved popout position:", error);
+            return false;
+        }
+    }
+
+    private calculateInitialPosition() {
+        if (typeof window === "undefined") return;
+
+        const windowWidth = window.innerWidth;
+        const windowHeight = window.innerHeight;
+
+        // Position to right side with margin, and above navbar with margin
+        const x = Math.max(
+            POPOUT_MARGIN,
+            windowWidth - this.size.width - POPOUT_MARGIN,
+        );
+        const y = Math.max(
+            POPOUT_MARGIN,
+            windowHeight -
+                this.size.height -
+                NAVBAR_HEIGHT -
+                NAVBAR_MARGIN -
+                POPOUT_MARGIN,
+        );
+
+        this.position = { x, y };
+    }
+
     show(component: Component) {
         this.component = component;
         this.shown = true;
-        this.adjustToWindow();
+
+        // Only recalculate position when showing if no custom position is set
+        if (!this.hasCustomPosition) {
+            this.calculateInitialPosition();
+        } else {
+            // If we have a custom position, still ensure it's valid for current screen
+            this.adjustToWindow();
+        }
     }
 
     hide() {
@@ -75,6 +128,7 @@ export class Popout {
 
     setPosition(x: number, y: number) {
         this.position = { x, y };
+        this.hasCustomPosition = true; // Mark that user has set a custom position
         this.adjustToWindow();
         this.saveSettings();
     }
@@ -113,22 +167,42 @@ export class Popout {
         const windowWidth = window.innerWidth;
         const windowHeight = window.innerHeight;
 
-        // Limit size to window dimensions if needed
-        const width = Math.min(this.size.width, windowWidth);
-        const height = Math.min(this.size.height, windowHeight);
+        // Calculate available space, accounting for navbar
+        const availableHeight =
+            windowHeight - NAVBAR_HEIGHT - NAVBAR_MARGIN - POPOUT_MARGIN;
+
+        // Limit size to window dimensions
+        const width = Math.min(
+            this.size.width,
+            windowWidth - 2 * POPOUT_MARGIN,
+        );
+        const height = Math.min(
+            this.size.height,
+            availableHeight - POPOUT_MARGIN,
+        );
 
         // Keep position within visible area
         let x = this.position.x;
         let y = this.position.y;
 
         // Adjust if popout would be outside right edge
-        if (x + width > windowWidth) {
-            x = Math.max(0, windowWidth - width);
+        if (x + width > windowWidth - POPOUT_MARGIN) {
+            x = Math.max(POPOUT_MARGIN, windowWidth - width - POPOUT_MARGIN);
         }
 
-        // Adjust if popout would be outside bottom edge
-        if (y + height > windowHeight) {
-            y = Math.max(0, windowHeight - height);
+        // Adjust if popout would be outside left edge
+        if (x < POPOUT_MARGIN) {
+            x = POPOUT_MARGIN;
+        }
+
+        // Adjust if popout would be outside bottom edge (accounting for navbar)
+        if (y + height > availableHeight) {
+            y = Math.max(POPOUT_MARGIN, availableHeight - height);
+        }
+
+        // Adjust if popout would be outside top edge
+        if (y < POPOUT_MARGIN) {
+            y = POPOUT_MARGIN;
         }
 
         // Update values if they changed

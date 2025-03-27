@@ -51,13 +51,6 @@ export class Chat {
                 await tick();
                 this.scrollDown();
             }
-
-            // We'll now set up the observer after the component is mounted
-            $effect(() => {
-                if (this.messagesContainer && this.loadMoreTrigger) {
-                    this.setupObserver();
-                }
-            });
         } catch (e) {
             console.error(e);
         }

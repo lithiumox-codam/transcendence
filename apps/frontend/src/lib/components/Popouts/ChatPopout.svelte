@@ -130,7 +130,7 @@
                                             You
                                             <span class="ml-1">
                                                 {new Date(
-                                                    message.createdAt,
+                                                    message.createdAt ?? 0,
                                                 ).toLocaleTimeString([], {
                                                     hour: "2-digit",
                                                     minute: "2-digit",
@@ -156,7 +156,7 @@
                                             )?.name}
                                             <span class="ml-1">
                                                 {new Date(
-                                                    message.createdAt,
+                                                    message.createdAt ?? 0,
                                                 ).toLocaleTimeString([], {
                                                     hour: "2-digit",
                                                     minute: "2-digit",

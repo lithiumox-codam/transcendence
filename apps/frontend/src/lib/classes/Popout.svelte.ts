@@ -11,13 +11,13 @@ interface PopoutPosition {
     y: number;
 }
 
+// Only store position per component
 interface PopoutState {
-    size: PopoutSize;
     position: PopoutPosition;
 }
 
-const DEFAULT_MIN_SIZE: PopoutSize = { width: 200, height: 150 };
-const DEFAULT_MAX_SIZE: PopoutSize = { width: 800, height: 600 };
+const DEFAULT_MIN_SIZE: PopoutSize = { width: 300, height: 300 };
+const DEFAULT_MAX_SIZE: PopoutSize = { width: 1080, height: 1920 };
 const DEFAULT_SIZE: PopoutSize = { width: 400, height: 300 };
 const DEFAULT_POSITION: PopoutPosition = { x: 20, y: 20 };
 
@@ -38,11 +38,11 @@ export class Popout {
         this.shown = true;
         this.component = component;
         this.componentId = id || this.getComponentId(component);
-        this.loadComponentState();
+        this.loadComponentPosition();
     }
 
     hide() {
-        this.saveComponentState();
+        this.saveComponentPosition();
         this.shown = false;
         this.component = null;
         this.componentId = null;
@@ -59,12 +59,12 @@ export class Popout {
         );
 
         this.size = { width, height };
-        this.saveComponentState();
+        this.saveGlobalSettings();
     }
 
     setPosition(x: number, y: number) {
         this.position = { x, y };
-        this.saveComponentState();
+        this.saveComponentPosition();
     }
 
     setMinSize(width: number, height: number) {
@@ -76,7 +76,7 @@ export class Popout {
                 width: Math.max(this.size.width, width),
                 height: Math.max(this.size.height, height),
             };
-            this.saveComponentState();
+            this.saveGlobalSettings();
         }
     }
 
@@ -89,12 +89,11 @@ export class Popout {
                 width: Math.min(this.size.width, width),
                 height: Math.min(this.size.height, height),
             };
-            this.saveComponentState();
+            this.saveGlobalSettings();
         }
     }
 
     private getComponentId(component: Component): string {
-        // Try to get a unique identifier from the component
         return (
             component?.constructor?.name ||
             (typeof component === "function"
@@ -103,44 +102,57 @@ export class Popout {
         );
     }
 
-    private loadComponentState() {
+    private loadComponentPosition() {
         if (!this.componentId) return;
 
         try {
-            const storageKey = `popout-state-${this.componentId}`;
+            const storageKey = `popout-position-${this.componentId}`;
             const storedData = localStorage.getItem(storageKey);
 
             if (storedData) {
                 const state = JSON.parse(storedData) as PopoutState;
-                this.size = state.size;
                 this.position = state.position;
             }
         } catch (error) {
-            console.error("Failed to load popout state:", error);
+            console.error("Failed to load popout position:", error);
         }
     }
 
-    private saveComponentState() {
+    private saveComponentPosition() {
         if (!this.componentId) return;
 
         try {
             const state: PopoutState = {
-                size: this.size,
                 position: this.position,
             };
 
-            const storageKey = `popout-state-${this.componentId}`;
+            const storageKey = `popout-position-${this.componentId}`;
             localStorage.setItem(storageKey, JSON.stringify(state));
         } catch (error) {
-            console.error("Failed to save popout state:", error);
+            console.error("Failed to save popout position:", error);
+        }
+    }
+
+    private saveGlobalSettings() {
+        try {
+            localStorage.setItem("popout-size", JSON.stringify(this.size));
+            localStorage.setItem("popout-min-size", JSON.stringify(this.minSize));
+            localStorage.setItem("popout-max-size", JSON.stringify(this.maxSize));
+        } catch (error) {
+            console.error("Failed to save popout global settings:", error);
         }
     }
 
     private loadStateFromStorage() {
         try {
+            const sizeData = localStorage.getItem("popout-size");
             const minSizeData = localStorage.getItem("popout-min-size");
             const maxSizeData = localStorage.getItem("popout-max-size");
 
+            if (sizeData) {
+                this.size = JSON.parse(sizeData);
+            }
+            
             if (minSizeData) {
                 this.minSize = JSON.parse(minSizeData);
             }

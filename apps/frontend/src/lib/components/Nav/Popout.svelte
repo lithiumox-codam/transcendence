@@ -3,10 +3,8 @@
     import type { Popout } from "$lib/classes/Popout.svelte";
     import { getContext } from "svelte";
     import { clickOutside } from "$lib/utils/clickOutside";
-    import ChatPopout from "../Popouts/ChatPopout.svelte";
 
     const popout = getContext<Popout>("popout");
-    popout.show(ChatPopout, "chat");
 
     // State for dragging
     let dragging = $state(false);
@@ -146,10 +144,14 @@
 
     // Handle clicking outside the popout
     function handleClickOutsideAction() {
-        // Optional: Close the popout when clicking outside
-        // Uncomment the next line to enable this behavior
         popout.hide();
     }
+
+    $effect(() => {
+        return () => {
+            popout.hide();
+        };
+    });
 </script>
 
 <svelte:window

@@ -30,11 +30,7 @@
 
     // Handle popout dragging
     function startDrag(event: MouseEvent) {
-        if (
-            !popout.shown ||
-            !(event.target as HTMLElement).closest(".popout-header")
-        )
-            return;
+        if (!popout.shown) return;
 
         dragging = true;
         dragStartX = event.clientX;
@@ -167,6 +163,7 @@
     <div
         class="fixed top-0 left-0 w-screen h-screen z-40 bg-black/20"
         transition:fade={{ duration: 200 }}
+        role="presentation"
     >
         <div
             use:clickOutside={handleClickOutsideAction}
@@ -177,17 +174,21 @@
                 .size.height}px;"
             class="bg-white dark:bg-gray-800 shadow-lg rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 flex flex-col"
         >
-            <!-- Header -->
-            <div
-                class="popout-header flex items-center justify-between p-2 bg-gray-100 dark:bg-gray-700"
-                onmousedown={startDrag}
+            <!-- Header with drag functionality -->
+            <header
+                class="popout-header flex items-center justify-between p-2 bg-gray-100 dark:bg-gray-700 cursor-move"
+                role="toolbar"
+                aria-label="Popout window controls"
             >
-                <h2
-                    id="popout-title"
-                    class="text-sm font-medium truncate select-none"
+                <button
+                    class="flex-1 h-full drag-handle text-left"
+                    onmousedown={startDrag}
+                    aria-label="Drag to move window"
+                    type="button"
                 >
-                    {popout.componentId || "Popout Window"}
-                </h2>
+                    <span class="sr-only">Drag to move</span>
+                </button>
+                
                 <button
                     class="text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 focus:outline-none"
                     onclick={handleClose}
@@ -210,14 +211,12 @@
                         />
                     </svg>
                 </button>
-            </div>
+            </header>
 
             <!-- Content container -->
-            <div class="flex-1 overflow-auto">
+            <div class="flex-1 overflow-auto" role="region">
                 {#if popout.component}
-                    {#key popout.componentId}
-                        <popout.component />
-                    {/key}
+                    <popout.component />
                 {/if}
             </div>
 

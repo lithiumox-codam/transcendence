@@ -1,5 +1,5 @@
-// this is a class for the popout it manages what components are shown and what data is passed to them
 import type { Component } from "svelte";
+import { onDestroy } from "svelte";
 
 interface PopoutSize {
     width: number;
@@ -9,11 +9,6 @@ interface PopoutSize {
 interface PopoutPosition {
     x: number;
     y: number;
-}
-
-// Only store position per component
-interface PopoutState {
-    position: PopoutPosition;
 }
 
 const DEFAULT_MIN_SIZE: PopoutSize = { width: 300, height: 300 };
@@ -28,43 +23,60 @@ export class Popout {
     maxSize = $state<PopoutSize>(DEFAULT_MAX_SIZE);
     size = $state<PopoutSize>(DEFAULT_SIZE);
     position = $state<PopoutPosition>(DEFAULT_POSITION);
-    componentId = $state<string | null>(null);
+    private resizeHandler: (() => void) | null = null;
 
     constructor() {
         this.loadStateFromStorage();
+
+        // Set up resize handler
+        this.resizeHandler = this.adjustToWindow.bind(this);
+
+        // Initial adjustment
+        this.adjustToWindow();
+
+        // Watch for window resize
+        if (typeof window !== "undefined") {
+            window.addEventListener("resize", this.resizeHandler);
+
+            // Cleanup on destroy
+            onDestroy(() => {
+                if (this.resizeHandler) {
+                    window.removeEventListener("resize", this.resizeHandler);
+                }
+            });
+        }
     }
 
-    show(component: Component, id?: string) {
-        this.shown = true;
+    show(component: Component) {
         this.component = component;
-        this.componentId = id || this.getComponentId(component);
-        this.loadComponentPosition();
+        this.shown = true;
+        this.adjustToWindow();
     }
 
     hide() {
-        this.saveComponentPosition();
         this.shown = false;
         this.component = null;
-        this.componentId = null;
     }
 
     setSize(width: number, height: number) {
-        width = Math.max(
+        const newWidth = Math.max(
             this.minSize.width,
             Math.min(width, this.maxSize.width),
         );
-        height = Math.max(
+        const newHeight = Math.max(
             this.minSize.height,
             Math.min(height, this.maxSize.height),
         );
 
-        this.size = { width, height };
-        this.saveGlobalSettings();
+        this.size = { width: newWidth, height: newHeight };
+        this.adjustToWindow();
+        this.saveSettings();
     }
 
     setPosition(x: number, y: number) {
         this.position = { x, y };
-        this.saveComponentPosition();
+        this.adjustToWindow();
+        this.saveSettings();
     }
 
     setMinSize(width: number, height: number) {
@@ -76,8 +88,9 @@ export class Popout {
                 width: Math.max(this.size.width, width),
                 height: Math.max(this.size.height, height),
             };
-            this.saveGlobalSettings();
         }
+        this.adjustToWindow();
+        this.saveSettings();
     }
 
     setMaxSize(width: number, height: number) {
@@ -89,70 +102,80 @@ export class Popout {
                 width: Math.min(this.size.width, width),
                 height: Math.min(this.size.height, height),
             };
-            this.saveGlobalSettings();
+        }
+        this.adjustToWindow();
+        this.saveSettings();
+    }
+
+    adjustToWindow() {
+        if (typeof window === "undefined" || !this.shown) return;
+
+        const windowWidth = window.innerWidth;
+        const windowHeight = window.innerHeight;
+
+        // Limit size to window dimensions if needed
+        const width = Math.min(this.size.width, windowWidth);
+        const height = Math.min(this.size.height, windowHeight);
+
+        // Keep position within visible area
+        let x = this.position.x;
+        let y = this.position.y;
+
+        // Adjust if popout would be outside right edge
+        if (x + width > windowWidth) {
+            x = Math.max(0, windowWidth - width);
+        }
+
+        // Adjust if popout would be outside bottom edge
+        if (y + height > windowHeight) {
+            y = Math.max(0, windowHeight - height);
+        }
+
+        // Update values if they changed
+        if (width !== this.size.width || height !== this.size.height) {
+            this.size = { width, height };
+        }
+
+        if (x !== this.position.x || y !== this.position.y) {
+            this.position = { x, y };
         }
     }
 
-    private getComponentId(component: Component): string {
-        return (
-            component?.constructor?.name ||
-            (typeof component === "function"
-                ? component.name
-                : "unknown-component")
-        );
-    }
-
-    private loadComponentPosition() {
-        if (!this.componentId) return;
-
+    private saveSettings() {
         try {
-            const storageKey = `popout-position-${this.componentId}`;
-            const storedData = localStorage.getItem(storageKey);
-
-            if (storedData) {
-                const state = JSON.parse(storedData) as PopoutState;
-                this.position = state.position;
-            }
-        } catch (error) {
-            console.error("Failed to load popout position:", error);
-        }
-    }
-
-    private saveComponentPosition() {
-        if (!this.componentId) return;
-
-        try {
-            const state: PopoutState = {
-                position: this.position,
-            };
-
-            const storageKey = `popout-position-${this.componentId}`;
-            localStorage.setItem(storageKey, JSON.stringify(state));
-        } catch (error) {
-            console.error("Failed to save popout position:", error);
-        }
-    }
-
-    private saveGlobalSettings() {
-        try {
+            localStorage.setItem(
+                "popout-position",
+                JSON.stringify(this.position),
+            );
             localStorage.setItem("popout-size", JSON.stringify(this.size));
-            localStorage.setItem("popout-min-size", JSON.stringify(this.minSize));
-            localStorage.setItem("popout-max-size", JSON.stringify(this.maxSize));
+            localStorage.setItem(
+                "popout-min-size",
+                JSON.stringify(this.minSize),
+            );
+            localStorage.setItem(
+                "popout-max-size",
+                JSON.stringify(this.maxSize),
+            );
         } catch (error) {
-            console.error("Failed to save popout global settings:", error);
+            console.error("Failed to save popout settings:", error);
         }
     }
 
     private loadStateFromStorage() {
         try {
+            const positionData = localStorage.getItem("popout-position");
             const sizeData = localStorage.getItem("popout-size");
             const minSizeData = localStorage.getItem("popout-min-size");
             const maxSizeData = localStorage.getItem("popout-max-size");
 
+            if (positionData) {
+                this.position = JSON.parse(positionData);
+            }
+
             if (sizeData) {
                 this.size = JSON.parse(sizeData);
             }
-            
+
             if (minSizeData) {
                 this.minSize = JSON.parse(minSizeData);
             }
@@ -160,8 +183,25 @@ export class Popout {
             if (maxSizeData) {
                 this.maxSize = JSON.parse(maxSizeData);
             }
+
+            // Ensure size is within min/max constraints
+            this.size = {
+                width: Math.max(
+                    this.minSize.width,
+                    Math.min(this.size.width, this.maxSize.width),
+                ),
+                height: Math.max(
+                    this.minSize.height,
+                    Math.min(this.size.height, this.maxSize.height),
+                ),
+            };
         } catch (error) {
             console.error("Failed to load popout configuration:", error);
+            // If loading fails, use the defaults
+            this.position = { ...DEFAULT_POSITION };
+            this.size = { ...DEFAULT_SIZE };
+            this.minSize = { ...DEFAULT_MIN_SIZE };
+            this.maxSize = { ...DEFAULT_MAX_SIZE };
         }
     }
 }

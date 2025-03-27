@@ -54,25 +54,23 @@
         },
     ];
 
-    let showPopout = $state(false);
-
     // Function to toggle a specific popout
     function togglePopout(popoutId: string | undefined) {
         if (!popoutId || !componentMap[popoutId]) return;
 
         // If this popout is already open, close it
-        if (popout.shown && popout.componentId === popoutId) {
+        if (popout.shown) {
             popout.hide();
             return;
         }
 
         // Otherwise show the requested component
-        popout.show(componentMap[popoutId], popoutId);
+        popout.show(componentMap[popoutId]);
     }
 
     // Function to check if a specific popout is active
-    function isPopoutActive(popoutId: string | undefined): boolean {
-        return popout.shown && popout.componentId === popoutId;
+    function isPopoutActive(popoutId: string): boolean {
+        return popout.shown && popout.component === componentMap[popoutId];
     }
 </script>
 
@@ -87,12 +85,12 @@
         onclick={() => togglePopout(item.popoutId)}
         class={`px-6 py-3 rounded-full text-white text-lg font-semibold transition-all duration-300
         ${
-            isPopoutActive(item.popoutId)
+            isPopoutActive(item.popoutId ?? "")
                 ? "bg-gradient-to-r from-cyan-600 to-cyan-500 text-gray-900"
                 : "bg-gradient-to-r from-gray-700 to-gray-600 hover:from-cyan-500 hover:to-cyan-400 hover:text-gray-900"
         } 
         shadow-md flex flex-col items-center justify-center gap-1 group min-w-[115px]
-        ${isPopoutActive(item.popoutId) ? "ring-2 ring-cyan-300" : ""}`}
+        ${isPopoutActive(item.popoutId ?? "") ? "ring-2 ring-cyan-300" : ""}`}
     >
         <div class="relative">
             <item.icon

@@ -179,11 +179,11 @@
     </section>
 </main>
 
-<style global>
-	/* Fade-in animation for messages */
-	.animate-fade-in {
-		animation: fadeIn 0.5s ease-out forwards;
-	}
+<style>
+    /* Fade-in animation for messages */
+    .animate-fade-in {
+        animation: fadeIn 0.5s ease-out forwards;
+    }
 
 	@keyframes fadeIn {
 		from {

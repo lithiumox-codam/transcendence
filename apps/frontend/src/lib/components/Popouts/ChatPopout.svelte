@@ -2,11 +2,25 @@
     import { client } from "$lib/trpc";
     import { Chat } from "$lib/classes/Chat.svelte";
     import { UserClass } from "$lib/classes/User.svelte";
-    import { getContext } from "svelte";
+    import { getContext, onMount } from "svelte";
 
     let userClass = getContext<UserClass>("user");
     let chat = getContext<Chat>("chat");
     let newMessage = $state("");
+
+    // Reset the observer when the component mounts in the popout
+    onMount(() => {
+        setTimeout(() => {
+            chat.resetObserver();
+        }, 100); // Small delay to ensure DOM is ready
+    });
+
+    // Reset observer when changing friends
+    $effect(() => {
+        if (chat.selectedFriend) {
+            setTimeout(() => chat.resetObserver(), 50);
+        }
+    });
 
     async function sendMessage(friendId: number | null) {
         if (!newMessage.trim() || !friendId) return;
@@ -46,9 +60,9 @@
                         >
                         <span class="text-xs text-gray-400 truncate w-full">
                             {#if chat.messages.get(friend.id)?.length}
-                                {chat.messages.get(friend.id)[
-                                    chat.messages.get(friend.id).length - 1
-                                ].content}
+                                {@const message =
+                                    chat.messages.get(friend.id) ?? []}
+                                {message[message.length - 1].content}
                             {:else}
                                 No messages yet
                             {/if}
@@ -86,15 +100,15 @@
                     {#if chat.messages.get(chat.selectedFriend)}
                         <div bind:this={chat.loadMoreTrigger}>
                             {#if chat.endReached}
-                                <p class="text-gray-500 text-xs text-center">
+                                <p class="text-gray-500 text-sm text-center">
                                     No more messages.
                                 </p>
                             {:else}
-                                <svg class="animate-spin h-5 w-5 mx-auto">
+                                <svg class="animate-spin h-6 w-6 mx-auto">
                                     <circle
-                                        cx="12"
-                                        cy="12"
-                                        r="10"
+                                        cx="16"
+                                        cy="16"
+                                        r="14"
                                         fill="none"
                                         stroke="currentColor"
                                         stroke-width="2"

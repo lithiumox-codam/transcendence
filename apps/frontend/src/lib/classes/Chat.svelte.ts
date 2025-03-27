@@ -10,6 +10,7 @@ export class Chat {
     selectedFriend = $state<number | null>(null);
     loadMoreTrigger = $state<HTMLElement | null>(null);
     endReached = $state(false);
+    observer = $state<IntersectionObserver | null>(null);
 
     constructor(private userClass: UserClass) {
         this.initialize();
@@ -19,7 +20,7 @@ export class Chat {
         try {
             // Wait until user data is loaded
             while (this.userClass.isLoading) {
-                await new Promise(resolve => setTimeout(resolve, 100));
+                await new Promise((resolve) => setTimeout(resolve, 100));
             }
 
             if (!this.userClass.data) {
@@ -50,7 +51,13 @@ export class Chat {
                 await tick();
                 this.scrollDown();
             }
-            this.observeLoadMoreTrigger();
+
+            // We'll now set up the observer after the component is mounted
+            $effect(() => {
+                if (this.messagesContainer && this.loadMoreTrigger) {
+                    this.setupObserver();
+                }
+            });
         } catch (e) {
             console.error(e);
         }
@@ -59,10 +66,11 @@ export class Chat {
     private async listenMessages(): Promise<void> {
         client.chat.listen.subscribe(undefined, {
             onData: async ({ data, type }) => {
-                const otherUserId = this.userClass.data?.id === data.senderId 
-                    ? data.receiverId 
-                    : data.senderId;
-                    
+                const otherUserId =
+                    this.userClass.data?.id === data.senderId
+                        ? data.receiverId
+                        : data.senderId;
+
                 const messages = this.messages.get(otherUserId);
                 if (!messages) return;
 
@@ -74,7 +82,9 @@ export class Chat {
                         break;
                     }
                     case "removal": {
-                        const index = messages.findIndex((msg) => msg.id === data.id);
+                        const index = messages.findIndex(
+                            (msg) => msg.id === data.id,
+                        );
                         if (index !== -1) {
                             messages.splice(index, 1);
                             await tick();
@@ -93,17 +103,29 @@ export class Chat {
         }
     }
 
-    private observeLoadMoreTrigger() {
-        if (!this.loadMoreTrigger) return;
-        const observer = new IntersectionObserver(
+    private setupObserver() {
+        // Clean up any existing observer
+        if (this.observer) {
+            this.observer.disconnect();
+        }
+
+        // Create a new observer with the current container
+        this.observer = new IntersectionObserver(
             async ([entry]) => {
                 if (entry.isIntersecting) {
                     await this.loadMoreMessages();
                 }
             },
-            { root: this.messagesContainer, threshold: 0.1 },
+            {
+                root: this.messagesContainer,
+                threshold: 0.1,
+                rootMargin: "100px",
+            },
         );
-        observer.observe(this.loadMoreTrigger);
+
+        if (this.loadMoreTrigger) {
+            this.observer.observe(this.loadMoreTrigger);
+        }
     }
 
     async loadMoreMessages() {
@@ -111,7 +133,7 @@ export class Chat {
             return;
         }
         const messages = this.messages.get(this.selectedFriend);
-        if (!messages) return;
+        if (!messages || this.endReached) return;
 
         const container = this.messagesContainer;
         if (!container) return;
@@ -119,19 +141,31 @@ export class Chat {
         const prevScrollHeight = container.scrollHeight;
         const prevScrollTop = container.scrollTop;
 
-        const res = await client.chat.get.query({
-            friendId: this.selectedFriend,
-            limit: 20,
-            offset: messages.length,
-        });
+        try {
+            const res = await client.chat.get.query({
+                friendId: this.selectedFriend,
+                limit: 20,
+                offset: messages.length,
+            });
 
-        if (res.length > 0) {
-            messages.unshift(...res);
-            if (res.length < 20) this.endReached = true;
-            await tick();
-            const newScrollHeight = container.scrollHeight;
-            const heightDifference = newScrollHeight - prevScrollHeight;
-            container.scrollTop = prevScrollTop + heightDifference;
+            if (res.length > 0) {
+                res.reverse(); // Make sure messages are in correct order
+                messages.unshift(...res);
+                if (res.length < 20) this.endReached = true;
+                await tick();
+                const newScrollHeight = container.scrollHeight;
+                const heightDifference = newScrollHeight - prevScrollHeight;
+                container.scrollTop = prevScrollTop + heightDifference;
+            } else {
+                this.endReached = true;
+            }
+        } catch (error) {
+            console.error("Error loading more messages:", error);
         }
+    }
+
+    // Method to manually reset the observer when the container or popout changes
+    resetObserver() {
+        this.setupObserver();
     }
 }

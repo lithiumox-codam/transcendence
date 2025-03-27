@@ -18,7 +18,7 @@
     },
     "dependencies": {
         "@libsql/client": "^0.14.0",
-        "@repo/tsconfig": "^0.0.0",
+        "@repo/tsconfig": "workspace:^",
         "better-sqlite3": "^11.8.1",
         "dotenv": "^16.4.7",
         "drizzle-orm": "0.39.2",

@@ -5,7 +5,6 @@
     import SettingsSection from "$lib/components/SettingsSection.svelte";
     import type { Component } from "svelte";
 
-    // Enhanced map that includes both component and display name
     const userNav = new Map<
         string,
         { component: Component; displayName: string }
@@ -16,9 +15,6 @@
     ]);
 
     let activeSection = $state("profile");
-    let activeComponent: Component = $derived(
-        userNav.get(activeSection)?.component || ProfileSection,
-    );
 </script>
 
 <main class="flex h-full w-full overflow-hidden bg-gray-900 text-white">
@@ -51,7 +47,7 @@
         class="flex-1 overflow-y-auto p-3 scroll-smooth scrollbar-thin scrollbar-thumb-gray-400/20 scrollbar-track-gray-200/5"
     >
         {#if activeSection}
-            {@const Component = activeComponent}
+            {@const Component = userNav.get(activeSection)?.component}
             <Component />
         {/if}
     </section>

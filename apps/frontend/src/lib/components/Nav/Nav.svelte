@@ -1,13 +1,5 @@
 <script lang="ts">
-    import {
-        AlignHorizontalDistributeCenter,
-        Info,
-        MessageCircle,
-        Play,
-        Swords,
-        TrendingUp,
-        User,
-    } from "@lucide/svelte";
+    import { MessageCircle, Play, User } from "@lucide/svelte";
     import type { Component } from "svelte";
     import type { Popout } from "$lib/classes/Popout.svelte";
     import { getContext } from "svelte";
@@ -31,7 +23,7 @@
             component: ChatPopout,
             colors: [
                 "bg-gradient-to-tr from-blue-500 to-cyan-400 ring-2 ring-cyan-300",
-                "bg-gradient-to-tr from-gray-700  to-blue-300/40",
+                "bg-gradient-to-tr from-gray-700 to-gray-700 to-blue-300/40",
             ],
         },
         {
@@ -79,7 +71,7 @@
     {@const baseClasses =
         "px-6 py-3 rounded-full text-white text-lg font-semibold transition-all duration-300 shadow-md flex flex-col items-center justify-center gap-1 min-w-[115px]"}
     {@const activeClasses = `${item.colors[0]}`}
-    {@const inactiveClasses = `bg-gradient-to-r from-gray-700 to-gray-600 hover:${item.colors[1]} hover:scale-102 hover:shadow-lg`}
+    {@const inactiveClasses = `${item.colors[1]} hover:scale-102 hover:shadow-lg`}
 
     <button
         onclick={() => togglePopout(item.component)}

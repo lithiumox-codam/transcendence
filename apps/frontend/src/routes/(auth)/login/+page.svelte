@@ -20,7 +20,7 @@
 			});
 			if (browser) localStorage.setItem("token", res);
 			if (data.redirect) goto(data.redirect);
-			else goto("/user");
+			else goto("/stats");
 		} catch (error) {
 			// Display error message if login fails
 			errorMessage = "Invalid username or password. Please try again.";

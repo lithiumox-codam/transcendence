@@ -17,90 +17,78 @@
 
     const popout = getContext<Popout>("popout");
 
-    // Component mapping for each nav item
-    const componentMap: Record<string, Component> = {
-        Chat: ChatPopout,
-        User: UserPopout,
-        Play: GameSelector,
+    type NavItem = {
+        icon: Component;
+        component: Component;
+        label: string;
+        colors: string[];
     };
 
-    const navItems: {
-        href: string;
-        icon: Component;
-        label: string;
-        showNotification?: boolean;
-        popoutId?: string;
-    }[] = [
+    const navItems: NavItem[] = [
         {
-            href: "/chat",
             icon: MessageCircle,
             label: "Chat",
-            showNotification: false,
-            popoutId: "Chat",
+            component: ChatPopout,
+            colors: [
+                "bg-gradient-to-tr from-blue-500 to-cyan-400 ring-2 ring-cyan-300",
+                "bg-gradient-to-tr from-gray-700  to-blue-300/40",
+            ],
         },
         {
-            href: "/user",
             icon: User,
             label: "You",
-            showNotification: false,
-            popoutId: "User",
+            component: UserPopout,
+            colors: [
+                "bg-gradient-to-tr from-indigo-500 to-purple-400 ring-2 ring-purple-300",
+                "bg-gradient-to-tr from-gray-700 to-gray-600/90 to-purple-900/40",
+            ],
         },
         {
-            href: "/play",
             icon: Play,
             label: "Play",
-            showNotification: false,
-            popoutId: "Play",
+            component: GameSelector,
+            colors: [
+                "bg-gradient-to-tr from-emerald-500 to-green-400 ring-2 ring-green-300",
+                "bg-gradient-to-tr from-gray-700 to-gray-600/90 to-green-900/40",
+            ],
         },
     ];
 
     // Function to toggle a specific popout
-    function togglePopout(popoutId: string | undefined) {
-        if (!popoutId || !componentMap[popoutId]) return;
+    function togglePopout(component: Component) {
+        if (!component) return;
 
         // If this popout is already open, close it
-        if (popout.shown) {
+        if (popout.shown && isPopoutActive(component)) {
             popout.hide();
             return;
         }
 
         // Otherwise show the requested component
-        popout.show(componentMap[popoutId]);
+        popout.show(component);
     }
 
     // Function to check if a specific popout is active
-    function isPopoutActive(popoutId: string): boolean {
-        return popout.shown && popout.component === componentMap[popoutId];
+    function isPopoutActive(component: Component): boolean {
+        return popout.component === component;
     }
 </script>
 
-{#snippet navItem(item: {
-    href: string;
-    icon: Component;
-    label: string;
-    showNotification?: boolean;
-    popoutId?: string;
-})}
+{#snippet navItem(item: NavItem)}
+    {@const isActive = isPopoutActive(item.component)}
+    {@const baseClasses =
+        "px-6 py-3 rounded-full text-white text-lg font-semibold transition-all duration-300 shadow-md flex flex-col items-center justify-center gap-1 min-w-[115px]"}
+    {@const activeClasses = `${item.colors[0]}`}
+    {@const inactiveClasses = `bg-gradient-to-r from-gray-700 to-gray-600 hover:${item.colors[1]} hover:scale-102 hover:shadow-lg`}
+
     <button
-        onclick={() => togglePopout(item.popoutId)}
-        class={`px-6 py-3 rounded-full text-white text-lg font-semibold transition-all duration-300
-        ${
-            isPopoutActive(item.popoutId ?? "")
-                ? "bg-gradient-to-r from-cyan-600 to-cyan-500 text-gray-900"
-                : "bg-gradient-to-r from-gray-700 to-gray-600 hover:from-cyan-500 hover:to-cyan-400 hover:text-gray-900"
-        } 
-        shadow-md flex flex-col items-center justify-center gap-1 group min-w-[115px]
-        ${isPopoutActive(item.popoutId ?? "") ? "ring-2 ring-cyan-300" : ""}`}
+        onclick={() => togglePopout(item.component)}
+        class={`${baseClasses} ${isActive ? activeClasses : inactiveClasses}`}
     >
         <div class="relative">
             <item.icon
                 class="w-5 h-5 stroke-current transition-all duration-300 group-hover:scale-110"
             />
-            {#if item.showNotification}
-                <div
-                    class="absolute -top-1 -right-1 w-2 h-2 bg-yellow-400 rounded-full animate-ping opacity-0 group-hover:opacity-100"
-                ></div>
-            {/if}
         </div>
         <span class="text-xs truncate">{item.label}</span>
     </button>

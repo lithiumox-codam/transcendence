@@ -24,7 +24,7 @@
 				password,
 			});
 			if (browser) localStorage.setItem("token", res);
-			goto("/user");
+			goto("/stats");
 		} catch (error) {
 			console.error(error);
 		}

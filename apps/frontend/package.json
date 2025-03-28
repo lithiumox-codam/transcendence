@@ -30,6 +30,7 @@
     },
     "dependencies": {
         "@inlang/paraglide-sveltekit": "^0.15.5",
+        "@lucide/svelte": "^0.482.0",
         "@repo/auth": "workspace:^",
         "@repo/database": "workspace:^",
         "@repo/game": "workspace:^",

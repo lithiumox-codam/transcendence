@@ -13,6 +13,7 @@ coverage
 
 # misc
 .DS_Store
+[p=o-0987 rewa21]
 *.pem
 
 # debug

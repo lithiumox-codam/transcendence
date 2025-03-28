@@ -12,7 +12,7 @@
     setContext("chat", new Chat(user));
     setContext("popout", new PopoutClass());
 
-    let { data, children }: { data: LayoutData; children: Snippet } = $props();
+	let { data, children }: { data: LayoutData; children: Snippet } = $props();
 </script>
 
 <main class="h-[100vh] bg-zinc-800">

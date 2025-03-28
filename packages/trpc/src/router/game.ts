@@ -85,7 +85,6 @@ export const gameRouter = createTRPCRouter({
         )
         .mutation(({ input }) => {
             const game = gamesMap.get(input.gameId);
-            console.log("game", game);
             if (!game) {
                 throw new Error("Game not found");
             }

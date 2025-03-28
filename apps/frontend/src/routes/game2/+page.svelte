@@ -40,7 +40,6 @@
 			return;
 		}
 		try {
-			// Call the TRPC mutation to start the game.
 			await client.game.start.mutate(gameId);
 			console.log("Game started successfully");
 		} catch (error) {
@@ -59,6 +58,7 @@
 			await client.game.join.mutate(gameId);
 			client.game.listen.subscribe(undefined, {
 				onData: ({ data, type }) => {
+					console.log("received data", data, type);
 					if (type === "state") {
 						gameState = data;
 					}
@@ -143,7 +143,7 @@
 			{ width: 200, height: 200 },
 			scene,
 		);
-		ground.position.z = 0.5; // Move behind game elements
+		ground.position.z = 0.5;
 		ground.material = mirrorMaterial;
 		const camera = new BABYLON.ArcRotateCamera(
 			"camera",
@@ -264,13 +264,11 @@
 			border.material = borderMaterial;
 			return border;
 		};
-		// Top border
 		topBorder = createBorder(
 			new BABYLON.Vector3(0, arenaHeight / 2 + 0.5, 0),
 			new BABYLON.Vector3(42, 1, 1),
 		);
 
-		// Bottom border
 		bottomBorder = createBorder(
 			new BABYLON.Vector3(0, -arenaHeight / 2 - 0.5, 0),
 			new BABYLON.Vector3(42, 1, 1),
@@ -280,7 +278,7 @@
 	function updateScene() {
 		if (!gameState || !paddles || !ball || !ballLight) return;
 
-		for (let i = 0; i < paddleCount; i++) {
+		for (let i = 0; i < paddles.length; i++) {
 			const paddle = paddles[i];
 			const player = gameState.players[i];
 			if (!player) continue;

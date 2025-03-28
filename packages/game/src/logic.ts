@@ -1,3 +1,4 @@
+// import { emitter } from "@repo/trpc/events/emitter.ts";
 import { vec2 } from "gl-matrix";
 
 export interface GameState {
@@ -132,8 +133,8 @@ export class GameEngine {
 
     public startGame(): void {
         setInterval(() => {
-            this.update(1 / 60);
-        }, 1000 / 60);
+            this.update(1);
+        }, 1000);
     }
 
     public setPlayerInput(playerId: number, input: playerInputs): void {
@@ -141,6 +142,7 @@ export class GameEngine {
         if (!player) {
             return;
         }
+        console.log("set player input", playerId, input);
         player.input = input;
     }
 
@@ -203,7 +205,7 @@ export class GameEngine {
         if (this.maxPlayers === 2) {
             const ballY = this.state.ball.pos[1];
             if (ballY > this.arenaHeight / 2 || ballY < -this.arenaHeight / 2) {
-                this.state.ball.vel[1] *= -1;
+                this.state.ball.vel[axisY] *= -1;
             }
         }
     }

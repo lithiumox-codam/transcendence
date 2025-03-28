@@ -11,20 +11,15 @@ import {
 import type { GameState } from "@repo/game";
 import { GameEngine, playerInputs } from "@repo/game";
 import { observable } from "@trpc/server/observable";
+import { eq } from "drizzle-orm";
 import { z } from "zod";
+import { emitter } from "../events/index.ts";
 import {
     createTRPCRouter,
     protectedProcedure,
     publicProcedure,
 } from "../trpc.ts";
-import { TypedEventEmitter } from "../utils.ts";
 
-interface GameEvents {
-    "game.created": Game;
-    "game.state": GameState;
-}
-
-const events = new TypedEventEmitter<GameEvents>();
 const gamesMap = new Map<number, GameEngine>();
 
 export const gameRouter = createTRPCRouter({
@@ -36,21 +31,24 @@ export const gameRouter = createTRPCRouter({
                 .values({ maxPlayers: input })
                 .returning();
             if (game) {
-                await db.insert(players).values({
-                    gameId: game.id,
-                    userId: ctx.user.id,
-                });
-                events.emit("game.created", game);
-                gamesMap.set(game.id, new GameEngine(input));
-                return game.id;
+                await db
+                    .insert(players)
+                    .values({
+                        gameId: game.id,
+                        userId: ctx.user.id,
+                    })
+                    .returning();
+                emitter.emit("game:created", { game, players: [] });
+                gamesMap.set(game.id, new GameEngine(input, ctx.user.id));
+                const [gamedb] = await db
+                    .select()
+                    .from(games)
+                    .where(eq(games.id, game.id))
+                    .innerJoin(players, eq(games.id, players.gameId));
+                return { gameId: game.id, players: gamedb?.players };
             }
             return null;
         }),
-    listen: protectedProcedure.subscription(async function* ({ ctx }) {
-        for await (const game of events.stream("game")) {
-            yield game;
-        }
-    }),
     join: protectedProcedure
         .input(z.number())
         .mutation(async ({ ctx, input }) => {
@@ -70,6 +68,13 @@ export const gameRouter = createTRPCRouter({
             }
             game.addPlayer(player.userId);
         }),
+    start: protectedProcedure.input(z.number()).mutation(async ({ input }) => {
+        const game = gamesMap.get(input);
+        if (!game) {
+            throw new Error("Game not found");
+        }
+        game.startGame();
+    }),
     sendInput: protectedProcedure
         .input(
             z.object({
@@ -80,8 +85,21 @@ export const gameRouter = createTRPCRouter({
         )
         .mutation(({ input }) => {
             const game = gamesMap.get(input.gameId);
+            console.log("game", game);
             if (!game) {
                 throw new Error("Game not found");
+            }
+            if (
+                !game
+                    .getState()
+                    .players.some((player) => player.id === input.playerId)
+            ) {
+                console.log(
+                    "Player not found",
+                    input.playerId,
+                    game.getState().players,
+                );
+                throw new Error("Player not found");
             }
             game.setPlayerInput(input.playerId, input.input);
         }),
@@ -90,7 +108,7 @@ export const gameRouter = createTRPCRouter({
         if (!game) {
             throw new Error("Game not found");
         }
-        events.emit("game.state", game.getState());
+        emitter.emit("game:state", game.getState());
     }),
     reset: protectedProcedure.input(z.number()).mutation(async ({ input }) => {
         const game = gamesMap.get(input);
@@ -99,4 +117,21 @@ export const gameRouter = createTRPCRouter({
         }
         game.reset();
     }),
+    listen: protectedProcedure.subscription(({ ctx }) =>
+        emitter.subscribeDomain("game", ({ type, data }) => {
+            switch (type) {
+                case "created": {
+                    return data.players.some(
+                        (player) => player.userId === ctx.user.id,
+                    );
+                }
+                case "state":
+                    return data.players.some(
+                        (player) => player.id === ctx.user.id,
+                    );
+                default:
+                    return false;
+            }
+        }),
+    ),
 });

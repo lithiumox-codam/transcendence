@@ -11,7 +11,7 @@ export interface GameState {
     gameOver: boolean;
 }
 
-interface Player {
+export interface Player {
     id: number;
     position: vec2;
     score: number;
@@ -23,7 +23,6 @@ const VICTORY_SCORE = 7;
 const axisX = 0;
 const axisY = 1;
 const ARENA_WIDTH = 40;
-const ARENA_HEIGHT = 30;
 const PADDLE_LENGTH = 8;
 const BALL_SPEED = 5;
 const PADDLE_SPEED = 10;
@@ -39,13 +38,21 @@ export enum playerInputs {
 export class GameEngine {
     private state: GameState;
     private collisionCooldown = 0;
+    private arenaHeight: 30 | 40 = 30;
 
-    constructor(private maxPlayers: 2 | 4) {
+    constructor(
+        private maxPlayers: 2 | 4,
+        playerId: number,
+    ) {
         console.log(
             "GameEngine constructror called with maxPlayers: ",
             maxPlayers,
         );
         this.state = this.initialState();
+        if (maxPlayers === 4) {
+            this.arenaHeight = 40;
+        }
+        this.addPlayer(playerId);
     }
 
     private initialState() {
@@ -84,11 +91,11 @@ export class GameEngine {
                     position = vec2.fromValues(ARENA_WIDTH / 2, 0);
                     break;
                 case 2:
-                    position = vec2.fromValues(0, ARENA_HEIGHT / 2);
+                    position = vec2.fromValues(0, this.arenaHeight / 2);
                     movementAxis = "x";
                     break;
                 default:
-                    position = vec2.fromValues(0, -ARENA_HEIGHT / 2);
+                    position = vec2.fromValues(0, -this.arenaHeight / 2);
                     movementAxis = "x";
                     break;
             }
@@ -146,7 +153,7 @@ export class GameEngine {
             const newVal =
                 player.position[axis] + player.input * PADDLE_SPEED * deltaTime;
 
-            const middle = axis === 0 ? ARENA_WIDTH / 2 : ARENA_HEIGHT / 2;
+            const middle = axis === 0 ? ARENA_WIDTH / 2 : this.arenaHeight / 2;
 
             player.position[axis] = Math.max(
                 -middle + PADDLE_LENGTH / 2,
@@ -195,7 +202,7 @@ export class GameEngine {
         }
         if (this.maxPlayers === 2) {
             const ballY = this.state.ball.pos[1];
-            if (ballY > ARENA_HEIGHT / 2 || ballY < -ARENA_HEIGHT / 2) {
+            if (ballY > this.arenaHeight / 2 || ballY < -this.arenaHeight / 2) {
                 this.state.ball.vel[1] *= -1;
             }
         }
@@ -229,7 +236,10 @@ export class GameEngine {
             scoringId = this.state.ball.lastHit;
         }
         if (this.maxPlayers === 4) {
-            if (pos[1] > ARENA_HEIGHT / 2 || pos[1] < -ARENA_HEIGHT / 2) {
+            if (
+                pos[1] > this.arenaHeight / 2 ||
+                pos[1] < -this.arenaHeight / 2
+            ) {
                 scoringId = this.state.ball.lastHit;
             }
         }

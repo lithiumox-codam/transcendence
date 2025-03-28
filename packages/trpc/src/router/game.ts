@@ -100,7 +100,8 @@ export const gameRouter = createTRPCRouter({
                 );
                 throw new Error("Player not found");
             }
-            game.setPlayerInput(input.playerId, input.input);
+            game.testWithPlayerInput(input.input); // ONLY FOR TESTING
+            // game.setPlayerInput(input.playerId, input.input); // UNCOMMENT THIS
         }),
     state: publicProcedure.input(z.number()).query(async ({ input }) => {
         const game = gamesMap.get(input);

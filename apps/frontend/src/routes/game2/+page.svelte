@@ -206,8 +206,8 @@
 		paddles = createPaddles();
 
 		if (!paddles) return;
-		paddles[0].position.x = -ARENA_WIDTH / 2 + 1;
-		paddles[1].position.x = ARENA_WIDTH / 2 - 1;
+		paddles[0].position.x = -ARENA_WIDTH / 2 - 0.5;
+		paddles[1].position.x = ARENA_WIDTH / 2 + 0.5;
 		// leftPaddle = BABYLON.MeshBuilder.CreateBox(
 		// 	"leftPaddle",
 		// 	{ width: PADDLE_WIDTH, height: PADDLE_LENGTH, depth: PADDLE_WIDTH },
@@ -216,7 +216,7 @@
 		// leftPaddle.position.x = -(ARENA_WIDTH / 2) + 1;
 		// leftPaddle.material = neonMaterial;
 
-		// rightPaddle = BABYLON.MeshBuilder.CreateBox(
+		// rightPaddle = BABYLON.MeshBuilder.CreateBox(w
 		// 	"rightPaddle",
 		// 	{ width: PADDLE_WIDTH, height: PADDLE_LENGTH, depth: PADDLE_WIDTH },
 		// 	scene,
@@ -264,12 +264,12 @@
 		};
 		topBorder = createBorder(
 			new BABYLON.Vector3(0, arenaHeight / 2 + 0.5, 0),
-			new BABYLON.Vector3(42, 1, 1),
+			new BABYLON.Vector3(43, 1, 1),
 		);
 
 		bottomBorder = createBorder(
 			new BABYLON.Vector3(0, -arenaHeight / 2 - 0.5, 0),
-			new BABYLON.Vector3(42, 1, 1),
+			new BABYLON.Vector3(43, 1, 1),
 		);
 	}
 

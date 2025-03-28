@@ -7,12 +7,14 @@ import {
 } from "drizzle-orm/sqlite-core";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
+import { encryptedText } from "../encryptedText.ts";
 
 export const users = sqliteTable("users", {
     id: integer("id").primaryKey({ autoIncrement: true }),
     name: text("name", { length: 255 }).notNull(),
     email: text("email", { length: 255 }).notNull(),
     password: text("password").notNull(),
+    secret: encryptedText("secret"),
     createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`),
 });
 
@@ -63,3 +65,4 @@ export type FriendInsert = typeof friends.$inferInsert;
 export type Friend = typeof friends.$inferSelect;
 export const friendInsertSchema = createInsertSchema(friends);
 export const friendSelectSchema = createSelectSchema(friends);
+

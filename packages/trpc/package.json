@@ -17,6 +17,7 @@
         "@repo/auth": "workspace:^",
         "@repo/database": "workspace:^",
         "@repo/tsconfig": "workspace:^",
+        "@repo/game": "workspace:^",
         "@trpc/server": "11.0.0-rc.764",
         "@types/better-sqlite3": "^7.6.12",
         "cookie": "^1.0.2",

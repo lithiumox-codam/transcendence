@@ -24,9 +24,9 @@ const VICTORY_SCORE = 7;
 const axisX = 0;
 const axisY = 1;
 const ARENA_WIDTH = 40;
-const PADDLE_LENGTH = 8;
-const BALL_SPEED = 10;
-const PADDLE_SPEED = 15;
+const PADDLE_LENGTH = 6;
+const BALL_SPEED = 15;
+const PADDLE_SPEED = 20;
 const BALL_SPEED_INCREASE = 1.1;
 const COLLISION_COOLDOWN = 10;
 
@@ -244,7 +244,7 @@ export class GameEngine {
     private checkScore(): void {
         const pos = this.state.ball.pos;
         let scoringId: number | null = null;
-        if (pos[0] > ARENA_WIDTH / 2 || pos[0] < -ARENA_WIDTH / 2) {
+        if (pos[0] > ARENA_WIDTH / 2 + 0.5 || pos[0] < -ARENA_WIDTH / 2 - 0.5) {
             scoringId = this.state.ball.lastHit;
             if (this.maxPlayers === 4) {
                 if (
@@ -300,6 +300,10 @@ export class GameEngine {
             vel: this.randomDirection(),
             speed: BALL_SPEED,
         };
+        for (let i = 0; i < this.state.players.length; i++) {
+            const player = this.state.players[i];
+            if (player) player.score = 0;
+        }
         this.state.gameOver = false;
     }
 }

@@ -56,12 +56,10 @@
 			playerId = gameInfo.players.userId;
 
 			await client.game.join.mutate(gameId);
-			client.game.listen.subscribe(undefined, {
-				onData: ({ data, type }) => {
-					console.log("received data", data, type);
-					if (type === "state") {
-						gameState = data;
-					}
+			client.game.listen.subscribe(gameId, {
+				onData: (data) => {
+					console.log("received data", data);
+					gameState = data;
 				},
 				onError: (error) => {
 					console.error(error);

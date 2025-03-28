@@ -18,7 +18,7 @@
 			});
 			if (browser) localStorage.setItem("token", res);
 			if (data.redirect) goto(data.redirect);
-			else goto("/user");
+			else goto("/stats");
 		} catch (error) {
 			console.error(error);
 		}

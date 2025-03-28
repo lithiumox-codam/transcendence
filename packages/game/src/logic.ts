@@ -133,8 +133,8 @@ export class GameEngine {
 
     public startGame(): void {
         setInterval(() => {
-            this.update(1);
-        }, 1000);
+            this.update(1 / 120);
+        }, 1000 / 120);
     }
 
     public setPlayerInput(playerId: number, input: playerInputs): void {
@@ -204,7 +204,10 @@ export class GameEngine {
         }
         if (this.maxPlayers === 2) {
             const ballY = this.state.ball.pos[1];
-            if (ballY > this.arenaHeight / 2 || ballY < -this.arenaHeight / 2) {
+            if (
+                ballY > this.arenaHeight / 2 - 0.5 ||
+                ballY < -this.arenaHeight / 2 + 0.5
+            ) {
                 this.state.ball.vel[axisY] *= -1;
             }
         }

@@ -116,21 +116,16 @@ export const gameRouter = createTRPCRouter({
         }
         game.reset();
     }),
-    listen: protectedProcedure.subscription(({ ctx }) =>
-        emitter.subscribeDomain("game", ({ type, data }) => {
-            switch (type) {
-                case "created": {
-                    return data.players.some(
-                        (player) => player.userId === ctx.user.id,
-                    );
-                }
-                case "state":
-                    return data.players.some(
-                        (player) => player.id === ctx.user.id,
-                    );
-                default:
-                    return false;
-            }
-        }),
-    ),
+    listen: protectedProcedure.input(z.number()).subscription(async function* ({
+        input,
+    }) {
+        const game = gamesMap.get(input);
+        if (!game) {
+            throw new Error("Game not found");
+        }
+        while (true) {
+            yield game.getState();
+            await new Promise((resolve) => setTimeout(resolve, 1000 / 120));
+        }
+    }),
 });

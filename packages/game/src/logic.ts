@@ -108,6 +108,7 @@ export class GameEngine {
             input: playerInputs.none,
             movementAxis,
         };
+        console.log("Player added with id: ", playerId);
     }
 
     private randomDirection(): vec2 {
@@ -195,10 +196,20 @@ export class GameEngine {
             ) {
                 this.state.ball.vel[axisY] *= -1;
             }
-            if (this.state.players[0])
-                this.handlePaddleCollision(this.state.players[0]);
-            if (this.state.players[1])
-                this.handlePaddleCollision(this.state.players[1]);
+            // for (let i = 0; i < this.state.players.length; i++) {
+            //     if (this.state.players[i] !== undefined)
+            //         this.handlePaddleCollision(this.state.players[i]);
+            // }
+        }
+        if (this.state.players[0])
+            this.handlePaddleCollision(this.state.players[0]);
+        if (this.state.players[1])
+            this.handlePaddleCollision(this.state.players[1]);
+        if (this.maxPlayers === 4) {
+            if (this.state.players[2])
+                this.handlePaddleCollision(this.state.players[2]);
+            if (this.state.players[3])
+                this.handlePaddleCollision(this.state.players[3]);
         }
     }
 
@@ -281,17 +292,6 @@ export class GameEngine {
         vec2.scale(scaledNormal, normal, 2 * dotProduct);
         return vec2.subtract(out, v, scaledNormal);
     }
-
-    // public forceScore(playerId: number): void {
-    //     const player = this.state.players.find((p) => p.id === playerId);
-    //     if (!player) {
-    //         return;
-    //     }
-    //     player.score++;
-    //     if (player.score >= VICTORY_SCORE) {
-    //         this.state.gameOver = true;
-    //     }
-    // }
 
     public reset(): void {
         this.state.ball = {

@@ -48,17 +48,21 @@
 	}
 
 	onMount(() => {
+		paddleCount = 4;
+		arenaHeight = 40;
 		(async () => {
-			const gameInfo = await client.game.create.mutate(2);
+			const gameInfo = await client.game.create.mutate(paddleCount);
 
 			if (!gameInfo) return;
 			gameId = gameInfo.gameId;
 			playerId = gameInfo.players.userId;
 
 			await client.game.join.mutate(gameId);
+			await client.game.join.mutate(gameId);
+			await client.game.join.mutate(gameId);
 			client.game.listen.subscribe(gameId, {
 				onData: (data) => {
-					console.log("received data", data);
+					// console.log("received data", data);
 					gameState = data;
 				},
 				onError: (error) => {
@@ -151,14 +155,21 @@
 			BABYLON.Vector3.Zero(),
 			scene,
 		);
-		// camera.attachControl(canvas, true);
+		camera.attachControl(canvas, true);
 
 		const neonMaterial = new BABYLON.StandardMaterial(
 			"neonMaterial",
 			scene,
 		);
 		neonMaterial.emissiveColor = new BABYLON.Color3(1, 1, 1);
-		initBorders();
+		if (paddleCount === 2) {
+			initBorders();
+			console.log("paddleCount", paddleCount);
+		}
+		if (paddleCount === 4) {
+			initFourPlayerArena();
+			console.log("paddleCount", paddleCount);
+		}
 
 		const createDashedLine = () => {
 			const dashCount = 15;
@@ -208,21 +219,13 @@
 		if (!paddles) return;
 		paddles[0].position.x = -ARENA_WIDTH / 2 - 0.5;
 		paddles[1].position.x = ARENA_WIDTH / 2 + 0.5;
-		// leftPaddle = BABYLON.MeshBuilder.CreateBox(
-		// 	"leftPaddle",
-		// 	{ width: PADDLE_WIDTH, height: PADDLE_LENGTH, depth: PADDLE_WIDTH },
-		// 	scene,
-		// );
-		// leftPaddle.position.x = -(ARENA_WIDTH / 2) + 1;
-		// leftPaddle.material = neonMaterial;
 
-		// rightPaddle = BABYLON.MeshBuilder.CreateBox(w
-		// 	"rightPaddle",
-		// 	{ width: PADDLE_WIDTH, height: PADDLE_LENGTH, depth: PADDLE_WIDTH },
-		// 	scene,
-		// );
-		// rightPaddle.position.x = ARENA_WIDTH / 2 - 1;
-		// rightPaddle.material = neonMaterial;
+		if (paddleCount === 4) {
+			paddles[2].position.y = -arenaHeight / 2 - 0.5;
+			paddles[2].rotate(BABYLON.Axis.Z, Math.PI / 2);
+			paddles[3].position.y = arenaHeight / 2 + 0.5;
+			paddles[3].rotate(BABYLON.Axis.Z, Math.PI / 2);
+		}
 		const ballMaterial = new BABYLON.StandardMaterial(
 			"ballMaterial",
 			scene,
@@ -237,6 +240,43 @@
 		ballLight = new BABYLON.PointLight("ballLight", ball.position, scene);
 		ballLight.diffuse = new BABYLON.Color3(1, 0, 0);
 		ballLight.intensity = 0.4;
+	}
+
+	function initFourPlayerArena() {
+		if (!scene) return;
+		const borderMaterial = new BABYLON.StandardMaterial("borderMat", scene);
+		borderMaterial.emissiveColor = new BABYLON.Color3(1, 1, 1);
+		borderMaterial.diffuseColor = new BABYLON.Color3(0, 0, 0);
+
+		const createCorner = (
+			position: BABYLON.Vector3,
+			size: BABYLON.Vector3,
+		) => {
+			const corner = BABYLON.MeshBuilder.CreateBox(
+				"corner",
+				{
+					width: size.x,
+					height: size.y,
+					depth: size.z,
+				},
+				scene,
+			);
+			corner.position = position;
+			return corner;
+		};
+		for (let i = 0; i < 4; i++) {
+			const corner = createCorner(
+				new BABYLON.Vector3(
+					i % 2 === 0
+						? ARENA_WIDTH / 2 + 0.5
+						: -ARENA_WIDTH / 2 - 0.5,
+					i < 2 ? arenaHeight / 2 + 0.5 : -arenaHeight / 2 - 0.5,
+					0,
+				),
+				new BABYLON.Vector3(1, 1, 1),
+			);
+			corner.material = borderMaterial;
+		}
 	}
 
 	function initBorders() {

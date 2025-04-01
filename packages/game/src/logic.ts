@@ -1,6 +1,12 @@
 // import { emitter } from "@repo/trpc/events/emitter.ts";
 import { vec2 } from "gl-matrix";
 
+export enum GameStatus {
+    Wating,
+    Playing,
+    Finished,
+}
+
 export interface GameState {
     players: Player[];
     ball: {
@@ -9,7 +15,7 @@ export interface GameState {
         vel: vec2;
         speed: number;
     };
-    gameOver: boolean;
+    status: GameStatus;
 }
 
 export interface Player {
@@ -65,7 +71,7 @@ export class GameEngine {
                 vel: this.randomDirection(),
                 speed: BALL_SPEED,
             },
-            gameOver: false,
+            status: GameStatus.Wating,
         };
     }
 
@@ -124,7 +130,7 @@ export class GameEngine {
     }
 
     private update(deltaTime: number): void {
-        if (this.state.gameOver) return;
+        if (this.state.status == GameStatus.Finished) return;
 
         this.updatePlayers(deltaTime);
         this.updateBall(deltaTime);
@@ -133,6 +139,8 @@ export class GameEngine {
     }
 
     public startGame(): void {
+        this.state.status = GameStatus.Playing;
+
         setInterval(() => {
             this.update(1 / 480);
         }, 1000 / 480);
@@ -272,7 +280,7 @@ export class GameEngine {
                 if (!player) return;
                 player.score++;
                 if (player.score >= VICTORY_SCORE) {
-                    this.state.gameOver = true;
+                    this.state.status = GameStatus.Finished;
                 }
             }
             this.resetBall();
@@ -304,6 +312,13 @@ export class GameEngine {
             const player = this.state.players[i];
             if (player) player.score = 0;
         }
-        this.state.gameOver = false;
+        this.state.status = GameStatus.Wating;
+    }
+
+    public canJoin(): boolean {
+        return (
+            this.state.players.length < this.maxPlayers &&
+            this.state.status === GameStatus.Wating
+        );
     }
 }

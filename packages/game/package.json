@@ -14,6 +14,7 @@
     "author": "",
     "license": "ISC",
     "dependencies": {
+        "@repo/database": "workspace:^0.0.0",
         "@repo/tsconfig": "workspace:^0.0.0",
         "drizzle-orm": "0.39.2",
         "gl-matrix": "^3.4.3",

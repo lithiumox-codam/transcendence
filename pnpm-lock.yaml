@@ -220,6 +220,9 @@ importers:
 
   packages/game:
     dependencies:
+      '@repo/database':
+        specifier: workspace:^0.0.0
+        version: link:../database
       '@repo/tsconfig':
         specifier: workspace:^0.0.0
         version: link:../tsconfig

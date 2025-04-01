@@ -9,7 +9,7 @@ import {
     players,
 } from "@repo/database";
 import type { GameState } from "@repo/game";
-import { GameEngine, playerInputs } from "@repo/game";
+import { GameEngine, playerInputs, joinGame, gamesMap } from "@repo/game";
 import { observable } from "@trpc/server/observable";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
@@ -19,8 +19,6 @@ import {
     protectedProcedure,
     publicProcedure,
 } from "../trpc.ts";
-
-const gamesMap = new Map<number, GameEngine>();
 
 export const gameRouter = createTRPCRouter({
     create: protectedProcedure
@@ -52,22 +50,18 @@ export const gameRouter = createTRPCRouter({
     join: protectedProcedure
         .input(z.number())
         .mutation(async ({ ctx, input }) => {
-            const game = gamesMap.get(input);
-            if (!game) {
-                throw new Error("Game not found");
-            }
-            const [player] = await db
-                .insert(players)
-                .values({
-                    gameId: input,
-                    userId: ctx.user.id,
-                })
-                .returning();
-            if (!player) {
-                throw new Error("Failed to join game");
-            }
-            game.addPlayer(player.userId);
+            joinGame(input, ctx.user.id);
         }),
+    joinRandom: protectedProcedure.mutation(async ({ ctx }) => {
+        const gameEntry = Array.from(gamesMap.entries()).find(([_, game]) =>
+            game.canJoin(),
+        );
+        if (!gameEntry) {
+            throw new Error("No games available");
+        }
+        const gameId = gameEntry[0];
+        joinGame(gameId, ctx.user.id);
+    }),
     start: protectedProcedure.input(z.number()).mutation(async ({ input }) => {
         const game = gamesMap.get(input);
         if (!game) {

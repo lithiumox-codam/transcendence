@@ -11,7 +11,7 @@ import {
 import type { GameState } from "@repo/game";
 import { GameEngine, playerInputs } from "@repo/game";
 import { observable } from "@trpc/server/observable";
-import { eq } from "drizzle-orm";
+import { eq, and, desc } from "drizzle-orm";
 import { z } from "zod";
 import { emitter } from "../events/index.ts";
 import {
@@ -116,6 +116,19 @@ export const gameRouter = createTRPCRouter({
         }
         game.reset();
     }),
+	history: protectedProcedure.query(async ({ctx}) => {
+		return await db
+			.select()
+			.from(games)
+			.innerJoin(players, eq(games.id, players.gameId))
+			.where(
+				and(
+					eq(games.status, "finished"),
+					eq(players.userId, ctx.user.id)
+				)
+			)
+			.orderBy(desc(games.updatedAt));
+	}),
     listen: protectedProcedure.input(z.number()).subscription(async function* ({
         input,
     }) {

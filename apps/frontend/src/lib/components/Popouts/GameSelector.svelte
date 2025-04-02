@@ -1,48 +1,144 @@
 <script lang="ts">
-    // Import necessary icons or use from a library
-    // For example, if using lucide-svelte:
-    import { TrendingUp } from "@lucide/svelte";
+	import { client } from "$lib/trpc";
+	import { TrendingUp, Eye, History } from "@lucide/svelte";
+	import type { Game } from "@repo/database";
+	import { onMount } from "svelte";
 
-    // Handle game selection
-    function selectGame(type: string) {
-        // Logic to handle game selection
-        // This could involve navigating to a new page, opening a modal, etc.
-        console.log(`Selected game type: ${type}`);
-    }
+	type OngoingGame = {
+		id: number;
+		players: string[];
+		status: string;
+	};
+
+	type MatchHistory = {
+		id: number;
+		opponent: string;
+		gameType: string;
+		result: "Win" | "Loss";
+	};
+
+	let history = $state<
+		{
+			games: {
+				id: number;
+				status: "waiting" | "playing" | "finished";
+				maxPlayers: number;
+				createdAt: string | null;
+				updatedAt: string | null;
+			};
+			players: {
+				gameId: number;
+				userId: number;
+				score: number;
+				createdAt: string | null;
+			};
+		}[]
+	>();
+	onMount(async () => {
+		history = await client.game.history.query();
+	});
+
+	let { ongoingGames }: { ongoingGames: OngoingGame[] } = $props();
+
+	function selectGame(type: string) {
+		console.log(`Selected game type: ${type}`);
+	}
+
+	function spectateGame(gameId: number) {
+		console.log(`Viewing ongoing game with ID: ${gameId}`);
+	}
 </script>
 
-<div class="bg-gray-800 rounded-lg shadow-lg">
-    <div class="grid grid-cols-2 gap-3">
-        <button
-            class="bg-gradient-to-br from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white p-3 rounded-lg flex flex-col items-center transition-all duration-300 hover:scale-105"
-            onclick={() => selectGame("classic")}
-        >
-            <TrendingUp class="w-6 h-6 mb-2" />
-            <span>Classic</span>
-        </button>
+<div class="bg-gray-800 rounded-lg shadow-lg p-4">
+	<h2
+		class="text-3xl font-extrabold tracking-widest text-center text-white retro-glow mb-6"
+	>
+		Choose Your Game Mode
+	</h2>
 
-        <button
-            class="bg-gradient-to-br from-purple-500 to-indigo-600 hover:from-purple-400 hover:to-indigo-500 text-white p-3 rounded-lg flex flex-col items-center transition-all duration-300 hover:scale-105"
-            onclick={() => selectGame("special")}
-        >
-            <TrendingUp class="w-6 h-6 mb-2" />
-            <span>Special</span>
-        </button>
+	<!-- Gamemodes -->
+	<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+		<!-- 1vs1 -->
+		<button
+			onclick={() => selectGame("1vs1")}
+			class="aspect-[3/4] bg-gradient-to-br from-cyan-600 to-blue-800 hover:from-cyan-400 hover:to-blue-600
+            rounded-xl p-4 flex flex-col justify-center items-center text-white shadow-[0_0_20px_rgba(0,255,255,0.1)] border border-cyan-400/20
+            transition-transform duration-300 hover:scale-105"
+		>
+			<TrendingUp class="w-8 h-8 mb-3 text-cyan-300" />
+			<span class="text-lg font-bold tracking-wide">1vs1</span>
+			<p class="text-xs text-cyan-200 mt-1">Duel your rival</p>
+		</button>
 
-        <button
-            class="bg-gradient-to-br from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-white p-3 rounded-lg flex flex-col items-center transition-all duration-300 hover:scale-105"
-            onclick={() => selectGame("tournament")}
-        >
-            <TrendingUp class="w-6 h-6 mb-2" />
-            <span>Tournament</span>
-        </button>
+		<!-- 1vs1vs1vs1 -->
+		<button
+			onclick={() => selectGame("1vs1vs1vs1")}
+			class="aspect-[3/4] bg-gradient-to-br from-pink-600 to-purple-700 hover:from-pink-500 hover:to-purple-600
+            rounded-xl p-4 flex flex-col justify-center items-center text-white shadow-[0_0_20px_rgba(255,0,255,0.1)] border border-pink-500/20
+            transition-transform duration-300 hover:scale-105"
+		>
+			<TrendingUp class="w-8 h-8 mb-3 text-pink-300" />
+			<span class="text-lg font-bold tracking-wide">1vs1vs1vs1</span>
+			<p class="text-xs text-pink-200 mt-1">Free-for-all chaos</p>
+		</button>
 
-        <button
-            class="bg-gradient-to-br from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 text-white p-3 rounded-lg flex flex-col items-center transition-all duration-300 hover:scale-105"
-            onclick={() => selectGame("custom")}
-        >
-            <TrendingUp class="w-6 h-6 mb-2" />
-            <span>Custom</span>
-        </button>
-    </div>
+		<!-- Tournament -->
+		<button
+			onclick={() => selectGame("tournament")}
+			class="aspect-[3/4] bg-gradient-to-br from-amber-500 to-orange-600 hover:from-yellow-400 hover:to-orange-500
+            rounded-xl p-4 flex flex-col justify-center items-center text-white shadow-[0_0_20px_rgba(255,200,0,0.1)] border border-amber-400/20
+            transition-transform duration-300 hover:scale-105"
+		>
+			<TrendingUp class="w-8 h-8 mb-3 text-amber-200" />
+			<span class="text-lg font-bold tracking-wide">Tournament</span>
+			<p class="text-xs text-amber-100 mt-1">Climb the bracket</p>
+		</button>
+	</div>
 </div>
+
+{#snippet OngoingGame(game: OngoingGame)}
+	<li
+		class="flex justify-between items-center bg-white/5 border border-white/10 p-3 rounded-md hover:bg-white/10 transition group"
+	>
+		<div class="flex flex-col">
+			<span>
+				<span class="font-semibold text-white">{game.players[0]}</span>
+				vs
+				<span class="font-semibold text-white">{game.players[1]}</span>
+			</span>
+			<span class="text-sm text-gray-400 italic">{game.status}</span>
+		</div>
+
+		<button
+			class="text-green-300 hover:text-white hover:scale-110 transition-transform"
+			onclick={() => spectateGame(game.id)}
+			aria-label="Spectate Game"
+		>
+			<Eye class="w-5 h-5" />
+		</button>
+	</li>
+{/snippet}
+
+{#snippet MatchHistorySnippet(match: Game)}
+	<li
+		class="flex justify-between items-center bg-white/5 border border-white/10 p-3 rounded-md hover:bg-white/10 transition"
+	>
+		<div class="flex flex-col">
+			<span>
+				<span class="font-semibold text-white"
+					>You vs {match.opponent}</span
+				>
+				<span class="text-sm text-gray-400 italic"
+					>({match.gameType})</span
+				>
+			</span>
+			<span
+				class={`text-sm font-bold ${
+					match.result === "Win" ? "text-green-400" : "text-red-400"
+				}`}
+			>
+				{match.result}
+			</span>
+		</div>
+	</li>
+{/snippet}

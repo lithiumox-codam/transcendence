@@ -3,15 +3,17 @@ import {
     GameInsert,
     type Player,
     PlayerInsert,
+    type User,
     db,
     gameInsertSchema,
     games,
     players,
+    users,
 } from "@repo/database";
 import type { GameState } from "@repo/game";
-import { GameEngine, playerInputs, joinGame, gamesMap } from "@repo/game";
+import { GameEngine, gamesMap, matchmaking, playerInputs } from "@repo/game";
 import { observable } from "@trpc/server/observable";
-import { eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { emitter } from "../events/index.ts";
 import {
@@ -37,7 +39,7 @@ export const gameRouter = createTRPCRouter({
                     })
                     .returning();
                 emitter.emit("game:created", { game, players: [] });
-                gamesMap.set(game.id, new GameEngine(input, ctx.user.id));
+                gamesMap.set(game.id, new GameEngine(input, [ctx.user.id]));
                 const [gamedb] = await db
                     .select()
                     .from(games)
@@ -47,21 +49,12 @@ export const gameRouter = createTRPCRouter({
             }
             return null;
         }),
-    join: protectedProcedure
-        .input(z.number())
-        .mutation(async ({ ctx, input }) => {
-            joinGame(input, ctx.user.id);
+    queue: protectedProcedure
+        .input(z.union([z.literal(2), z.literal(4)]))
+        .query(async ({ ctx, input }) => {
+            matchmaking.joinQueue(ctx.user.id, input);
+            return true;
         }),
-    joinRandom: protectedProcedure.mutation(async ({ ctx }) => {
-        const gameEntry = Array.from(gamesMap.entries()).find(([_, game]) =>
-            game.canJoin(),
-        );
-        if (!gameEntry) {
-            throw new Error("No games available");
-        }
-        const gameId = gameEntry[0];
-        joinGame(gameId, ctx.user.id);
-    }),
     start: protectedProcedure.input(z.number()).mutation(async ({ input }) => {
         const game = gamesMap.get(input);
         if (!game) {
@@ -110,6 +103,81 @@ export const gameRouter = createTRPCRouter({
             throw new Error("Game not found");
         }
         game.reset();
+    }),
+    players: protectedProcedure.input(z.number()).query(async ({ input }) => {
+        const res = await db
+            .select()
+            .from(players)
+            .where(eq(players.gameId, input));
+        const list = await Promise.all(
+            res.map(async ({ userId }) => {
+                const [user] = await db
+                    .select({
+                        id: users.id,
+                        name: users.name,
+                        email: users.email,
+                        createdAt: users.createdAt,
+                    })
+                    .from(users)
+                    .where(eq(users.id, userId));
+                return user;
+            }),
+        );
+        return list;
+    }),
+    history: protectedProcedure
+        .input(z.number().optional())
+        .query(async ({ input, ctx }) => {
+            const id = input === undefined ? ctx.user.id : input;
+            const res = await db
+                .select()
+                .from(games)
+                .where(
+                    and(
+                        eq(games.status, "finished"),
+                        eq(players.userId, id),
+                        eq(games.id, players.gameId),
+                    ),
+                )
+                .innerJoin(players, eq(games.id, players.gameId))
+                .orderBy(desc(games.createdAt))
+                .limit(10);
+            const list = await Promise.all(
+                res.map(async ({ games }) => {
+                    const playersList = await db
+                        .select()
+                        .from(players)
+                        .where(eq(players.gameId, games.id));
+                    const playersData = await Promise.all(
+                        playersList.map(async ({ userId }) => {
+                            const [user] = await db
+                                .select({
+                                    id: users.id,
+                                    name: users.name,
+                                    email: users.email,
+                                    createdAt: users.createdAt,
+                                })
+                                .from(users)
+                                .where(eq(users.id, userId));
+                            return user;
+                        }),
+                    );
+                    return { game: games, players: playersData };
+                }),
+            );
+            return list;
+        }),
+    ongoing: protectedProcedure.subscription(async function* () {
+        while (true) {
+            const ongoing = await db
+                .select()
+                .from(games)
+                .where(eq(games.status, "playing"))
+                .limit(3)
+                .orderBy(desc(games.createdAt));
+            yield ongoing;
+            await new Promise((resolve) => setTimeout(resolve, 200000));
+        }
     }),
     listen: protectedProcedure.input(z.number()).subscription(async function* ({
         input,

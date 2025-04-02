@@ -2,9 +2,9 @@
 import { vec2 } from "gl-matrix";
 
 export enum GameStatus {
-    Wating,
-    Playing,
-    Finished,
+    Wating = 0,
+    Playing = 1,
+    Finished = 2,
 }
 
 export interface GameState {
@@ -49,7 +49,7 @@ export class GameEngine {
 
     constructor(
         private maxPlayers: 2 | 4,
-        playerId: number,
+        playerId: number[],
     ) {
         console.log(
             "GameEngine constructror called with maxPlayers: ",
@@ -59,7 +59,9 @@ export class GameEngine {
         if (maxPlayers === 4) {
             this.arenaHeight = 40;
         }
-        this.addPlayer(playerId);
+        for (const player of playerId) {
+            this.addPlayer(player);
+        }
     }
 
     private initialState() {
@@ -130,7 +132,7 @@ export class GameEngine {
     }
 
     private update(deltaTime: number): void {
-        if (this.state.status == GameStatus.Finished) return;
+        if (this.state.status === GameStatus.Finished) return;
 
         this.updatePlayers(deltaTime);
         this.updateBall(deltaTime);

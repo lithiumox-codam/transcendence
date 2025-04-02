@@ -17,27 +17,6 @@
 		result: "Win" | "Loss";
 	};
 
-	let history = $state<
-		{
-			games: {
-				id: number;
-				status: "waiting" | "playing" | "finished";
-				maxPlayers: number;
-				createdAt: string | null;
-				updatedAt: string | null;
-			};
-			players: {
-				gameId: number;
-				userId: number;
-				score: number;
-				createdAt: string | null;
-			};
-		}[]
-	>();
-	onMount(async () => {
-		history = await client.game.history.query();
-	});
-
 	let { ongoingGames }: { ongoingGames: OngoingGame[] } = $props();
 
 	function selectGame(type: string) {
@@ -119,7 +98,7 @@
 	</li>
 {/snippet}
 
-{#snippet MatchHistorySnippet(match: Game)}
+<!-- {#snippet MatchHistorySnippet(match: Game)}
 	<li
 		class="flex justify-between items-center bg-white/5 border border-white/10 p-3 rounded-md hover:bg-white/10 transition"
 	>
@@ -141,4 +120,4 @@
 			</span>
 		</div>
 	</li>
-{/snippet}
+{/snippet} -->

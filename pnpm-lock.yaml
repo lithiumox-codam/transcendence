@@ -220,8 +220,11 @@ importers:
 
   packages/game:
     dependencies:
+      '@repo/database':
+        specifier: workspace:^
+        version: link:../database
       '@repo/tsconfig':
-        specifier: workspace:^0.0.0
+        specifier: workspace:^
         version: link:../tsconfig
       drizzle-orm:
         specifier: 0.39.2

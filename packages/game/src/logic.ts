@@ -1,6 +1,12 @@
 // import { emitter } from "@repo/trpc/events/emitter.ts";
 import { vec2 } from "gl-matrix";
 
+export enum GameStatus {
+    Wating = 0,
+    Playing = 1,
+    Finished = 2,
+}
+
 export interface GameState {
     players: Player[];
     ball: {
@@ -9,7 +15,7 @@ export interface GameState {
         vel: vec2;
         speed: number;
     };
-    gameOver: boolean;
+    status: GameStatus;
 }
 
 export interface Player {
@@ -24,10 +30,10 @@ const VICTORY_SCORE = 7;
 const axisX = 0;
 const axisY = 1;
 const ARENA_WIDTH = 40;
-const PADDLE_LENGTH = 8;
-const BALL_SPEED = 5;
-const PADDLE_SPEED = 10;
-const BALL_SPEED_INCREASE = 1.05;
+const PADDLE_LENGTH = 6;
+const BALL_SPEED = 15;
+const PADDLE_SPEED = 20;
+const BALL_SPEED_INCREASE = 1.1;
 const COLLISION_COOLDOWN = 10;
 
 export enum playerInputs {
@@ -43,7 +49,7 @@ export class GameEngine {
 
     constructor(
         private maxPlayers: 2 | 4,
-        playerId: number,
+        playerId: number[],
     ) {
         console.log(
             "GameEngine constructror called with maxPlayers: ",
@@ -53,7 +59,9 @@ export class GameEngine {
         if (maxPlayers === 4) {
             this.arenaHeight = 40;
         }
-        this.addPlayer(playerId);
+        for (const player of playerId) {
+            this.addPlayer(player);
+        }
     }
 
     private initialState() {
@@ -65,7 +73,7 @@ export class GameEngine {
                 vel: this.randomDirection(),
                 speed: BALL_SPEED,
             },
-            gameOver: false,
+            status: GameStatus.Wating,
         };
     }
 
@@ -108,6 +116,7 @@ export class GameEngine {
             input: playerInputs.none,
             movementAxis,
         };
+        console.log("Player added with id: ", playerId);
     }
 
     private randomDirection(): vec2 {
@@ -123,7 +132,7 @@ export class GameEngine {
     }
 
     private update(deltaTime: number): void {
-        if (this.state.gameOver) return;
+        if (this.state.status === GameStatus.Finished) return;
 
         this.updatePlayers(deltaTime);
         this.updateBall(deltaTime);
@@ -132,9 +141,11 @@ export class GameEngine {
     }
 
     public startGame(): void {
+        this.state.status = GameStatus.Playing;
+
         setInterval(() => {
-            this.update(1 / 120);
-        }, 1000 / 120);
+            this.update(1 / 480);
+        }, 1000 / 480);
     }
 
     public setPlayerInput(playerId: number, input: playerInputs): void {
@@ -144,6 +155,14 @@ export class GameEngine {
         }
         console.log("set player input", playerId, input);
         player.input = input;
+    }
+
+    public testWithPlayerInput(input: playerInputs): void {
+        for (let i = 0; i < this.state.players.length; i++) {
+            const player = this.state.players[i];
+            if (!player) continue;
+            player.input = input;
+        }
     }
 
     private updatePlayers(deltaTime: number): void {
@@ -178,47 +197,56 @@ export class GameEngine {
             this.collisionCooldown--;
             return;
         }
-        for (let i = 0; i < this.state.players.length; i++) {
-            const player = this.state.players[i];
-            if (!player) continue;
-            const axis = player.movementAxis === "x" ? axisX : axisY;
-            const paddlePos = player.position;
+        if (this.maxPlayers === 2) {
             const ballPos = this.state.ball.pos;
 
-            if (axis === axisY) {
-                if (Math.abs(ballPos[axisX] - paddlePos[axisX]) > 1) return;
-                if (
-                    ballPos[axisY] < paddlePos[axisY] - PADDLE_LENGTH / 2 ||
-                    ballPos[axisY] > paddlePos[axisY] + PADDLE_LENGTH / 2
-                )
-                    return;
-            } else {
-                if (Math.abs(ballPos[axisY] - paddlePos[axisY]) > 1) return;
-                if (
-                    ballPos[axisX] < paddlePos[axisX] - PADDLE_LENGTH / 2 ||
-                    ballPos[axisX] > paddlePos[axisX] + PADDLE_LENGTH / 2
-                )
-                    return;
-            }
-            this.handlePaddleCollision(player);
-        }
-        if (this.maxPlayers === 2) {
-            const ballY = this.state.ball.pos[1];
             if (
-                ballY > this.arenaHeight / 2 - 0.5 ||
-                ballY < -this.arenaHeight / 2 + 0.5
+                ballPos[axisY] > this.arenaHeight / 2 - 0.5 ||
+                ballPos[axisY] < -this.arenaHeight / 2 + 0.5
             ) {
                 this.state.ball.vel[axisY] *= -1;
             }
+            // for (let i = 0; i < this.state.players.length; i++) {
+            //     if (this.state.players[i] !== undefined)
+            //         this.handlePaddleCollision(this.state.players[i]);
+            // }
+        }
+        if (this.state.players[0])
+            this.handlePaddleCollision(this.state.players[0]);
+        if (this.state.players[1])
+            this.handlePaddleCollision(this.state.players[1]);
+        if (this.maxPlayers === 4) {
+            if (this.state.players[2])
+                this.handlePaddleCollision(this.state.players[2]);
+            if (this.state.players[3])
+                this.handlePaddleCollision(this.state.players[3]);
         }
     }
 
     private handlePaddleCollision(player: Player): void {
+        const ballPos = this.state.ball.pos;
+        const axis = player.movementAxis === "x" ? axisX : axisY;
+        const bounceAxis = player.movementAxis === "x" ? axisY : axisX;
+        const paddleLength = PADDLE_LENGTH / 2;
+        const paddleTop = player.position[axis] - paddleLength;
+        const paddleBottom = player.position[axis] + paddleLength;
         const paddleNormal = this.getPaddleNormal(player);
-        this.reflect(this.state.ball.vel, this.state.ball.vel, paddleNormal);
-        this.state.ball.speed *= BALL_SPEED_INCREASE;
-        this.state.ball.lastHit = player.id;
-        this.collisionCooldown = COLLISION_COOLDOWN;
+
+        if (ballPos[axis] > paddleTop && ballPos[axis] < paddleBottom) {
+            if (
+                ballPos[bounceAxis] > player.position[bounceAxis] - 0.5 &&
+                ballPos[bounceAxis] < player.position[bounceAxis] + 0.5
+            ) {
+                this.reflect(
+                    this.state.ball.vel,
+                    this.state.ball.vel,
+                    paddleNormal,
+                );
+                this.state.ball.speed *= BALL_SPEED_INCREASE;
+                this.state.ball.lastHit = player.id;
+                this.collisionCooldown = COLLISION_COOLDOWN;
+            }
+        }
     }
 
     private getPaddleNormal(player: Player): vec2 {
@@ -237,25 +265,27 @@ export class GameEngine {
     private checkScore(): void {
         const pos = this.state.ball.pos;
         let scoringId: number | null = null;
-        if (pos[0] > ARENA_WIDTH / 2 || pos[0] < -ARENA_WIDTH / 2) {
+        if (pos[0] > ARENA_WIDTH / 2 + 0.5 || pos[0] < -ARENA_WIDTH / 2 - 0.5) {
             scoringId = this.state.ball.lastHit;
-        }
-        if (this.maxPlayers === 4) {
-            if (
-                pos[1] > this.arenaHeight / 2 ||
-                pos[1] < -this.arenaHeight / 2
-            ) {
-                scoringId = this.state.ball.lastHit;
+            if (this.maxPlayers === 4) {
+                if (
+                    pos[1] > this.arenaHeight / 2 ||
+                    pos[1] < -this.arenaHeight / 2
+                ) {
+                    scoringId = this.state.ball.lastHit;
+                }
             }
-        }
-        if (scoringId) {
-            const player = this.state.players.find((p) => p.id === scoringId);
-            if (!player) return;
-            player.score++;
+            if (scoringId) {
+                const player = this.state.players.find(
+                    (p) => p.id === scoringId,
+                );
+                if (!player) return;
+                player.score++;
+                if (player.score >= VICTORY_SCORE) {
+                    this.state.status = GameStatus.Finished;
+                }
+            }
             this.resetBall();
-            if (player.score >= VICTORY_SCORE) {
-                this.state.gameOver = true;
-            }
         }
     }
 
@@ -273,17 +303,6 @@ export class GameEngine {
         return vec2.subtract(out, v, scaledNormal);
     }
 
-    public forceScore(playerId: number): void {
-        const player = this.state.players.find((p) => p.id === playerId);
-        if (!player) {
-            return;
-        }
-        player.score++;
-        if (player.score >= VICTORY_SCORE) {
-            this.state.gameOver = true;
-        }
-    }
-
     public reset(): void {
         this.state.ball = {
             lastHit: null,
@@ -291,6 +310,17 @@ export class GameEngine {
             vel: this.randomDirection(),
             speed: BALL_SPEED,
         };
-        this.state.gameOver = false;
+        for (let i = 0; i < this.state.players.length; i++) {
+            const player = this.state.players[i];
+            if (player) player.score = 0;
+        }
+        this.state.status = GameStatus.Wating;
+    }
+
+    public canJoin(): boolean {
+        return (
+            this.state.players.length < this.maxPlayers &&
+            this.state.status === GameStatus.Wating
+        );
     }
 }

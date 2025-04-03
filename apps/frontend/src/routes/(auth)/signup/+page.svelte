@@ -3,6 +3,7 @@
 	import { browser } from "$app/environment";
 	import { goto } from "$app/navigation";
 	import GoogleButton from "$lib/components/GoogleButton.svelte";
+	import { LogIn } from "@lucide/svelte";
 
 	let { data } = $props();
 
@@ -108,11 +109,11 @@
 				</button>
 			</form>
 			<!-- Google Signup -->
-			<div class="mt-2 flex justify-center">
-				<GoogleButton
-					providerConfig={data.clientGoogleProvider}
-					text="Or login with Google"
-				/>
+			<p class="mt-2 text-sm text-center text-gray-400">or</p>
+			<div class="flex justify-center">
+				<GoogleButton providerConfig={data.clientGoogleProvider}>
+					Login with Google
+				</GoogleButton>
 			</div>
 		</div>
 

@@ -23,8 +23,14 @@
 </script>
 
 <button
+	class="mt-2 w-full h-10 cursor-pointer rounded-md bg-gray-700 text-white font-medium hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+	onclick={handleGoogleSignIn}
+>
+	<slot />
+</button>
+<!-- <button
 	class="mt-2 flex justify-center text-white hover:underline cursor-pointer bg-transparent border-none"
 	onclick={handleGoogleSignIn}
 >
 	{text}
-</button>
+</button> -->

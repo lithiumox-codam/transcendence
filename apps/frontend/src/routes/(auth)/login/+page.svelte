@@ -89,11 +89,14 @@
 				</button>
 			</form>
 			<!-- Google Login -->
-			<div class="mt-2 flex justify-center">
+			<p class="mt-2 text-sm text-center text-gray-400">or</p>
+			<div class="flex justify-center">
 				<GoogleButton
 					providerConfig={data.clientGoogleProvider}
-					text="Or login with Google"
-				/>
+					
+				>
+					Login with Google
+				</GoogleButton>
 			</div>
 		</div>
 

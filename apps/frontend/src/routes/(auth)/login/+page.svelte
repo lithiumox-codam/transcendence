@@ -83,7 +83,7 @@
 				{/if}
 
 				<button
-					class="w-full h-10 rounded-md bg-blue-600 text-white font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+					class="w-full cursor-pointer h-10 rounded-md bg-blue-600 text-white font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
 				>
 					Login
 				</button>
@@ -101,7 +101,7 @@
 		<div class="mt-6 p-6 text-center">
 			<p class="text-sm text-gray-400">Don't have an account?</p>
 			<button
-				class="mt-2 w-full h-10 rounded-md bg-gray-700 text-white font-medium hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+				class="mt-2 w-full h-10 cursor-pointer rounded-md bg-gray-700 text-white font-medium hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
 				onclick={redirectToSignup}
 			>
 				Sign Up

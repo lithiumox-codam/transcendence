@@ -22,6 +22,9 @@
 	}
 </script>
 
-<button class="mt-2 flex justify-center" onclick={handleGoogleSignIn}>
+<button
+	class="mt-2 flex justify-center text-white hover:underline cursor-pointer bg-transparent border-none"
+	onclick={handleGoogleSignIn}
+>
 	{text}
 </button>

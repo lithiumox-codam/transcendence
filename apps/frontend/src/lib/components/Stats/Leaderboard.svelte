@@ -22,51 +22,60 @@
 	}
 </script>
 
-<!-- Shared Base Style -->
-<div class="w-full max-w-md mx-auto h-full group space-y-2">
-	<h2 class="text-2xl font-bold text-center text-white skew-2">
-		Leaderboard
-	</h2>
+<div class="w-full max-w-md mx-auto group text-white relative">
+	<div
+		class="bg-black/10 border border-white/10 rounded-xl p-6
+		skew-x-3 shadow-[0_0_20px_rgba(0,255,255,0.05)] backdrop-blur-sm"
+	>
+		<h2
+			class="mb-3 text-2xl font-bold text-center text-white tracking-widest"
+		>
+			Leaderboard
+		</h2>
 
-	{#if leaderboard.length === 0}
-		<p class="text-gray-400 text-center text-sm">
-			No leaderboard data available.
-		</p>
-	{:else}
-		{@render FirstRank(leaderboard[0])}
-		{#if leaderboard.length > 1}
-			{@render SecondRank(leaderboard[1])}
+		{#if leaderboard.length === 0}
+			<p class="text-gray-400 text-center text-sm">
+				No leaderboard data available.
+			</p>
+		{:else}
+			{@render FirstRank(leaderboard[0])}
+			{#if leaderboard.length > 1}
+				{@render SecondRank(leaderboard[1])}
+			{/if}
+			{#if leaderboard.length > 2}
+				{@render ThirdRank(leaderboard[2])}
+			{/if}
+			{#each rest as item}
+				{@render OtherRanks(item)}
+			{/each}
 		{/if}
-		{#if leaderboard.length > 2}
-			{@render ThirdRank(leaderboard[2])}
-		{/if}
-		{#each rest as item}
-			{@render OtherRanks(item)}
-		{/each}
-	{/if}
+	</div>
 </div>
 
 <!-- 🥇 FIRST PLACE -->
 {#snippet FirstRank(item: leaderboardEntry)}
 	<div
-		class="flex items-center bg-yellow-400/20 px-4 py-3 rounded-md mb-1 border border-yellow-300 shadow-[0_0_15px_rgba(255,215,0,0.4)] text-base skew-2 hover:bg-yellow-300/15"
+		class="flex mb-2 items-center justify-between p-3 rounded-md border border-yellow-300 bg-yellow-400/10 hover:bg-yellow-400/20 transition-all duration-300 shadow"
 	>
 		<div class="flex items-center gap-2 w-1/3 min-w-0">
-			<img
-				src="/favicon.png"
-				alt="Avatar"
-				class="w-8 h-8 rounded-full border-2 border-yellow-300 object-cover shrink-0 shadow-md"
-			/>
 			<button
-				class="text-yellow-100 font-semibold truncate max-w-[90px] hover:underline"
+				class="shrink-0 cursor-pointer"
 				onclick={() => viewProfile(item.userId)}
 			>
-				{item.userName.length > 10
-					? `${item.userName.slice(0, 10)}...`
-					: item.userName}
+				<img
+					src="/favicon.png"
+					alt="Avatar"
+					class="w-8 h-8 rounded-full border-2 border-yellow-300 object-cover"
+				/>
+			</button>
+			<button
+				class="text-yellow-200 cursor-pointer font-semibold truncate max-w-[90px]"
+				onclick={() => viewProfile(item.userId)}
+			>
+				{item.userName}
 			</button>
 		</div>
-		<div class="text-yellow-100 text-sm text-center w-1/3">
+		<div class="text-yellow-200/50 text-xs text-center w-1/3">
 			{item.gamesPlayed}
 			{item.gamesPlayed === 1 ? "game" : "games"}
 		</div>
@@ -79,24 +88,27 @@
 <!-- 🥈 SECOND PLACE -->
 {#snippet SecondRank(item: leaderboardEntry)}
 	<div
-		class="flex items-center bg-gray-300/20 px-4 py-3 rounded-md mb-1 border border-gray-300 shadow-[0_0_12px_rgba(192,192,192,0.3)] text-base skew-2 hover:bg-gray-300/15"
+		class="flex mb-2 items-center justify-between p-3 rounded-md border border-gray-300 bg-gray-300/10 hover:bg-gray-300/20 transition-all duration-300 shadow"
 	>
 		<div class="flex items-center gap-2 w-1/3 min-w-0">
-			<img
-				src="/favicon.png"
-				alt="Avatar"
-				class="w-8 h-8 rounded-full border-2 border-gray-300 object-cover shrink-0 shadow-sm"
-			/>
 			<button
-				class="text-gray-200 font-semibold truncate max-w-[90px] hover:underline"
+				class="shrink-0 cursor-pointer"
 				onclick={() => viewProfile(item.userId)}
 			>
-				{item.userName.length > 10
-					? `${item.userName.slice(0, 10)}...`
-					: item.userName}
+				<img
+					src="/favicon.png"
+					alt="Avatar"
+					class="w-8 h-8 rounded-full border-2 border-gray-300 object-cover shrink-0"
+				/>
+			</button>
+			<button
+				class="text-gray-200 cursor-pointer font-semibold truncate max-w-[90px]"
+				onclick={() => viewProfile(item.userId)}
+			>
+				{item.userName}
 			</button>
 		</div>
-		<div class="text-gray-300 text-sm text-center w-1/3">
+		<div class="text-white/50 text-xs text-center w-1/3">
 			{item.gamesPlayed}
 			{item.gamesPlayed === 1 ? "game" : "games"}
 		</div>
@@ -109,24 +121,27 @@
 <!-- 🥉 THIRD PLACE -->
 {#snippet ThirdRank(item: leaderboardEntry)}
 	<div
-		class="flex items-center bg-orange-400/20 px-4 py-3 rounded-md mb-1 border border-orange-400 shadow-[0_0_10px_rgba(205,127,50,0.3)] text-base skew-2 hover:bg-orange-500/20"
+		class="flex mb-2 items-center justify-between p-3 rounded-md border border-orange-400 bg-orange-400/10 hover:bg-orange-400/20 transition-all duration-300 shadow"
 	>
 		<div class="flex items-center gap-2 w-1/3 min-w-0">
-			<img
-				src="/favicon.png"
-				alt="Avatar"
-				class="w-8 h-8 rounded-full border-2 border-orange-400 object-cover shrink-0 shadow"
-			/>
 			<button
-				class="text-orange-100 font-semibold truncate max-w-[90px] hover:underline"
+				class="shrink-0 cursor-pointer"
 				onclick={() => viewProfile(item.userId)}
 			>
-				{item.userName.length > 10
-					? `${item.userName.slice(0, 10)}...`
-					: item.userName}
+				<img
+					src="/favicon.png"
+					alt="Avatar"
+					class="w-8 h-8 rounded-full border-2 border-orange-400 object-cover shrink-0"
+				/>
+			</button>
+			<button
+				class="text-orange-100 cursor-pointer font-semibold truncate max-w-[90px]"
+				onclick={() => viewProfile(item.userId)}
+			>
+				{item.userName}
 			</button>
 		</div>
-		<div class="text-orange-100 text-sm text-center w-1/3">
+		<div class="text-orange-200/50 text-xs text-center w-1/3">
 			{item.gamesPlayed}
 			{item.gamesPlayed === 1 ? "game" : "games"}
 		</div>
@@ -139,11 +154,11 @@
 <!-- Other Rankings -->
 {#snippet OtherRanks(item: leaderboardEntry)}
 	<div
-		class="flex items-center bg-gradient-to-r from-white/5 via-white/10 to-white/5 px-4 py-2 rounded-md border border-white/10 text-sm skew-2 hover:bg-white/10"
+		class="flex mb-2 items-center justify-between p-3 rounded-md border border-white/10 bg-white/5 hover:bg-white/10 transition-all duration-300"
 	>
 		<div class="w-1/3 min-w-0">
 			<button
-				class="text-white font-medium truncate hover:underline max-w-[90px]"
+				class="text-white cursor-pointer font-medium truncate max-w-[90px]"
 				onclick={() => viewProfile(item.userId)}
 			>
 				{item.userName.length > 10
@@ -151,11 +166,11 @@
 					: item.userName}
 			</button>
 		</div>
-		<div class="text-gray-300 text-xs text-center w-1/3">
+		<div class="text-gray-300/50 text-xs text-center w-1/3">
 			{item.gamesPlayed}
 			{item.gamesPlayed === 1 ? "game" : "games"}
 		</div>
-		<div class="text-gray-100 font-semibold text-right w-1/3">
+		<div class="text-white font-semibold text-right w-1/3">
 			{item.totalScore}
 		</div>
 	</div>

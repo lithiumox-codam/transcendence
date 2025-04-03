@@ -7,7 +7,7 @@
 </script>
 
 <main
-	class="relative min-h-screen w-full px-6 py-12 flex justify-center items-start gap-12 bg-black overflow-hidden"
+	class="relative min-h-screen w-full px-6 py-12 flex justify-around items-start gap-12 bg-black overflow-hidden"
 >
 	<!-- Background Effects -->
 	<div class="absolute inset-0 pointer-events-none z-0">
@@ -20,17 +20,16 @@
 	</div>
 
 	<!-- Content -->
-	<div class="relative z-10 flex flex-col space-y-4 w-full max-w-xl pt-4">
-		<Leaderboard leaderboard={data.leaderboard} />
-	</div>
 
-	<div class="relative z-10 flex flex-col space-y-4 w-full max-w-md pt-20">
-		<!-- 👈 Nudge stats down -->
-		<UserStats
-			userStats={{
-				...data.userStats,
-				highestScore: data.userStats.highestScore ?? 0,
-			}}
-		/>
-	</div>
+	<Leaderboard leaderboard={data.leaderboard} />
+
+	<UserStats
+		userStats={{
+			...data.userStats,
+			highestScore: data.userStats.highestScore ?? 0,
+		}}
+		userData={{
+			...data.user[0],
+		}}
+	/>
 </main>

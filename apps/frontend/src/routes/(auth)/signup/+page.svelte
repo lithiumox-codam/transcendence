@@ -102,7 +102,7 @@
 				</div>
 				<button
 					type="submit"
-					class="w-full h-10 rounded-md bg-blue-600 text-white font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+					class="w-full h-10 cursor-pointer rounded-md bg-blue-600 text-white font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
 				>
 					Sign Up
 				</button>
@@ -111,7 +111,7 @@
 			<div class="mt-2 flex justify-center">
 				<GoogleButton
 					providerConfig={data.clientGoogleProvider}
-					text="Or sign up with Google"
+					text="Or login with Google"
 				/>
 			</div>
 		</div>
@@ -120,7 +120,7 @@
 		<div class="p-6 text-center">
 			<p class="text-sm text-gray-400">Already have an account?</p>
 			<button
-				class="mt-2 w-full h-10 rounded-md bg-gray-700 text-white font-medium hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+				class="mt-2 w-full h-10 rounded-md bg-gray-700 text-white font-medium cursor-pointer hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
 				onclick={redirectToLogin}
 			>
 				Login

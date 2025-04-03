@@ -1,8 +1,13 @@
 <script lang="ts">
+	import type { GameClass } from "$lib/classes/Game.svelte";
 	import { client } from "$lib/trpc";
 	import { TrendingUp, Eye, History } from "@lucide/svelte";
 	import type { Game } from "@repo/database";
-	import { onMount } from "svelte";
+	import { getContext, onMount } from "svelte";
+
+	const game = getContext<GameClass>("game");
+	
+
 
 	type OngoingGame = {
 		id: number;

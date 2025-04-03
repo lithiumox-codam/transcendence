@@ -20,6 +20,7 @@ import {
     publicProcedure,
 } from "../trpc.ts";
 
+let i = 1;
 const gamesMap = new Map<number, GameEngine>();
 
 export const gameRouter = createTRPCRouter({
@@ -39,7 +40,7 @@ export const gameRouter = createTRPCRouter({
                     })
                     .returning();
                 emitter.emit("game:created", { game, players: [] });
-                gamesMap.set(game.id, new GameEngine(input, ctx.user.id));
+                gamesMap.set(game.id, new GameEngine(input, [ctx.user.id]));
                 const [gamedb] = await db
                     .select()
                     .from(games)
@@ -66,12 +67,20 @@ export const gameRouter = createTRPCRouter({
             if (!player) {
                 throw new Error("Failed to join game");
             }
-            game.addPlayer(player.userId);
+            game.addPlayer(player.userId + i++);
         }),
     start: protectedProcedure.input(z.number()).mutation(async ({ input }) => {
         const game = gamesMap.get(input);
         if (!game) {
             throw new Error("Game not found");
+        }
+        const [dbgame] = await db
+            .select()
+            .from(games)
+            .where(eq(games.id, input))
+            .values({ status: "playing" });
+        if (!dbgame) {
+            throw new Error("Failed to start game");
         }
         game.startGame();
     }),

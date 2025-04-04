@@ -22,12 +22,12 @@ const VICTORY_SCORE = 7;
 const axisX = 0;
 const axisY = 1;
 const ARENA_WIDTH = 40;
-const arenaRadius = ARENA_WIDTH / 2;
+// const arenaRadius = ARENA_WIDTH / 2;
 const PADDLE_LENGTH = 6;
 const BALL_SPEED = 10;
 const PADDLE_SPEED = 20;
 const BALL_SPEED_INCREASE = 1.1;
-const COLLISION_COOLDOWN = 100;
+const COLLISION_COOLDOWN = 10;
 
 export enum playerInputs {
     up = 1,
@@ -138,8 +138,8 @@ export class GameEngine {
 
     public startGame(): void {
         setInterval(() => {
-            this.update(1 / 480);
-        }, 1000 / 480);
+            this.update(1 / 240);
+        }, 1000 / 240);
     }
 
     public setPlayerInput(playerId: number, input: playerInputs): void {
@@ -184,6 +184,7 @@ export class GameEngine {
             this.state.ball.speed * deltaTime,
         );
     }
+
     private pointCollision(p1: number, p2: number, p3: number): boolean {
         if ((p1 >= Math.min(p2, p3) && p1 <= Math.max(p2, p3)) === true) {
             return true;
@@ -193,8 +194,7 @@ export class GameEngine {
 
     private checkCollisions(deltaTime: number): void {
         if (this.collisionCooldown > 0) {
-            this.collisionCooldown -= 1;
-            return;
+            this.collisionCooldown -= deltaTime;
         }
         const ballPos = this.state.ball.pos;
         if (this.maxPlayers === 2) {
@@ -205,7 +205,9 @@ export class GameEngine {
                 this.state.ball.vel[axisY] *= -1;
             }
         }
-        for (const player of this.state.players) {
+        for (let i = 0; i < this.state.players.length; i++) {
+            const player = this.state.players[i];
+            if (!player) continue;
             if (this.state.ball.lastHit === player.id) {
                 continue;
             }
@@ -213,13 +215,20 @@ export class GameEngine {
         }
     }
 
-    private checkBorder(): boolean {
+    private checkBorder(axis: number, positive: boolean): boolean {
         const pos = this.state.ball.pos;
+        if (!pos[axis]) return false;
+        if (positive === true) {
+            if (
+                pos[axis] + 0.5 >= ARENA_WIDTH / 2 ||
+                pos[axis] + 0.5 >= this.arenaHeight / 2
+            ) {
+                return true;
+            }
+        }
         if (
-            pos[axisX] >= ARENA_WIDTH / 2 ||
-            pos[axisX] <= -ARENA_WIDTH / 2 ||
-            pos[axisY] >= this.arenaHeight / 2 ||
-            pos[axisY] <= -this.arenaHeight / 2
+            pos[axisX] - 0.5 <= -ARENA_WIDTH / 2 ||
+            pos[axisY] - 0.5 <= -this.arenaHeight / 2
         ) {
             return true;
         }
@@ -230,23 +239,31 @@ export class GameEngine {
         const ballPos = this.state.ball.pos;
         const axis = player.movementAxis === "x" ? axisX : axisY;
         const bounceAxis = player.movementAxis === "x" ? axisY : axisX;
+        const PADDLE_VELOCITY_FACTOR = 0.01;
 
         if (
-            this.checkBorder() &&
+            this.checkBorder(bounceAxis, ballPos[axis] > 0) &&
             this.pointCollision(
                 ballPos[axis],
                 player.position[axis] - 3,
                 player.position[axis] + 3,
-            )
+            ) &&
+            ((ballPos[bounceAxis] > 0 && player.position[bounceAxis] > 0) ||
+                (ballPos[bounceAxis] < 0 && player.position[bounceAxis] < 0))
         ) {
-            // this.state.ball.vel = this.reflectVector(
-            //     this.state.ball.vel,
-            //     this.getPaddleNormal(player),
-            // );
             this.state.ball.vel[bounceAxis] *= -1;
+
+            const paddleDirection = player.input;
+            const movementAxis = player.movementAxis === "x" ? axisX : axisY;
+            const velocityBoost =
+                paddleDirection * PADDLE_SPEED * PADDLE_VELOCITY_FACTOR;
+            this.state.ball.vel[movementAxis] += velocityBoost;
+
+            vec2.normalize(this.state.ball.vel, this.state.ball.vel);
             this.state.ball.speed *= BALL_SPEED_INCREASE;
             this.state.ball.lastHit = player.id;
             this.collisionCooldown = COLLISION_COOLDOWN;
+            // console.log("ballPos: ", ballPos);
             return true;
         }
         return false;

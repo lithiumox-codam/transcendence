@@ -12,6 +12,17 @@
 	const BALL_RADIUS = 1;
 	const axisX = 0;
 	const axisY = 1;
+	const COLOR_ARRAY = [
+		new BABYLON.Color3(1, 0, 0),
+		new BABYLON.Color3(0, 1, 0),
+		new BABYLON.Color3(0, 0, 1),
+		new BABYLON.Color3(1, 1, 0),
+	];
+	const COLOR_GREEN = new BABYLON.Color3(0, 1, 0);
+	const COLOR_RED = new BABYLON.Color3(1, 0, 0);
+	const COLOR_BLUE = new BABYLON.Color3(0, 0, 1);
+	const COLOR_YELLOW = new BABYLON.Color3(1, 1, 0);
+	const COLOR_WHITE = new BABYLON.Color3(1, 1, 1);
 
 	let arenaHeight: 30 | 40 = 30;
 	let paddleCount: 2 | 4 = 2;
@@ -96,7 +107,6 @@
 				: playerInputs.none;
 
 			if (!gameId || !playerId) return;
-			console.log("sending input", input);
 			client.game.sendInput.mutate({
 				gameId: gameId,
 				playerId: playerId,
@@ -121,13 +131,6 @@
 		scene = new BABYLON.Scene(engine);
 		scene.clearColor = new BABYLON.Color4(0, 0, 0, 1);
 		const axes = new BABYLON.Debug.AxesViewer(scene, 2);
-
-		const ambientLight = new BABYLON.HemisphericLight(
-			"ambientLight",
-			new BABYLON.Vector3(0, 1, 0),
-			scene,
-		);
-		ambientLight.intensity = 0.1;
 
 		const mirrorMaterial = new BABYLON.StandardMaterial(
 			"mirrorMaterial",
@@ -192,7 +195,7 @@
 			}
 		};
 
-		createDashedLine();
+		if (paddleCount === 2) createDashedLine();
 
 		neonMaterial.emissiveColor = new BABYLON.Color3(1, 1, 1);
 
@@ -239,7 +242,7 @@
 
 		ballLight = new BABYLON.PointLight("ballLight", ball.position, scene);
 		ballLight.diffuse = new BABYLON.Color3(1, 0, 0);
-		ballLight.intensity = 0.4;
+		ballLight.intensity = 0.5;
 	}
 
 	function initFourPlayerArena() {
@@ -248,35 +251,108 @@
 		borderMaterial.emissiveColor = new BABYLON.Color3(1, 1, 1);
 		borderMaterial.diffuseColor = new BABYLON.Color3(0, 0, 0);
 
+		const borderThickness = 2;
+		const borderDepth = 1;
+
+		const playerBorders = [
+			createBorder(
+				new BABYLON.Vector3(
+					-ARENA_WIDTH / 2 - borderThickness / 2 - 1,
+					0,
+					0,
+				),
+				new BABYLON.Vector3(
+					borderThickness,
+					arenaHeight + 2,
+					borderDepth,
+				),
+				COLOR_ARRAY[0],
+			),
+			createBorder(
+				new BABYLON.Vector3(
+					ARENA_WIDTH / 2 + borderThickness / 2 + 1,
+					0,
+					0,
+				),
+				new BABYLON.Vector3(
+					borderThickness,
+					arenaHeight + 2,
+					borderDepth,
+				),
+				COLOR_ARRAY[1],
+			),
+			createBorder(
+				new BABYLON.Vector3(
+					0,
+					arenaHeight / 2 + borderThickness / 2 + 1,
+					0,
+				),
+				new BABYLON.Vector3(
+					ARENA_WIDTH + 2,
+					borderThickness,
+					borderDepth,
+				),
+				COLOR_ARRAY[2],
+			),
+			createBorder(
+				new BABYLON.Vector3(
+					0,
+					-arenaHeight / 2 - borderThickness / 2 - 1,
+					0,
+				),
+				new BABYLON.Vector3(
+					ARENA_WIDTH + 2,
+					borderThickness,
+					borderDepth,
+				),
+				COLOR_ARRAY[3],
+			),
+		];
+
 		const createCorner = (
 			position: BABYLON.Vector3,
 			size: BABYLON.Vector3,
 		) => {
 			const corner = BABYLON.MeshBuilder.CreateBox(
 				"corner",
-				{
-					width: size.x,
-					height: size.y,
-					depth: size.z,
-				},
+				{ width: size.x, height: size.y, depth: size.z },
 				scene,
 			);
 			corner.position = position;
+			corner.material = borderMaterial;
 			return corner;
 		};
+
+		const cornerSize = new BABYLON.Vector3(2, 2, 1);
 		for (let i = 0; i < 4; i++) {
-			const corner = createCorner(
+			createCorner(
 				new BABYLON.Vector3(
-					i % 2 === 0
-						? ARENA_WIDTH / 2 + 0.5
-						: -ARENA_WIDTH / 2 - 0.5,
-					i < 2 ? arenaHeight / 2 + 0.5 : -arenaHeight / 2 - 0.5,
+					i % 2 === 0 ? ARENA_WIDTH / 2 + 2 : -ARENA_WIDTH / 2 - 2,
+					i < 2 ? arenaHeight / 2 + 2 : -arenaHeight / 2 - 2,
 					0,
 				),
-				new BABYLON.Vector3(1, 1, 1),
+				cornerSize,
 			);
-			corner.material = borderMaterial;
 		}
+	}
+
+	function createBorder(
+		position: BABYLON.Vector3,
+		size: BABYLON.Vector3,
+		color: BABYLON.Color3,
+	): BABYLON.Mesh {
+		const borderMat = new BABYLON.StandardMaterial("BorderMat", scene);
+		borderMat.emissiveColor = color;
+		borderMat.diffuseColor = color;
+
+		const border = BABYLON.MeshBuilder.CreateBox(
+			"Border",
+			{ width: size.x, height: size.y, depth: size.z },
+			scene,
+		);
+		border.position = position;
+		border.material = borderMat;
+		return border;
 	}
 
 	function initBorders() {
@@ -285,31 +361,16 @@
 		borderMaterial.emissiveColor = new BABYLON.Color3(1, 1, 1); // White glow
 		borderMaterial.diffuseColor = new BABYLON.Color3(0, 0, 0); // Black base
 
-		const createBorder = (
-			position: BABYLON.Vector3,
-			size: BABYLON.Vector3,
-		) => {
-			const border = BABYLON.MeshBuilder.CreateBox(
-				"border",
-				{
-					width: size.x,
-					height: size.y,
-					depth: size.z,
-				},
-				scene,
-			);
-			border.position = position;
-			border.material = borderMaterial;
-			return border;
-		};
 		topBorder = createBorder(
 			new BABYLON.Vector3(0, arenaHeight / 2 + 0.5, 0),
 			new BABYLON.Vector3(43, 1, 1),
+			COLOR_WHITE,
 		);
 
 		bottomBorder = createBorder(
 			new BABYLON.Vector3(0, -arenaHeight / 2 - 0.5, 0),
 			new BABYLON.Vector3(43, 1, 1),
+			COLOR_WHITE,
 		);
 	}
 
@@ -330,6 +391,20 @@
 		ball.position.x = gameState.ball.pos[axisX];
 		ball.position.y = gameState.ball.pos[axisY];
 		ballLight.position = ball.position;
+		if (!gameState.ball.lastHit) return;
+		const colorIndex = gameState.players.findIndex(
+			(player: Player) =>
+				gameState && player.id === gameState.ball.lastHit,
+		);
+		const newcolor = COLOR_ARRAY[colorIndex];
+		if (newcolor === ballLight.diffuse) return;
+		console.log("player", gameState.ball.lastHit);
+		console.log("colorIndex", colorIndex);
+		const newMaterial = new BABYLON.StandardMaterial("ballMaterial", scene);
+		newMaterial.emissiveColor = newcolor;
+		newMaterial.diffuseColor = newcolor;
+		ball.material = newMaterial;
+		ballLight.diffuse = newcolor;
 	}
 </script>
 

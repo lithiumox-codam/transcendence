@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { client } from "$lib/trpc";
 	import { goto } from "$app/navigation";
+	import { onMount } from "svelte";
 
 	let showDeleteModal = $state(false);
 	let showPasswordModal = $state(false);
@@ -14,42 +15,56 @@
 	let isOAuth = $state(false);
 	let isPasswordSet = $state(false);
 
-	async function handleSetOrChangePassword() {
+	// Is user[0] juiste manier??
+	onMount(async () => {
 		try {
-			// Ensure all fields are filled
-			// oldpassword? with isOAuth && !isPasswordSet
+			const user = await client.user.get.query();
+			isOAuth = user[0]?.oAuthProvider !== null;
+			isPasswordSet = user[0]?.passwordSet === 1;
+		} catch (err) {
+			console.error("Failed to fetch user", err);
+		}
+	});
+
+	async function handleChangePassword() {
+		try {
 			if (!oldPassword || !newPassword || !confirmPassword) {
 				errorMessage = "Please enter all fields.";
 				return;
 			}
-
-			// Validate password confirmation
 			if (newPassword !== confirmPassword) {
 				errorMessage = "Passwords do not match.";
 				return;
 			}
-
-			// Validate password strength
-
-			// Make API request to change password
 			await client.user.privacy.changePassword.mutate({
 				oldPassword,
 				newPassword,
 			});
-
-			// Reset inputs after success
-			oldPassword = "";
-			newPassword = "";
-			confirmPassword = "";
-
-			// Close modal automatically
-			togglePasswordModal();
+			resetPasswordModal();
 		} catch (error) {
 			console.error(error);
-			errorMessage =
-				isOAuth && !isPasswordSet
-					? "Failed to set password."
-					: "Incorrect password.";
+			errorMessage = "Incorrect password.";
+		}
+	}
+
+	async function handleSetPassword() {
+		try {
+			if (!newPassword || !confirmPassword) {
+				errorMessage = "Please enter all fields.";
+				return;
+			}
+			if (newPassword !== confirmPassword) {
+				errorMessage = "Passwords do not match.";
+				return;
+			}
+			await client.user.privacy.setPassword.mutate({
+				password: newPassword,
+			});
+			resetPasswordModal();
+			isPasswordSet = true;
+		} catch (error) {
+			console.error(error);
+			errorMessage = "Failed to set password.";
 		}
 	}
 
@@ -73,7 +88,14 @@
 		}
 	}
 
-	// not needed ?
+	function resetPasswordModal() {
+		oldPassword = "";
+		newPassword = "";
+		confirmPassword = "";
+		errorMessage = "";
+		togglePasswordModal();
+	}
+
 	function toggleDeleteModal() {
 		showDeleteModal = !showDeleteModal;
 		username = "";
@@ -185,7 +207,9 @@
 			<div class="flex justify-center gap-3 mt-4">
 				<button
 					class="bg-blue-500 text-white px-4 py-2 rounded-md transition duration-300 hover:bg-blue-700"
-					onclick={handleSetOrChangePassword}
+					onclick={isOAuth && !isPasswordSet
+						? handleSetPassword
+						: handleChangePassword}
 				>
 					{isOAuth && !isPasswordSet ? "Set Password" : "Save"}
 				</button>

@@ -70,4 +70,25 @@ export const gdprRouter = createTRPCRouter({
 
 			await db.update(users).set({ password: hashedPassword }).where(eq(users.id, ctx.user.id));
 		}),
+
+		setPassword: protectedProcedure
+		.input(z.object({ password: passwordSchema }))
+		.mutation(async ({ ctx, input }) => {
+			const user = await db
+				.select()
+				.from(users)
+				.where(eq(users.id, ctx.user.id));
+
+			if (user.length === 0 || !user[0]) {
+				throw new TRPCError({
+					code: "FORBIDDEN",
+					message: "Invalid credentials",
+				});
+			}
+
+			const hashedPassword = await hashPassword(input.password);
+
+			await db.update(users).set({ password: hashedPassword }).where(eq(users.id, ctx.user.id));
+		}
+	),
 });

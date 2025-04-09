@@ -16,16 +16,18 @@
     "dependencies": {
         "@repo/auth": "workspace:^",
         "@repo/database": "workspace:^",
-        "@repo/tsconfig": "workspace:^",
         "@repo/game": "workspace:^",
+        "@repo/tsconfig": "workspace:^",
         "@trpc/server": "11.0.0-rc.764",
         "@types/better-sqlite3": "^7.6.12",
         "cookie": "^1.0.2",
         "drizzle-orm": "0.39.2",
         "fastify": "^5.2.1",
         "jose": "^5.9.6",
+        "otplib": "^12.0.1",
         "superjson": "^2.2.2",
-        "zod": "^3.24.1"
+        "zod": "^3.24.1",
+        "zod-form-data": "^2.0.7"
     },
     "devDependencies": {
         "@types/cookie": "^1.0.0"

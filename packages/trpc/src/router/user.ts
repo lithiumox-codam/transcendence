@@ -2,8 +2,11 @@ import {
     type User,
     type UserFull,
     db,
-    userInputSchema,
     users,
+    avatarSchema,
+    userNameSchema,
+    friendSelectSchema,
+    updateUserSchema,
 } from "@repo/database";
 import { TRPCError } from "@trpc/server";
 import { and, eq, like, ne, sql } from "drizzle-orm";
@@ -29,6 +32,7 @@ export const userRouter = createTRPCRouter({
 				oAuthProvider: users.oAuthProvider,
                 createdAt: users.createdAt,
 				passwordSet: sql`CASE WHEN ${users.password} != '' THEN 1 ELSE 0 END`.as("passwordSet"),
+                avatar: users.avatar,
             })
             .from(users)
             .where(eq(users.id, ctx.user.id));
@@ -45,21 +49,24 @@ export const userRouter = createTRPCRouter({
             .where(eq(users.id, input));
         return res[0];
     }),
-    create: publicProcedure.input(userInputSchema).mutation(async (opts) => {
-        return await db.insert(users).values(opts.input);
-    }),
     update: protectedProcedure
-        .input(
-            userInputSchema
-                .omit({ id: true, createdAt: true, password: true })
-                .optional(),
-        )
+        .input(updateUserSchema)
         .mutation(async ({ ctx, input }) => {
+            const { name, email, avatar } = input;
+            if (!name && !email && !avatar) {
+                throw new TRPCError({
+                    code: "BAD_REQUEST",
+                    message: "No input provided",
+                });
+            }
+
             try {
                 const [edit] = await db
                     .update(users)
                     .set({
-                        ...input,
+                        name,
+                        email,
+                        avatar,
                     })
                     .where(eq(users.id, ctx.user.id))
                     .returning({
@@ -67,12 +74,15 @@ export const userRouter = createTRPCRouter({
                         name: users.name,
                         email: users.email,
 						oAuthProvider: users.oAuthProvider,
+                        avatar: users.avatar,
                         createdAt: users.createdAt,
                     });
                 if (edit) {
                     emitter.emit("user:update", edit);
                     emitter.emit("friends:update", edit.id);
                 }
+
+                return edit;
             } catch (e) {
                 console.error(e);
                 throw new TRPCError({

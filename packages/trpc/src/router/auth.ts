@@ -5,7 +5,7 @@ import {
     googleProvider,
     TokenPayload,
 } from "@repo/auth";
-import { db, passwordSchema, userInputSchema, users } from "@repo/database";
+import { db, passwordSchema, userNameSchema, users } from "@repo/database";
 import { TRPCError } from "@trpc/server";
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
@@ -14,56 +14,65 @@ import {
     protectedProcedure,
     publicProcedure,
 } from "../trpc.ts";
+import { authenticator } from "otplib";
 
 export const authRouter = createTRPCRouter({
-    signup: publicProcedure.input(userInputSchema).mutation(async (opts) => {
-        const emailExists = await db
-            .select()
-            .from(users)
-            .where(eq(users.email, opts.input.email));
-        if (emailExists.length > 0) {
-            throw new TRPCError({
-                code: "FORBIDDEN",
-                message: "Email is already taken",
-                cause: "email",
-            });
-        }
-        const nameExists = await db
-            .select()
-            .from(users)
-            .where(eq(users.name, opts.input.name));
-        if (nameExists.length > 0) {
-            throw new TRPCError({
-                code: "FORBIDDEN",
-                message: "Name is already taken",
-                cause: "name",
-            });
-        }
+    signup: publicProcedure
+        .input(
+            z.object({
+                email: z.string().email(),
+                password: passwordSchema,
+                name: userNameSchema,
+            }),
+        )
+        .mutation(async (opts) => {
+            const emailExists = await db
+                .select()
+                .from(users)
+                .where(eq(users.email, opts.input.email));
+            if (emailExists.length > 0) {
+                throw new TRPCError({
+                    code: "FORBIDDEN",
+                    message: "Email is already taken",
+                    cause: "email",
+                });
+            }
+            const nameExists = await db
+                .select()
+                .from(users)
+                .where(eq(users.name, opts.input.name));
+            if (nameExists.length > 0) {
+                throw new TRPCError({
+                    code: "FORBIDDEN",
+                    message: "Name is already taken",
+                    cause: "name",
+                });
+            }
 
-        const { password, name, email } = opts.input;
+            const { password, name, email } = opts.input;
 
-        const hashedPassword = await hashPassword(password);
+            const hashedPassword = await hashPassword(password);
 
-        // create user
-        const user = await db
-            .insert(users)
-            .values({
-                name,
-                email,
-                password: hashedPassword,
-            })
-            .returning();
-        if (user.length === 0 || !user[0]) {
-            throw new TRPCError({
-                code: "INTERNAL_SERVER_ERROR",
-                message: "Failed to create user",
-            });
-        }
-        opts.ctx.user = user[0];
-        const jwt = await sign({ userId: user[0].id });
+            // create user
+            const user = await db
+                .insert(users)
+                .values({
+                    name,
+                    email,
+                    password: hashedPassword,
+                })
+                .returning();
+            if (user.length === 0 || !user[0]) {
+                throw new TRPCError({
+                    code: "INTERNAL_SERVER_ERROR",
+                    message: "Failed to create user",
+                });
+            }
+            opts.ctx.user = user[0];
+            const jwt = await sign({ userId: user[0].id });
 
-        return jwt;
-    }),
+            return jwt;
+        }),
     changePassword: protectedProcedure
         .input(
             z.object({
@@ -102,9 +111,14 @@ export const authRouter = createTRPCRouter({
             return true;
         }),
     login: publicProcedure
-        .input(z.object({ email: z.string(), password: z.string() }))
+        .input(
+            z.object({
+                email: z.string(),
+                password: z.string(),
+                otpToken: z.string().optional(),
+            }),
+        )
         .mutation(async (opts) => {
-
             const user = await db
                 .select()
                 .from(users)
@@ -126,6 +140,23 @@ export const authRouter = createTRPCRouter({
                     message: "Invalid credentials",
                 });
             }
+
+            if (user[0].secret) {
+                if (!opts.input.otpToken) {
+                    return "2fa";
+                }
+                const isValidOtp = authenticator.verify({
+                    token: opts.input.otpToken,
+                    secret: user[0].secret,
+                });
+                if (!isValidOtp) {
+                    throw new TRPCError({
+                        code: "FORBIDDEN",
+                        message: "Invalid OTP",
+                    });
+                }
+            }
+
             opts.ctx.user = user[0];
             const jwt = await sign({ userId: user[0].id });
 
@@ -209,4 +240,43 @@ export const authRouter = createTRPCRouter({
                 message: "Failed to login",
             });
         }),
+    toggle2FA: protectedProcedure.mutation(async ({ ctx }) => {
+        const user = await db
+            .select()
+            .from(users)
+            .where(eq(users.id, ctx.user.id));
+
+        if (user.length === 0 || !user[0]) {
+            throw new TRPCError({
+                code: "FORBIDDEN",
+                message: "Invalid credentials",
+            });
+        }
+
+        if (user[0].secret) {
+            await db
+                .update(users)
+                .set({
+                    secret: null,
+                })
+                .where(eq(users.id, ctx.user.id));
+        } else {
+            const secret = authenticator.generateSecret();
+            await db
+                .update(users)
+                .set({
+                    secret,
+                })
+                .where(eq(users.id, ctx.user.id));
+
+            const otp = authenticator.keyuri(
+                user[0].name,
+                "transcendence",
+                secret,
+            );
+            return otp;
+        }
+
+        return null;
+    }),
 });

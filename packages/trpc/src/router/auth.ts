@@ -1,20 +1,20 @@
 import {
+    TokenPayload,
+    googleProvider,
     hashPassword,
     sign,
     verifyPassword,
-    googleProvider,
-    TokenPayload,
 } from "@repo/auth";
 import { db, passwordSchema, userNameSchema, users } from "@repo/database";
 import { TRPCError } from "@trpc/server";
 import { and, eq } from "drizzle-orm";
+import { authenticator } from "otplib";
 import { z } from "zod";
 import {
     createTRPCRouter,
     protectedProcedure,
     publicProcedure,
 } from "../trpc.ts";
-import { authenticator } from "otplib";
 
 export const authRouter = createTRPCRouter({
     signup: publicProcedure
@@ -210,13 +210,27 @@ export const authRouter = createTRPCRouter({
                     .where(eq(users.email, email));
 
                 if (user.length === 0 || !user[0]) {
+                    const baseName = email.split("@")[0];
+                    let name = baseName;
+                    user = await db
+                        .select()
+                        .from(users)
+                        .where(eq(users.name, name));
+                    // if name already exists, append a random number
+                    while (user.length > 0) {
+                        name = baseName + Math.floor(Math.random() * 100);
+                        user = await db
+                            .select()
+                            .from(users)
+                            .where(eq(users.name, name));
+                    }
                     user = await db
                         .insert(users)
                         .values({
                             email,
-                            name: email.split("@")[0],
+                            name,
                             password: "",
-							oAuthProvider: "google",
+                            oAuthProvider: "google",
                         })
                         .returning();
 

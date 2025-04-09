@@ -178,6 +178,8 @@ export const gameRouter = createTRPCRouter({
                         name: users.name,
                         email: users.email,
                         createdAt: users.createdAt,
+                        avatar: users.avatar,
+                        oAuthProvider: users.oAuthProvider,
                     },
                 })
                 .from(games)

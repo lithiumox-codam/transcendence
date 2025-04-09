@@ -1,4 +1,4 @@
-import { db, friends, users } from "@repo/database";
+import { avatarSchema, db, friends, users } from "@repo/database";
 import { TRPCError } from "@trpc/server";
 import { aliasedTable, and, count, desc, eq, isNull, or } from "drizzle-orm";
 import { z } from "zod";
@@ -56,6 +56,7 @@ export const friendsRouter = createTRPCRouter({
                 email: users.email,
                 createdAt: users.createdAt,
                 oAuthProvider: users.oAuthProvider,
+                avatar: users.avatar,
             })
             .from(users)
             .innerJoin(
@@ -169,6 +170,7 @@ export const friendsRouter = createTRPCRouter({
                 name: users.name,
                 email: users.email,
                 createdAt: users.createdAt,
+                avatar: users.avatar,
             })
             .from(users)
             .innerJoin(
@@ -196,6 +198,7 @@ export const friendsRouter = createTRPCRouter({
                 name: users.name,
                 email: users.email,
                 createdAt: users.createdAt,
+                avatar: users.avatar,
             })
             .from(users)
             .innerJoin(

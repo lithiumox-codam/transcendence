@@ -1,12 +1,12 @@
 import {
     type User,
     type UserFull,
-    db,
-    users,
     avatarSchema,
-    userNameSchema,
+    db,
     friendSelectSchema,
     updateUserSchema,
+    userNameSchema,
+    users,
 } from "@repo/database";
 import { TRPCError } from "@trpc/server";
 import { and, eq, like, ne, sql } from "drizzle-orm";
@@ -29,9 +29,12 @@ export const userRouter = createTRPCRouter({
                 id: users.id,
                 name: users.name,
                 email: users.email,
-				oAuthProvider: users.oAuthProvider,
+                oAuthProvider: users.oAuthProvider,
                 createdAt: users.createdAt,
-				passwordSet: sql`CASE WHEN ${users.password} != '' THEN 1 ELSE 0 END`.as("passwordSet"),
+                passwordSet:
+                    sql`CASE WHEN ${users.password} != '' THEN 1 ELSE 0 END`.as(
+                        "passwordSet",
+                    ),
                 avatar: users.avatar,
             })
             .from(users)
@@ -44,6 +47,7 @@ export const userRouter = createTRPCRouter({
                 name: users.name,
                 email: users.email,
                 createdAt: users.createdAt,
+                avatar: users.avatar,
             })
             .from(users)
             .where(eq(users.id, input));
@@ -73,7 +77,7 @@ export const userRouter = createTRPCRouter({
                         id: users.id,
                         name: users.name,
                         email: users.email,
-						oAuthProvider: users.oAuthProvider,
+                        oAuthProvider: users.oAuthProvider,
                         avatar: users.avatar,
                         createdAt: users.createdAt,
                     });

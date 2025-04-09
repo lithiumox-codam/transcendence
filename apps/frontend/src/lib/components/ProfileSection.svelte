@@ -13,7 +13,7 @@
 	>
 		<img
 			class="w-24 h-24 rounded-full mr-8 border-4 border-double border-gray-400 filter drop-shadow"
-			src="/favicon.png"
+			src={user.data?.avatar}
 			alt="User Avatar"
 		/>
 		<div>

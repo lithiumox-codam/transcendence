@@ -5,6 +5,7 @@
 		userId: number;
 		userName: string;
 		userEmail: string;
+		userAvatar: string | null;
 		totalScore: number;
 		gamesPlayed: number;
 	};
@@ -63,7 +64,7 @@
 				onclick={() => viewProfile(item.userId)}
 			>
 				<img
-					src="/favicon.png"
+					src={item.userAvatar}
 					alt="Avatar"
 					class="w-8 h-8 rounded-full border-2 border-yellow-300 object-cover"
 				/>
@@ -96,7 +97,7 @@
 				onclick={() => viewProfile(item.userId)}
 			>
 				<img
-					src="/favicon.png"
+					src={item.userAvatar}
 					alt="Avatar"
 					class="w-8 h-8 rounded-full border-2 border-gray-300 object-cover shrink-0"
 				/>
@@ -129,7 +130,7 @@
 				onclick={() => viewProfile(item.userId)}
 			>
 				<img
-					src="/favicon.png"
+					src={item.userAvatar}
 					alt="Avatar"
 					class="w-8 h-8 rounded-full border-2 border-orange-400 object-cover shrink-0"
 				/>

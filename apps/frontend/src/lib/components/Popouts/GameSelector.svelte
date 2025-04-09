@@ -99,8 +99,8 @@
             <div class="flex -space-x-2">
                 {#each data.players as player}
                     <img
-                        src="https://i.pravatar.cc/300"
-                        alt="{player.name}"
+                        src={player.avatar}
+                        alt={player.name}
                         class="w-8 h-8 rounded-full border-2 border-gray-900 hover:border-white transition-border duration-300 ease-in-out"
                     />
                 {/each}

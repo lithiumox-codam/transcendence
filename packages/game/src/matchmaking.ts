@@ -1,4 +1,5 @@
 import { db, games, players } from "@repo/database";
+import {} from "@repo/trpc";
 import { GameEngine } from "./logic.ts";
 
 type queuedPlayer = {
@@ -6,11 +7,10 @@ type queuedPlayer = {
     gameType: 2 | 4;
 };
 
-export const gamesMap = new Map<number, GameEngine>();
-
-class Matchmaking {
+export class Matchmaking {
     private static instance: Matchmaking;
     private queuedPlayers: queuedPlayer[] = [];
+    public gamesMap = new Map<number, GameEngine>();
 
     public static getInstance(): Matchmaking {
         if (!Matchmaking.instance) {
@@ -19,7 +19,9 @@ class Matchmaking {
         return Matchmaking.instance;
     }
 
-    private constructor() {}
+    private constructor() {
+        this.gamesMap = new Map<number, GameEngine>();
+    }
 
     public async createGame(
         playerIds: number[],
@@ -49,7 +51,7 @@ class Matchmaking {
 
             // Initialize game engine with all players
             const gameInstance = new GameEngine(maxPlayers, playerIds);
-            gamesMap.set(game.id, gameInstance);
+            this.gamesMap.set(game.id, gameInstance);
 
             return game.id;
         } catch (error) {
@@ -95,5 +97,3 @@ class Matchmaking {
         await this.matchmake();
     }
 }
-
-export const matchmaking = Matchmaking.getInstance();

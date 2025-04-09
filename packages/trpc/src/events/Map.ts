@@ -19,9 +19,5 @@ export interface EventMap {
         update: number;
         request: Friend;
     };
-    game: {
-        created: { game: Game; players: Player[] };
-        state: GameState;
-    };
     [key: string]: Record<string, unknown>; // Added to tell TypeScript that the key is a string
 }

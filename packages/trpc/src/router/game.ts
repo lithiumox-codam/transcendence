@@ -19,6 +19,7 @@ import {
 } from "../trpc.ts";
 
 const matchmaking = Matchmaking.getInstance();
+let i = 1;
 
 export const gameRouter = createTRPCRouter({
     create: protectedProcedure
@@ -56,10 +57,37 @@ export const gameRouter = createTRPCRouter({
             matchmaking.joinQueue(ctx.user.id, input);
             return true;
         }),
+    join: protectedProcedure
+        .input(z.number())
+        .mutation(async ({ ctx, input }) => {
+            const game = matchmaking.gamesMap.get(input);
+            if (!game) {
+                throw new Error("Game not found");
+            }
+            const [player] = await db
+                .insert(players)
+                .values({
+                    gameId: input,
+                    userId: ctx.user.id,
+                })
+                .returning();
+            if (!player) {
+                throw new Error("Failed to join game");
+            }
+            game.addPlayer(player.userId + i++);
+        }),
     start: protectedProcedure.input(z.number()).mutation(async ({ input }) => {
         const game = matchmaking.gamesMap.get(input);
         if (!game) {
             throw new Error("Game not found");
+        }
+        const [dbgame] = await db
+            .select()
+            .from(games)
+            .where(eq(games.id, input))
+            .values({ status: "playing" });
+        if (!dbgame) {
+            throw new Error("Failed to start game");
         }
         game.startGame();
     }),

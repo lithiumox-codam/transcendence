@@ -8,19 +8,8 @@ export class GameClass {
     constructor(userClass: UserClass) {
         this.init();
         this.history = $state([]);
-        this.listenOngoing();
-        $inspect(this.ongoing, "ongoing");
         $inspect(this.history, "history");
     }
 
     async init() {}
-
-    async listenOngoing() {
-        client.game.ongoing.subscribe(undefined, {
-            onData: async (games) => {
-                console.log("Ongoing games", games);
-                this.ongoing = games;
-            },
-        });
-    }
 }

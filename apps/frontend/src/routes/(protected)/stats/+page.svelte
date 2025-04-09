@@ -2,6 +2,7 @@
 	import type { PageData } from "./$types";
 	import Leaderboard from "$lib/components/Stats/Leaderboard.svelte";
 	import UserStats from "$lib/components/Stats/UserStats.svelte";
+	import GameHistory from "$lib/components/Stats/GameHistory.svelte";
 
 	let { data }: { data: PageData } = $props();
 </script>
@@ -31,5 +32,13 @@
 		userData={{
 			...data.user[0],
 		}}
+	/>
+
+	<GameHistory
+		GameHistory={data.gameHistory.map((game) => ({
+			...game,
+			createdAt: game.createdAt ?? "",
+			updatedAt: game.updatedAt ?? "",
+		}))}
 	/>
 </main>

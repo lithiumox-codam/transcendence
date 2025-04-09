@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { onMount } from "svelte";
-
 	type userStats = {
 		wins: number;
 		losses: number;
@@ -14,6 +12,8 @@
 	type userData = {
 		name: string;
 	};
+
+	// name should be "Your" when looking at your own stats
 
 	let { userStats, userData }: { userStats: userStats; userData: userData } =
 		$props();

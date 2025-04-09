@@ -15,7 +15,6 @@
 	let isOAuth = $state(false);
 	let isPasswordSet = $state(false);
 
-	// Is user[0] juiste manier??
 	onMount(async () => {
 		try {
 			const user = await client.user.get.query();
@@ -41,6 +40,7 @@
 				newPassword,
 			});
 			resetPasswordModal();
+			// more specific error messages
 		} catch (error) {
 			console.error(error);
 			errorMessage = "Incorrect password.";
@@ -64,7 +64,19 @@
 			isPasswordSet = true;
 		} catch (error) {
 			console.error(error);
-			errorMessage = "Failed to set password.";
+			if ((error as any).data?.zodError?.fieldErrors?.password) {
+				if (
+					error instanceof Error &&
+					(error as any).data?.zodError?.fieldErrors?.password
+				) {
+					errorMessage = (error as any).data.zodError.fieldErrors
+						.password[0];
+				}
+			} else if (error instanceof Error && error.message) {
+				errorMessage = error.message;
+			} else {
+				errorMessage = "An unexpected error occurred.";
+			}
 		}
 	}
 

@@ -1,7 +1,8 @@
 <script lang="ts">
+	import GameHistory from "$lib/components/Stats/GameHistory.svelte";
 	import UserStats from "$lib/components/Stats/UserStats.svelte";
-	// import MatchHistory from "$lib/components/Stats/MatchHistory.svelte";
 	import type { PageData } from "./$types";
+
 	let { data }: { data: PageData } = $props();
 </script>
 
@@ -35,17 +36,29 @@
 			</div>
 		</header>
 
-		<!-- User Stats -->
-		<div class="flex flex-col space-y-6">
-			<UserStats
-				userStats={{
-					...data.userStats,
-					highestScore: data.userStats.highestScore ?? 0,
-				}}
-				userData={{ ...data.user }}
-			/>
+		<!-- User Stats and Game History -->
+		<div class="flex flex-row flex-wrap gap-x-6 gap-y-6">
+			<!-- Game History -->
+			<div class="flex-1 min-w-[300px] skew-[1deg]">
+				<GameHistory
+					GameHistory={data.gameHistory.map((game) => ({
+						...game,
+						createdAt: game.createdAt ?? "",
+						updatedAt: game.updatedAt ?? "",
+					}))}
+				/>
+			</div>
 
-			<!-- <MatchHistory history={data.history} /> -->
+			<!-- User Stats -->
+			<div class="flex-1 min-w-[300px] skew-[1deg]">
+				<UserStats
+					userStats={{
+						...data.userStats,
+						highestScore: data.userStats.highestScore ?? 0,
+					}}
+					userData={{ ...data.user }}
+				/>
+			</div>
 		</div>
 	</section>
 </main>

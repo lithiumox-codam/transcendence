@@ -1,5 +1,9 @@
 <script lang="ts">
 	import { goto } from "$app/navigation";
+
+	function goBack() {
+		history.back(); // Navigate to the previous page
+	}
 </script>
 
 <main
@@ -86,5 +90,14 @@
 				</p>
 			</div>
 		</section>
+
+		<div class="mt-6 text-center">
+			<button
+				class="bg-blue-500 text-white px-4 py-2 rounded-md transition duration-300 hover:bg-blue-700"
+				onclick={goBack}
+			>
+				close
+			</button>
+		</div>
 	</div>
 </main>

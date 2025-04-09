@@ -4,10 +4,6 @@
 	import { goto } from "$app/navigation";
 
 	const user = getContext<UserClass>("user");
-
-	function viewProfile(userId: number) {
-		goto(`/user/${userId}`);
-	}
 </script>
 
 <main class="py-10 px-6 max-w-5xl mx-auto">
@@ -25,23 +21,6 @@
 				{user.data?.name}
 			</h1>
 			<p class="text-lg text-gray-300 italic">{user.data?.email}</p>
-			<button
-				class="mt-4 px-4 py-2 text-sm font-bold bg-blue-500 text-white rounded-md transition-all duration-300 hover:bg-blue-700"
-			>
-				Edit Profile
-			</button>
 		</div>
 	</header>
-
-	<!-- Bio -->
-	<section
-		class="mt-8 bg-gray-700 p-6 rounded-lg shadow-lg border border-gray-600"
-	>
-		<h2 class="text-2xl font-semibold mb-4 text-white">Bio</h2>
-		<button
-			class="mt-4 px-4 py-2 text-sm font-bold bg-blue-500 text-white rounded-md transition-all duration-300 hover:bg-blue-700"
-		>
-			Edit Bio
-		</button>
-	</section>
 </main>

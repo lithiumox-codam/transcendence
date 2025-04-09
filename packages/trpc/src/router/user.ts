@@ -6,7 +6,7 @@ import {
     users,
 } from "@repo/database";
 import { TRPCError } from "@trpc/server";
-import { and, eq, like, ne } from "drizzle-orm";
+import { and, eq, like, ne, sql } from "drizzle-orm";
 import { z } from "zod";
 import { emitter } from "../events/index.ts";
 import {
@@ -26,7 +26,9 @@ export const userRouter = createTRPCRouter({
                 id: users.id,
                 name: users.name,
                 email: users.email,
+				oAuthProvider: users.oAuthProvider,
                 createdAt: users.createdAt,
+				passwordSet: sql`CASE WHEN ${users.password} != '' THEN 1 ELSE 0 END`.as("passwordSet"),
             })
             .from(users)
             .where(eq(users.id, ctx.user.id));
@@ -64,6 +66,7 @@ export const userRouter = createTRPCRouter({
                         id: users.id,
                         name: users.name,
                         email: users.email,
+						oAuthProvider: users.oAuthProvider,
                         createdAt: users.createdAt,
                     });
                 if (edit) {

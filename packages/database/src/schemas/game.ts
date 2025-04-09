@@ -29,6 +29,7 @@ export const players = sqliteTable("players", {
     userId: integer("user_id")
         .notNull()
         .references(() => users.id),
+    score: integer("score").notNull().default(0),
     createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`),
 });
 

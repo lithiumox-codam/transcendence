@@ -6,8 +6,9 @@ import {
     players,
     users,
 } from "@repo/database";
-
-import { GameEngine, Matchmaking } from "@repo/game";
+import type { GameState } from "@repo/game";
+import { GameEngine, Matchmaking, playerInputs } from "@repo/game";
+import { observable } from "@trpc/server/observable";
 import { and, desc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { emitter } from "../events/index.ts";

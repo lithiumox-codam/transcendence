@@ -8,9 +8,11 @@
 
 	let email = $state("");
 	let password = $state("");
+	let errorMessage = $state(""); // State for error message
 
 	async function handleSubmit(event: Event) {
 		event.preventDefault();
+		errorMessage = ""; // Clear previous error message
 		try {
 			const res = await client.auth.login.mutate({
 				email,
@@ -20,6 +22,8 @@
 			if (data.redirect) goto(data.redirect);
 			else goto("/stats");
 		} catch (error) {
+			// Display error message if login fails
+			errorMessage = "Invalid username or password. Please try again.";
 			console.error(error);
 		}
 	}
@@ -36,10 +40,10 @@
 		class="flex flex-col w-[380px] rounded-md border border-gray-700 bg-gray-800 text-white shadow-lg"
 	>
 		<!-- Header -->
-		<div class="flex flex-col space-y-1.5 p-6">
+		<div class="flex flex-col space-y-1.5 p-6 text-center">
 			<h3 class="text-2xl font-semibold tracking-tight">Login</h3>
 			<p class="text-sm text-gray-400">
-				Enter your email and password to login
+				Enter your email and password to access your account
 			</p>
 		</div>
 
@@ -72,24 +76,35 @@
 						bind:value={password}
 					/>
 				</div>
+
+				<!-- Error Message -->
+				{#if errorMessage}
+					<p class="text-red-500 text-sm">{errorMessage}</p>
+				{/if}
+
 				<button
-					class="w-full h-10 rounded-md bg-blue-600 text-white font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+					class="w-full cursor-pointer h-10 rounded-md bg-blue-600 text-white font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
 				>
 					Login
 				</button>
 			</form>
-		</div>
-
-		<!-- Google Login -->
-		<div class="mt-2 flex justify-center">
-			<GoogleButton providerConfig={data.clientGoogleProvider} />
+			<!-- Google Login -->
+			<p class="mt-2 text-sm text-center text-gray-400">or</p>
+			<div class="flex justify-center">
+				<GoogleButton
+					providerConfig={data.clientGoogleProvider}
+					
+				>
+					Login with Google
+				</GoogleButton>
+			</div>
 		</div>
 
 		<!-- Signup Redirect -->
 		<div class="mt-6 p-6 text-center">
 			<p class="text-sm text-gray-400">Don't have an account?</p>
 			<button
-				class="mt-2 w-full h-10 rounded-md bg-gray-700 text-white font-medium hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+				class="mt-2 w-full h-10 cursor-pointer rounded-md bg-gray-700 text-white font-medium hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
 				onclick={redirectToSignup}
 			>
 				Sign Up

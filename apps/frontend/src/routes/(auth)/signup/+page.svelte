@@ -3,6 +3,7 @@
 	import { browser } from "$app/environment";
 	import { goto } from "$app/navigation";
 	import GoogleButton from "$lib/components/GoogleButton.svelte";
+	import { LogIn } from "@lucide/svelte";
 
 	let { data } = $props();
 
@@ -42,7 +43,7 @@
 		class="flex flex-col w-[380px] rounded-md border border-gray-700 bg-gray-800 text-white shadow-lg"
 	>
 		<!-- Header -->
-		<div class="flex flex-col space-y-1.5 p-6">
+		<div class="flex flex-col space-y-1.5 p-6 text-center">
 			<h3 class="text-2xl font-semibold tracking-tight">Sign Up</h3>
 			<p class="text-sm text-gray-400">
 				Enter your details below to create your account
@@ -102,23 +103,25 @@
 				</div>
 				<button
 					type="submit"
-					class="w-full h-10 rounded-md bg-blue-600 text-white font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+					class="w-full h-10 cursor-pointer rounded-md bg-blue-600 text-white font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
 				>
 					Sign Up
 				</button>
 			</form>
-		</div>
-
-		<!-- Google Signup -->
-		<div class="mt-2 flex justify-center">
-			<GoogleButton providerConfig={data.clientGoogleProvider} />
+			<!-- Google Signup -->
+			<p class="mt-2 text-sm text-center text-gray-400">or</p>
+			<div class="flex justify-center">
+				<GoogleButton providerConfig={data.clientGoogleProvider}>
+					Login with Google
+				</GoogleButton>
+			</div>
 		</div>
 
 		<!-- Login Redirect -->
 		<div class="p-6 text-center">
 			<p class="text-sm text-gray-400">Already have an account?</p>
 			<button
-				class="mt-2 w-full h-10 rounded-md bg-gray-700 text-white font-medium hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+				class="mt-2 w-full h-10 rounded-md bg-gray-700 text-white font-medium cursor-pointer hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
 				onclick={redirectToLogin}
 			>
 				Login

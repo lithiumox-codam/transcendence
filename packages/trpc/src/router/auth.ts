@@ -140,7 +140,7 @@ export const authRouter = createTRPCRouter({
             if (!clientId || !clientSecret) {
                 throw new TRPCError({
                     code: "INTERNAL_SERVER_ERROR",
-                    message: `Google Sign-in not configured`,
+                    message: "Google Sign-in not configured",
                 });
             }
 
@@ -185,6 +185,7 @@ export const authRouter = createTRPCRouter({
                             email,
                             name: email.split("@")[0],
                             password: "",
+							oAuthProvider: "google",
                         })
                         .returning();
 

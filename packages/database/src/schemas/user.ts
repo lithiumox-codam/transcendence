@@ -13,6 +13,7 @@ export const users = sqliteTable("users", {
     name: text("name", { length: 255 }).notNull(),
     email: text("email", { length: 255 }).notNull(),
     password: text("password").notNull(),
+	oAuthProvider: text("oauth_provider"),
     createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`),
 });
 

@@ -1,36 +1,35 @@
 <script lang="ts">
-    import { onMount } from "svelte";
-    import type { PageData } from "./$types";
-    import type { Player } from "@repo/database";
-    import { getContext } from "svelte";
-    import type { GameClass } from "$lib/classes/Game.svelte";
+	import type { PageData } from "./$types";
+	import Leaderboard from "$lib/components/Stats/Leaderboard.svelte";
+	import UserStats from "$lib/components/Stats/UserStats.svelte";
 
-    let { data }: { data: PageData } = $props();
-
-    const game = getContext<GameClass>("game");
+	let { data }: { data: PageData } = $props();
 </script>
 
-{#each game.ongoing as ongoing}
-    <div class="bg-gray-800 rounded-lg shadow-lg p-4 mb-4">
-        <h2 class="text-xl font-bold text-white">Ongoing Game</h2>
-        <p class="text-gray-400">Game ID: {ongoing.game.id}</p>
-        <p class="text-gray-400">Players:</p>
-        <ul class="list-disc pl-5">
-            {#each ongoing.players as player}
-                <li class="text-gray-300">{player.name}</li>
-            {/each}
-        </ul>
-    </div>
-    
-{/each}
+<main
+	class="relative min-h-screen w-full px-6 py-12 flex justify-around items-start gap-12 bg-black overflow-hidden"
+>
+	<!-- Background Effects -->
+	<div class="absolute inset-0 pointer-events-none z-0">
+		<div
+			class="absolute inset-0 bg-[size:40px_40px] bg-[linear-gradient(to_right,#4a55681a_1px,transparent_1px),linear-gradient(to_bottom,#4a55681a_1px,transparent_1px)] opacity-50 animate-[backgroundPan_20s_linear_infinite]"
+		></div>
+		<div
+			class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-r from-cyan-500/20 to-purple-500/20 rounded-full blur-3xl animate-pulse"
+		></div>
+	</div>
 
-<main class="grid grid-cols-2 gap-4">
-    <div>
-        <h1 class="text-2xl font-bold text-white">Leaderboard</h1>
-        <p class="text-gray-400">coming soon™</p>
-    </div>
-    <div>
-        <h1 class="text-2xl font-bold text-white">Your stats</h1>
-        <p class="text-gray-400">coming soon™</p>
-    </div>
+	<!-- Content -->
+
+	<Leaderboard leaderboard={data.leaderboard} />
+
+	<UserStats
+		userStats={{
+			...data.userStats,
+			highestScore: data.userStats.highestScore ?? 0,
+		}}
+		userData={{
+			...data.user[0],
+		}}
+	/>
 </main>

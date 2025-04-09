@@ -55,6 +55,7 @@ export const friendsRouter = createTRPCRouter({
                 name: users.name,
                 email: users.email,
                 createdAt: users.createdAt,
+                oAuthProvider: users.oAuthProvider,
             })
             .from(users)
             .innerJoin(

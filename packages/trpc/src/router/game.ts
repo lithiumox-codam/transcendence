@@ -95,11 +95,15 @@ export const gameRouter = createTRPCRouter({
         .input(
             z.object({
                 gameId: z.number(),
-                playerId: z.number(),
-                input: z.number(),
+                key: z.union([
+                    z.literal("up"),
+                    z.literal("down"),
+                    z.literal("none"),
+                ]),
             }),
         )
-        .mutation(({ input }) => {
+        .mutation(({ input, ctx }) => {
+            console.log("sendInput", input);
             const game = matchmaking.gamesMap.get(input.gameId);
             if (!game) {
                 throw new Error("Game not found");
@@ -107,16 +111,16 @@ export const gameRouter = createTRPCRouter({
             if (
                 !game
                     .getState()
-                    .players.some((player) => player.id === input.playerId)
+                    .players.some((player) => player.id === ctx.user.id)
             ) {
                 console.log(
                     "Player not found",
-                    input.playerId,
+                    ctx.user.id,
                     game.getState().players,
                 );
                 throw new Error("Player not found");
             }
-            game.testWithPlayerInput(input.input); // ONLY FOR TESTING
+            // game.testWithPlayerInput(input.key); // ONLY FOR TESTING
             // game.setPlayerInput(input.playerId, input.input); // UNCOMMENT THIS
         }),
     state: publicProcedure.input(z.number()).query(async ({ input }) => {

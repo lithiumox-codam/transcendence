@@ -4,7 +4,7 @@ import type {
     Message,
     Player,
     User,
-} from "@repo/database/schema";
+} from "@repo/database/types";
 
 /**
  * Defines the structure of events for the application, mapping event domains to event names and payload types.

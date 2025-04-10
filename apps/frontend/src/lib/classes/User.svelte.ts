@@ -1,6 +1,6 @@
 import { goto } from "$app/navigation";
 import { client, isTRPCClientError } from "$lib/trpc";
-import type { User } from "@repo/database/schema";
+import type { User } from "@repo/database/types";
 
 export class UserClass {
     data = $state<User | null>(null);

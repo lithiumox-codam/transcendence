@@ -1,6 +1,6 @@
 import { goto } from "$app/navigation";
 import { client } from "$lib/trpc";
-import type { Game, User } from "@repo/database/schema";
+import type { Game, User } from "@repo/database/types";
 
 export class GameClass {
     history = $state<{ game: Game; players: User[] }[]>([]);

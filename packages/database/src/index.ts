@@ -10,6 +10,4 @@
 export * from "./database.ts";
 
 // Re-export the schema-only module for convenience
-export * from "./schemas/chat.ts";
-export * from "./schemas/user.ts";
-export * from "./schemas/game.ts";
+export * from "./schema.ts";

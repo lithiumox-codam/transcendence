@@ -1,6 +1,6 @@
 import type { UserClass } from "$lib/classes/User.svelte";
 import { client } from "$lib/trpc";
-import type { Message, User } from "@repo/database/schema";
+import type { Message, User } from "@repo/database/types";
 import { tick } from "svelte";
 import { SvelteMap } from "svelte/reactivity";
 

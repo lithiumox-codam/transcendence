@@ -7,6 +7,3 @@ const sqlite = new Database("../../sqlite.db");
 
 // Create drizzle database instance with the schema
 export const db = drizzle(sqlite, { schema });
-
-// Export all schema definitions
-export * from "./schema.ts";

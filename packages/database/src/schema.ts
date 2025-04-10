@@ -1,3 +1,3 @@
-export type * from "./schemas/chat.ts";
-export type * from "./schemas/user.ts";
-export type * from "./schemas/game.ts";
+export * from "./schemas/chat.ts";
+export * from "./schemas/user.ts";
+export * from "./schemas/game.ts";

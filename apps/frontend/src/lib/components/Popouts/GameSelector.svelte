@@ -2,7 +2,7 @@
     import type { GameClass } from "$lib/classes/Game.svelte";
     import { client } from "$lib/trpc";
     import { TrendingUp, Eye } from "@lucide/svelte";
-    import type { Game, User } from "@repo/database/schema";
+    import type { Game, User } from "../../../../../../packages/database/src/types";
     import { getContext } from "svelte";
 
     type OngoingGame = {

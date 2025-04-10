@@ -101,7 +101,6 @@ export const gameRouter = createTRPCRouter({
             }),
         )
         .mutation(({ input, ctx }) => {
-            console.log("sendInput", input);
             const game = matchmaking.gamesMap.get(input.gameId);
             if (!game) {
                 throw new Error("Game not found");

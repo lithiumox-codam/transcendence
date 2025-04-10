@@ -9,7 +9,6 @@
     const ARENA_WIDTH = 40;
     const PADDLE_LENGTH = 6;
     const PADDLE_WIDTH = 1;
-    const BALL_RADIUS = 1;
     const axisX = 0;
     const axisY = 1;
     const COLOR_ARRAY = [
@@ -29,7 +28,6 @@
     let scene = $state<BABYLON.Scene>();
 
     let gameState = $state<GameState | null>(null);
-    let playerId = $state<number | null>(null);
 
     let ground = $state<BABYLON.Mesh>();
     let paddles = $state<BABYLON.Mesh[]>();
@@ -53,11 +51,7 @@
     }
 
     onMount(() => {
-        paddleCount = 4;
-        arenaHeight = 40;
         (async () => {
-            // const gameInfo = await client.game.create.mutate(paddleCount);
-
             client.game.listen.subscribe(gameId, {
                 onData: (data) => {
                     // console.log("received data", data);
@@ -72,8 +66,16 @@
             }
         })();
         if (!canvas) return;
+
         initBabylon();
         if (!engine || !scene) return;
+        if (gameState?.players.length === 4) {
+            paddleCount = 4;
+            arenaHeight = 40;
+        } else {
+            paddleCount = 2;
+            arenaHeight = 30;
+        }
         engine.runRenderLoop(() => {
             updateScene();
             scene?.render();
@@ -377,15 +379,6 @@
     <div>{gameState?.players[1].score}</div>
 </div>
 
-<div class="absolute top-20 left-0 p-4 z-20">
-    <button
-        onclick={startGame}
-        class="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded transition duration-200"
-    >
-        Test Start Game
-    </button>
-</div>
-
 {#if gameState?.gameOver}
     <div class="absolute inset-0 grid place-items-center bg-black/80 z-20">
         <div class="text-center">
@@ -406,8 +399,5 @@
     </div>
 {/if}
 
-<canvas
-    bind:this={canvas}
-    class="z-0"
-    style="width: 100%; height: 100vh; display: block;"
+<canvas bind:this={canvas} class="z-0 absolute top-0 left-0 w-full h-full"
 ></canvas>

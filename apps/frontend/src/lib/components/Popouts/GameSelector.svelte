@@ -30,6 +30,15 @@
 </script>
 
 <div class="bg-gray-800 rounded-lg shadow-lg p-4">
+    <div class="flex -space-x-2">
+        {#each game.queue as player}
+            <img
+                src={player.avatar}
+                alt={player.name}
+                class="w-8 h-8 rounded-full border-2 border-gray-900 hover:border-white transition-border duration-300 ease-in-out"
+            />
+        {/each}
+    </div>
     <h2
         class="text-3xl font-extrabold tracking-widest text-center text-white retro-glow mb-6"
     >
@@ -40,7 +49,7 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
         <!-- 1vs1 -->
         <button
-            onclick={() => selectGame("1vs1")}
+            onclick={async () => await client.game.queue.query(2)}
             class="aspect-[3/4] bg-gradient-to-br from-cyan-600 to-blue-800 hover:from-cyan-400 hover:to-blue-600
             rounded-xl p-4 flex flex-col justify-center items-center text-white shadow-[0_0_20px_rgba(0,255,255,0.1)] border border-cyan-400/20
             transition-transform duration-300 hover:scale-105"
@@ -52,7 +61,7 @@
 
         <!-- 1vs1vs1vs1 -->
         <button
-            onclick={() => selectGame("1vs1vs1vs1")}
+            onclick={async () => await client.game.queue.query(4)}
             class="aspect-[3/4] bg-gradient-to-br from-pink-600 to-purple-700 hover:from-pink-500 hover:to-purple-600
             rounded-xl p-4 flex flex-col justify-center items-center text-white shadow-[0_0_20px_rgba(255,0,255,0.1)] border border-pink-500/20
             transition-transform duration-300 hover:scale-105"

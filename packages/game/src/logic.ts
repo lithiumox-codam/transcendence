@@ -14,7 +14,7 @@ export interface Player {
     id: number;
     position: vec2;
     score: number;
-    input: playerInputs;
+    input: "up" | "down" | "none";
     movementAxis: "x" | "y";
 }
 
@@ -70,6 +70,17 @@ export class GameEngine {
         };
     }
 
+    private directionToNumber(direction: "up" | "down" | "none"): playerInputs {
+        switch (direction) {
+            case "up":
+                return 1;
+            case "down":
+                return -1;
+            default:
+                return 0;
+        }
+    }
+
     public addPlayer(playerId: number): void {
         if (this.state.players.length >= this.maxPlayers) {
             throw new Error("Game is full");
@@ -105,7 +116,7 @@ export class GameEngine {
             id: playerId,
             position,
             score: 0,
-            input: playerInputs.none,
+            input: "none",
             movementAxis,
         };
         console.log("Player added with id: ", playerId);
@@ -142,7 +153,10 @@ export class GameEngine {
         }, 1000 / 240);
     }
 
-    public setPlayerInput(playerId: number, input: playerInputs): void {
+    public setPlayerInput(
+        playerId: number,
+        input: "up" | "down" | "none",
+    ): void {
         const player = this.state.players.find((p) => p.id === playerId);
         if (!player) {
             return;
@@ -150,7 +164,7 @@ export class GameEngine {
         player.input = input;
     }
 
-    public testWithPlayerInput(input: playerInputs): void {
+    public testWithPlayerInput(input: "up" | "down" | "none"): void {
         for (let i = 0; i < this.state.players.length; i++) {
             const player = this.state.players[i];
             if (!player) continue;
@@ -165,7 +179,8 @@ export class GameEngine {
             if (!player) continue;
             const axis = player.movementAxis === "x" ? axisX : axisY;
             const newVal =
-                player.position[axis] + player.input * PADDLE_SPEED * deltaTime;
+                player.position[axis] +
+                this.directionToNumber(player.input) * PADDLE_SPEED * deltaTime;
 
             const middle = axis === 0 ? ARENA_WIDTH / 2 : this.arenaHeight / 2;
 
@@ -253,7 +268,7 @@ export class GameEngine {
         ) {
             this.state.ball.vel[bounceAxis] *= -1;
 
-            const paddleDirection = player.input;
+            const paddleDirection = this.directionToNumber(player.input);
             const movementAxis = player.movementAxis === "x" ? axisX : axisY;
             const velocityBoost =
                 paddleDirection * PADDLE_SPEED * PADDLE_VELOCITY_FACTOR;

@@ -18,8 +18,6 @@ import {
 } from "../trpc.ts";
 
 const matchmaking = Matchmaking.getInstance();
-console.log(matchmaking);
-let i = 1;
 
 export const gameRouter = createTRPCRouter({
     create: protectedProcedure
@@ -74,7 +72,7 @@ export const gameRouter = createTRPCRouter({
             if (!player) {
                 throw new Error("Failed to join game");
             }
-            game.addPlayer(player.userId + i++);
+            game.addPlayer(player.userId);
         }),
     start: protectedProcedure.input(z.number()).mutation(async ({ input }) => {
         const game = matchmaking.gamesMap.get(input);
@@ -121,7 +119,7 @@ export const gameRouter = createTRPCRouter({
                 throw new Error("Player not found");
             }
             // game.testWithPlayerInput(input.key); // ONLY FOR TESTING
-            // game.setPlayerInput(input.playerId, input.input); // UNCOMMENT THIS
+            game.setPlayerInput(ctx.user.id, input.key);
         }),
     state: publicProcedure.input(z.number()).query(async ({ input }) => {
         const game = matchmaking.gamesMap.get(input);
@@ -244,6 +242,13 @@ export const gameRouter = createTRPCRouter({
             await new Promise((resolve) => setTimeout(resolve, 200000));
         }
     }),
+    queueListen: protectedProcedure.subscription(({ ctx }) =>
+        emitter.subscribeDomain("queue", ({ type, data }) => {
+            if (type === "players") return true;
+            if (type === "newMatch") return data.userId === ctx.user.id;
+            return false;
+        }),
+    ),
     listen: protectedProcedure.input(z.number()).subscription(async function* ({
         input,
     }) {

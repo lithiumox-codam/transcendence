@@ -29,12 +29,6 @@ const PADDLE_SPEED = 20;
 const BALL_SPEED_INCREASE = 1.1;
 const COLLISION_COOLDOWN = 10;
 
-export enum playerInputs {
-    up = 1,
-    down = -1,
-    none = 0,
-}
-
 export class GameEngine {
     private state: GameState;
     private collisionCooldown = 0;
@@ -70,7 +64,7 @@ export class GameEngine {
         };
     }
 
-    private directionToNumber(direction: "up" | "down" | "none"): playerInputs {
+    private directionToNumber(direction: "up" | "down" | "none"): number {
         switch (direction) {
             case "up":
                 return 1;

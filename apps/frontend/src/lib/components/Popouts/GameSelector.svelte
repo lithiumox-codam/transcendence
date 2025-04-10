@@ -1,9 +1,9 @@
 <script lang="ts">
     import type { GameClass } from "$lib/classes/Game.svelte";
     import { client } from "$lib/trpc";
-    import { TrendingUp, Eye, History } from "@lucide/svelte";
-    import type { Game, User } from "@repo/database";
-    import { getContext, onMount } from "svelte";
+    import { TrendingUp, Eye } from "@lucide/svelte";
+    import type { Game, User } from "@repo/database/schema";
+    import { getContext } from "svelte";
 
     type OngoingGame = {
         game: Game;

@@ -53,7 +53,7 @@ export const avatarSchema = z
             if (!header) return false;
 
             const mimeTypeMatch = header.match(/data:(.*?);base64/);
-            const mimeType = (mimeTypeMatch && mimeTypeMatch[1]) || "";
+            const mimeType = mimeTypeMatch?.[1] || "";
 
             return ACCEPTED_IMAGE_TYPES.includes(mimeType);
         },

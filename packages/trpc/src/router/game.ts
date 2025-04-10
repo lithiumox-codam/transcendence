@@ -6,12 +6,11 @@ import {
     players,
     users,
 } from "@repo/database";
-import type { GameState } from "@repo/game";
-import { GameEngine, Matchmaking, playerInputs } from "@repo/game";
-import { observable } from "@trpc/server/observable";
+import { GameEngine } from "@repo/game";
 import { and, desc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { emitter } from "../events/index.ts";
+import { Matchmaking } from "../matchmaking.ts";
 import {
     createTRPCRouter,
     protectedProcedure,
@@ -19,6 +18,7 @@ import {
 } from "../trpc.ts";
 
 const matchmaking = Matchmaking.getInstance();
+console.log(matchmaking);
 let i = 1;
 
 export const gameRouter = createTRPCRouter({

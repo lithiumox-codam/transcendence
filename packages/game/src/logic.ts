@@ -1,11 +1,5 @@
 import { vec2 } from "gl-matrix";
 
-export enum GameStatus {
-    Wating = 0,
-    Playing = 1,
-    Finished = 2,
-}
-
 export interface GameState {
     players: Player[];
     ball: {
@@ -14,7 +8,7 @@ export interface GameState {
         vel: vec2;
         speed: number;
     };
-    status: GameStatus;
+    gameOver: boolean;
 }
 export interface Player {
     id: number;
@@ -72,7 +66,7 @@ export class GameEngine {
                 vel: this.randomDirection(),
                 speed: BALL_SPEED,
             },
-            status: GameStatus.Wating,
+            gameOver: false,
         };
     }
 
@@ -134,7 +128,7 @@ export class GameEngine {
     }
 
     private update(deltaTime: number): void {
-        if (this.state.status === GameStatus.Finished) return;
+        if (this.state.gameOver) return;
 
         this.updatePlayers(deltaTime);
         this.updateBall(deltaTime);
@@ -143,8 +137,6 @@ export class GameEngine {
     }
 
     public startGame(): void {
-        this.state.status = GameStatus.Playing;
-
         setInterval(() => {
             this.update(1 / 240);
         }, 1000 / 240);
@@ -327,7 +319,7 @@ export class GameEngine {
                 if (!player) return;
                 player.score++;
                 if (player.score >= VICTORY_SCORE) {
-                    this.state.status = GameStatus.Finished;
+                    this.state.gameOver = true;
                 }
             }
             this.resetBall();
@@ -352,13 +344,6 @@ export class GameEngine {
             const player = this.state.players[i];
             if (player) player.score = 0;
         }
-        this.state.status = GameStatus.Wating;
-    }
-
-    public canJoin(): boolean {
-        return (
-            this.state.players.length < this.maxPlayers &&
-            this.state.status === GameStatus.Wating
-        );
+        this.state.gameOver = false;
     }
 }

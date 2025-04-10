@@ -48,6 +48,7 @@ export const userRouter = createTRPCRouter({
                 email: users.email,
                 createdAt: users.createdAt,
                 avatar: users.avatar,
+                oAuthProvider: users.oAuthProvider,
             })
             .from(users)
             .where(eq(users.id, input));

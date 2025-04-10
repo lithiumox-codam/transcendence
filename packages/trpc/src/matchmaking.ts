@@ -1,5 +1,5 @@
 import { db, games, players } from "@repo/database";
-import { GameEngine } from "./logic.ts";
+import { GameEngine } from "@repo/game";
 
 type queuedPlayer = {
     id: number;

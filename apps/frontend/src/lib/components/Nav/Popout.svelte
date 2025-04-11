@@ -161,7 +161,7 @@
 
 {#if popout.shown && popout.component}
     <div
-        class="fixed top-0 left-0 w-screen h-screen z-40 bg-black/20"
+        class="fixed top-0 left-0 w-screen h-screen z-40 bg-black/20 backdrop-blur-sm backdrop-filter"
         transition:fade={{ duration: 200 }}
         role="presentation"
     >
@@ -172,25 +172,25 @@
             style="position: absolute; top: {popout.position.y}px; left: {popout
                 .position.x}px; width: {popout.size.width}px; height: {popout
                 .size.height}px;"
-            class="bg-white dark:bg-gray-800 shadow-lg rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 flex flex-col"
+            class="bg-slate-900/40 border border-white/10 rounded-lg overflow-hidden flex flex-col shadow-2xl backdrop-blur-md backdrop-filter focus-within:shadow-[0_8px_32px_rgba(0,0,0,0.3),_0_0_10px_rgba(59,130,246,0.3)]"
         >
             <!-- Header with drag functionality -->
             <header
-                class="popout-header flex items-center justify-between p-2 bg-gray-100 dark:bg-gray-700 cursor-move"
+                class="popout-header flex items-center justify-between p-2 bg-black/20 backdrop-blur-md backdrop-filter cursor-move border-b border-white/10"
                 role="toolbar"
                 aria-label="Popout window controls"
             >
                 <button
-                    class="flex-1 h-full drag-handle text-left"
+                    class="flex-1 h-full drag-handle text-left text-white/90"
                     onmousedown={startDrag}
                     aria-label="Drag to move window"
                     type="button"
                 >
                     <span class="sr-only">Drag to move</span>
                 </button>
-                
+
                 <button
-                    class="text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 focus:outline-none"
+                    class="text-white/80 hover:text-white focus:outline-none transition-colors duration-200"
                     onclick={handleClose}
                     aria-label="Close"
                     type="button"
@@ -214,7 +214,10 @@
             </header>
 
             <!-- Content container -->
-            <div class="flex-1 overflow-auto" role="region">
+            <div
+                class="flex-1 overflow-auto bg-slate-900/20 backdrop-blur-sm backdrop-filter"
+                role="region"
+            >
                 {#if popout.component}
                     <popout.component />
                 {/if}
@@ -278,7 +281,7 @@
                 type="button"
             >
                 <svg
-                    class="w-full h-full text-gray-500 dark:text-gray-400"
+                    class="w-full h-full text-white/50"
                     viewBox="0 0 16 16"
                     fill="currentColor"
                     aria-hidden="true"

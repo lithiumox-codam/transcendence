@@ -26,7 +26,7 @@
 <div class="w-full max-w-md mx-auto group text-white relative">
 	<div
 		class="bg-black/10 border border-white/10 rounded-xl p-6
-		skew-x-3 shadow-[0_0_20px_rgba(0,255,255,0.05)] backdrop-blur-sm"
+		shadow-[0_0_20px_rgba(0,255,255,0.05)] backdrop-blur-sm skew-x-1 h-[90%]"
 	>
 		<h2
 			class="mb-3 text-2xl font-bold text-center text-white tracking-widest"

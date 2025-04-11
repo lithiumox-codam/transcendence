@@ -24,6 +24,13 @@
 
 	<Leaderboard leaderboard={data.leaderboard} />
 
+	<GameHistory
+		GameHistory={data.gameHistory.map((game) => ({
+			...game,
+			createdAt: game.createdAt ?? "",
+			updatedAt: game.updatedAt ?? "",
+		}))}
+	/>
 	<UserStats
 		userStats={{
 			...data.userStats,
@@ -34,11 +41,4 @@
 		}}
 	/>
 
-	<GameHistory
-		GameHistory={data.gameHistory.map((game) => ({
-			...game,
-			createdAt: game.createdAt ?? "",
-			updatedAt: game.updatedAt ?? "",
-		}))}
-	/>
 </main>

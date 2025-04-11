@@ -1,26 +1,24 @@
 <script lang="ts">
-	import { getContext } from "svelte";
-	import { UserClass } from "$lib/classes/User.svelte";
-	import { goto } from "$app/navigation";
+    import { getContext } from "svelte";
+    import { UserClass } from "$lib/classes/User.svelte";
 
-	const user = getContext<UserClass>("user");
+    const user = getContext<UserClass>("user");
 </script>
 
-<main class="py-10 px-6 max-w-5xl mx-auto">
-	<!-- User Header Section -->
-	<header
-		class="flex items-center p-8 bg-gray-800 shadow-2xl border-b border-gray-600 rounded-lg"
-	>
-		<img
-			class="w-24 h-24 rounded-full mr-8 border-4 border-double border-gray-400 filter drop-shadow"
-			src="/favicon.png"
-			alt="User Avatar"
-		/>
-		<div>
-			<h1 class="text-3xl font-extrabold text-white drop-shadow">
-				{user.data?.name}
-			</h1>
-			<p class="text-lg text-gray-300 italic">{user.data?.email}</p>
-		</div>
-	</header>
+<main class="relative min-h-screen bg-black text-white">
+    <section class="px-6 py-12 max-w-5xl mx-auto">
+        <header
+            class="flex items-center p-8 bg-gray-950 rounded-xl shadow-lg border border-gray-800 mb-8"
+        >
+            <img
+                class="w-24 h-24 rounded-full mr-8 border-4 border-gray-800 shadow-lg"
+                src="/favicon.png"
+                alt="User Avatar"
+            />
+            <div>
+                <h1 class="text-3xl font-extrabold text-white">{user.data?.name}</h1>
+                <p class="text-lg text-gray-400 italic">{user.data?.email}</p>
+            </div>
+        </header>
+    </section>
 </main>

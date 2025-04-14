@@ -1,36 +1,37 @@
 import { db, games, players, users } from "@repo/database";
 import { and, count, desc, eq, max, sql } from "drizzle-orm";
-import { createTRPCRouter, protectedProcedure } from "../trpc.ts";
 import { z } from "zod";
+import { createTRPCRouter, protectedProcedure } from "../trpc.ts";
 
 export const statsRouter = createTRPCRouter({
-	leaderboard: protectedProcedure.query(async () => {
-		// Query top 10 players by score and include user details
-		const leaderboard = await db
-			.select({
-				userId: players.userId,
-				userName: users.name,
-				userEmail: users.email,
-				totalScore: sql<number>`sum(${players.score})`.as("totalScore"),
-				gamesPlayed: sql<number>`count(${players.gameId})`.as(
-					"gamesPlayed",
-				),
-			})
-			.from(players)
-			.innerJoin(users, eq(players.userId, users.id))
-			.innerJoin(games, eq(players.gameId, games.id))
-			.where(eq(games.status, "finished"))
-			.groupBy(players.userId)
-			.orderBy(desc(sql`totalScore`))
-			.limit(10);
+    leaderboard: protectedProcedure.query(async () => {
+        // Query top 10 players by score and include user details
+        const leaderboard = await db
+            .select({
+                userId: players.userId,
+                userName: users.name,
+                userEmail: users.email,
+                userAvatar: users.avatar,
+                totalScore: sql<number>`sum(${players.score})`.as("totalScore"),
+                gamesPlayed: sql<number>`count(${players.gameId})`.as(
+                    "gamesPlayed",
+                ),
+            })
+            .from(players)
+            .innerJoin(users, eq(players.userId, users.id))
+            .innerJoin(games, eq(players.gameId, games.id))
+            .where(eq(games.status, "finished"))
+            .groupBy(players.userId)
+            .orderBy(desc(sql`totalScore`))
+            .limit(10);
 
 		return leaderboard;
 	}),
 
-	userStats: protectedProcedure
-		.input(z.number().optional())
-		.query(async ({ ctx, input }) => {
-			const userId = input === undefined ? ctx.user.id : input;
+    userStats: protectedProcedure
+        .input(z.number().optional())
+        .query(async ({ ctx, input }) => {
+            const userId = input === undefined ? ctx.user.id : input;
 
 			// Get user's game stats
 			const userGames = await db
@@ -107,26 +108,26 @@ export const statsRouter = createTRPCRouter({
 			};
 		}),
 
-	userGameHistory: protectedProcedure
-		.input(z.number().optional())
-		.query(async ({ ctx, input }) => {
-			const userId = input === undefined ? ctx.user.id : input;
+    userGameHistory: protectedProcedure
+        .input(z.number().optional())
+        .query(async ({ ctx, input }) => {
+            const userId = input === undefined ? ctx.user.id : input;
 
-			// Get user's recent game history
-			const gameHistory = await db
-				.select({
-					gameId: games.id,
-					playerScore: players.score,
-					gameStatus: games.status,
-					createdAt: games.createdAt,
-					updatedAt: games.updatedAt,
-				})
-				.from(players)
-				.innerJoin(games, eq(players.gameId, games.id))
-				.where(eq(players.userId, userId))
-				.orderBy(desc(games.updatedAt))
-				.limit(10);
+            // Get user's recent game history
+            const gameHistory = await db
+                .select({
+                    gameId: games.id,
+                    playerScore: players.score,
+                    gameStatus: games.status,
+                    createdAt: games.createdAt,
+                    updatedAt: games.updatedAt,
+                })
+                .from(players)
+                .innerJoin(games, eq(players.gameId, games.id))
+                .where(eq(players.userId, userId))
+                .orderBy(desc(games.updatedAt))
+                .limit(10);
 
-			return gameHistory;
-		}),
+            return gameHistory;
+        }),
 });

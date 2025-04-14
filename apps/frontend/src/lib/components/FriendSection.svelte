@@ -16,6 +16,16 @@
     function viewProfile(userId: number) {
         goto(`/user/${userId}`);
     }
+
+    // Helper function to get user initials for avatar fallback
+    function getInitials(name: string): string {
+        return name
+            .split(" ")
+            .map((n) => n[0])
+            .join("")
+            .toUpperCase()
+            .substring(0, 2);
+    }
 </script>
 
 <main class="py-10 px-6 max-w-5xl mx-auto">
@@ -67,16 +77,25 @@
     <!-- Content container with fixed height to prevent layout shifts -->
     <div class="min-h-[400px]">
         {#if activeTab === "friends" && friendCount > 0}
+            <!-- Friends list with avatars -->
             <ul class="space-y-4">
                 {#each user.friends as friend (friend.id)}
                     <li
                         class="flex items-center p-4 bg-gray-700 shadow-lg rounded-lg border border-gray-500 transition-all hover:bg-gray-650"
                     >
-                        <img
-                            class="w-16 h-16 rounded-full mr-4 object-cover border-2 border-double border-gray-400"
-                            src="/favicon.png"
-                            alt="Friend Avatar"
-                        />
+                        {#if friend.avatar}
+                            <img
+                                src={friend.avatar}
+                                alt="{friend.name}'s avatar"
+                                class="w-16 h-16 rounded-full mr-4 object-cover border-2 border-double border-gray-400"
+                            />
+                        {:else}
+                            <div
+                                class="w-16 h-16 rounded-full mr-4 bg-blue-600 text-white flex items-center justify-center font-bold text-xl border-2 border-double border-gray-400"
+                            >
+                                {getInitials(friend.name)}
+                            </div>
+                        {/if}
                         <div class="flex-1">
                             <h3 class="text-lg font-semibold text-white">
                                 {friend.name}
@@ -103,16 +122,25 @@
                 {/each}
             </ul>
         {:else if activeTab === "incoming" && incomingRequestCount > 0}
+            <!-- Incoming friend requests with avatars -->
             <ul class="space-y-4">
                 {#each user.incomingRequests as request (request.id)}
                     <li
                         class="flex items-center p-4 bg-gray-700 shadow-lg rounded-lg border border-gray-500 transition-all hover:bg-gray-650"
                     >
-                        <img
-                            class="w-16 h-16 rounded-full mr-4 object-cover border-2 border-double border-gray-400"
-                            src="/favicon.png"
-                            alt="Requestor Avatar"
-                        />
+                        {#if request.avatar}
+                            <img
+                                src={request.avatar}
+                                alt="{request.name}'s avatar"
+                                class="w-16 h-16 rounded-full mr-4 object-cover border-2 border-double border-gray-400"
+                            />
+                        {:else}
+                            <div
+                                class="w-16 h-16 rounded-full mr-4 bg-green-600 text-white flex items-center justify-center font-bold text-xl border-2 border-double border-gray-400"
+                            >
+                                {getInitials(request.name)}
+                            </div>
+                        {/if}
                         <div class="flex-1">
                             <h3 class="text-lg font-semibold text-white">
                                 {request.name}
@@ -147,16 +175,25 @@
                 {/each}
             </ul>
         {:else if activeTab === "outgoing" && outgoingRequestCount > 0}
+            <!-- Outgoing friend requests with avatars -->
             <ul class="space-y-4">
                 {#each user.outgoingRequests as request (request.id)}
                     <li
                         class="flex items-center p-4 bg-gray-700 shadow-lg rounded-lg border border-gray-500 transition-all hover:bg-gray-650"
                     >
-                        <img
-                            class="w-16 h-16 rounded-full mr-4 object-cover border-2 border-double border-gray-400"
-                            src="/favicon.png"
-                            alt="Recipient Avatar"
-                        />
+                        {#if request.avatar}
+                            <img
+                                src={request.avatar}
+                                alt="{request.name}'s avatar"
+                                class="w-16 h-16 rounded-full mr-4 object-cover border-2 border-double border-gray-400"
+                            />
+                        {:else}
+                            <div
+                                class="w-16 h-16 rounded-full mr-4 bg-purple-600 text-white flex items-center justify-center font-bold text-xl border-2 border-double border-gray-400"
+                            >
+                                {getInitials(request.name)}
+                            </div>
+                        {/if}
                         <div class="flex-1">
                             <h3 class="text-lg font-semibold text-white">
                                 {request.name}

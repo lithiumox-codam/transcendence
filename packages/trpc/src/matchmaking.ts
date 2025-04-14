@@ -1,16 +1,17 @@
-import { db, games, players } from "@repo/database";
-import { GameEngine } from "./logic.ts";
+import { type User, db, games, players, users } from "@repo/database";
+import { GameEngine } from "@repo/game";
+import { eq } from "drizzle-orm";
+import { emitter } from "./events/index.ts";
 
 type queuedPlayer = {
     id: number;
     gameType: 2 | 4;
 };
 
-export const gamesMap = new Map<number, GameEngine>();
-
-class Matchmaking {
+export class Matchmaking {
     private static instance: Matchmaking;
     private queuedPlayers: queuedPlayer[] = [];
+    public gamesMap = new Map<number, GameEngine>();
 
     public static getInstance(): Matchmaking {
         if (!Matchmaking.instance) {
@@ -19,7 +20,9 @@ class Matchmaking {
         return Matchmaking.instance;
     }
 
-    private constructor() {}
+    private constructor() {
+        this.gamesMap = new Map<number, GameEngine>();
+    }
 
     public async createGame(
         playerIds: number[],
@@ -49,7 +52,17 @@ class Matchmaking {
 
             // Initialize game engine with all players
             const gameInstance = new GameEngine(maxPlayers, playerIds);
-            gamesMap.set(game.id, gameInstance);
+            this.gamesMap.set(game.id, gameInstance);
+
+            for (const player of playerInserts)
+                emitter.emit("queue:newMatch", player);
+
+            await db
+                .update(games)
+                .set({ status: "playing" })
+                .where(eq(games.id, game.id));
+
+            gameInstance.startGame();
 
             return game.id;
         } catch (error) {
@@ -76,6 +89,7 @@ class Matchmaking {
                 this.queuedPlayers = this.queuedPlayers.filter(
                     (player) => !playerIds.includes(player.id),
                 );
+                this.emitQueuedPlayers();
             }
         }
     }
@@ -84,6 +98,8 @@ class Matchmaking {
         const player = this.queuedPlayers.find((p) => p.id === playerId);
         if (player) {
             player.gameType = gameType;
+            this.emitQueuedPlayers();
+
             console.log(
                 "Player already in queue, updating game type to",
                 gameType,
@@ -92,8 +108,31 @@ class Matchmaking {
         }
         console.log("Adding player to queue", playerId, gameType);
         this.queuedPlayers.push({ id: playerId, gameType });
+        this.emitQueuedPlayers();
         await this.matchmake();
     }
-}
 
-export const matchmaking = Matchmaking.getInstance();
+    private async emitQueuedPlayers(): Promise<void> {
+        const playerList: User[] = [];
+        Promise.all(
+            this.queuedPlayers.map(async (player) => {
+                const [user] = await db
+                    .select({
+                        id: users.id,
+                        name: users.name,
+                        email: users.email,
+                        createdAt: users.createdAt,
+                        oAuthProvider: users.oAuthProvider,
+                        avatar: users.avatar,
+                    })
+                    .from(users)
+                    .where(eq(users.id, player.id));
+                if (user) {
+                    playerList.push(user);
+                }
+            }),
+        ).then(() => {
+            emitter.emit("queue:players", playerList);
+        });
+    }
+}

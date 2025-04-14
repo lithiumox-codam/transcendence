@@ -12,7 +12,7 @@
         >
             <img
                 class="w-24 h-24 rounded-full mr-8 border-4 border-gray-800 shadow-lg"
-                src="/favicon.png"
+			          src={user.data?.avatar}
                 alt="User Avatar"
             />
             <div>

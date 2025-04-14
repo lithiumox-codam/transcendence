@@ -5,6 +5,7 @@
 		userId: number;
 		userName: string;
 		userEmail: string;
+		userAvatar: string | null;
 		totalScore: number;
 		gamesPlayed: number;
 	};
@@ -25,7 +26,7 @@
 <div class="w-full max-w-md mx-auto group text-white relative">
 	<div
 		class="bg-black/10 border border-white/10 rounded-xl p-6
-		skew-x-3 shadow-[0_0_20px_rgba(0,255,255,0.05)] backdrop-blur-sm"
+		shadow-[0_0_20px_rgba(0,255,255,0.05)] backdrop-blur-sm skew-x-1 h-[90%]"
 	>
 		<h2
 			class="mb-3 text-2xl font-bold text-center text-white tracking-widest"
@@ -63,7 +64,7 @@
 				onclick={() => viewProfile(item.userId)}
 			>
 				<img
-					src="/favicon.png"
+					src={item.userAvatar}
 					alt="Avatar"
 					class="w-8 h-8 rounded-full border-2 border-yellow-300 object-cover"
 				/>
@@ -96,7 +97,7 @@
 				onclick={() => viewProfile(item.userId)}
 			>
 				<img
-					src="/favicon.png"
+					src={item.userAvatar}
 					alt="Avatar"
 					class="w-8 h-8 rounded-full border-2 border-gray-300 object-cover shrink-0"
 				/>
@@ -129,7 +130,7 @@
 				onclick={() => viewProfile(item.userId)}
 			>
 				<img
-					src="/favicon.png"
+					src={item.userAvatar}
 					alt="Avatar"
 					class="w-8 h-8 rounded-full border-2 border-orange-400 object-cover shrink-0"
 				/>

@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import {
+    blob,
     integer,
     primaryKey,
     sqliteTable,
@@ -7,20 +8,30 @@ import {
 } from "drizzle-orm/sqlite-core";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
+import { encryptedText } from "../encryptedText.ts";
 
 export const users = sqliteTable("users", {
     id: integer("id").primaryKey({ autoIncrement: true }),
     name: text("name", { length: 255 }).notNull(),
     email: text("email", { length: 255 }).notNull(),
     password: text("password").notNull(),
-	oAuthProvider: text("oauth_provider"),
+    oAuthProvider: text("oauth_provider"),
+    avatar: text("avatar"),
+    secret: encryptedText("secret"),
     createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`),
 });
 
 export type UserInsert = typeof users.$inferInsert;
 export type UserFull = typeof users.$inferSelect;
-export type User = Omit<UserFull, "password">;
+export type User = Omit<UserFull, "password" | "secret">;
 
+export const userNameSchema = z
+    .string()
+    .min(3)
+    .max(255)
+    .regex(/^[a-zA-Z0-9_]+$/, {
+        message: "Name can only contain letters, numbers, and underscores",
+    });
 export const passwordSchema = z
     .string()
     .min(8, "Password must be at least 8 characters long")
@@ -29,10 +40,48 @@ export const passwordSchema = z
     .regex(/\d/, "Password must contain at least one number")
     .regex(/[\W_]/, "Password must contain at least one special character");
 
-export const userInputSchema = createInsertSchema(users).extend({
-    password: passwordSchema,
-});
 export const userSelectSchema = createSelectSchema(users);
+
+const MAX_UPLOAD_SIZE = 1024 * 1024 * 10; // 10MB
+const ACCEPTED_IMAGE_TYPES = ["image/png", "image/jpeg"];
+
+export const avatarSchema = z
+    .string()
+    .refine(
+        (data) => {
+            const [header] = data.split(",");
+            if (!header) return false;
+
+            const mimeTypeMatch = header.match(/data:(.*?);base64/);
+            const mimeType = mimeTypeMatch?.[1] || "";
+
+            return ACCEPTED_IMAGE_TYPES.includes(mimeType);
+        },
+        {
+            message: ".jpeg, .png files are accepted.",
+        },
+    )
+    .refine(
+        (data) => {
+            const base64Data = data.split(",")[1];
+            if (!base64Data) {
+                return false;
+            }
+
+            const fileSize = ((4 * base64Data.length) / 3 + 3) & ~3;
+
+            return fileSize <= MAX_UPLOAD_SIZE;
+        },
+        {
+            message: "Max file size is 10MB.",
+        },
+    );
+
+export const updateUserSchema = z.object({
+    name: userNameSchema.optional(),
+    email: z.string().email().optional(),
+    avatar: avatarSchema.optional(),
+});
 
 /**
  * The shared primary key for the friends table enables us to enforce that

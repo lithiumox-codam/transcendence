@@ -1,26 +1,23 @@
 import {
     type Game,
-    GameInsert,
-    type Player,
-    PlayerInsert,
     type User,
     db,
-    gameInsertSchema,
     games,
     players,
     users,
 } from "@repo/database";
-import type { GameState } from "@repo/game";
-import { GameEngine, gamesMap, matchmaking, playerInputs } from "@repo/game";
-import { observable } from "@trpc/server/observable";
-import { eq, and, desc } from "drizzle-orm";
+import { GameEngine } from "@repo/game";
+import { and, desc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { emitter } from "../events/index.ts";
+import { Matchmaking } from "../matchmaking.ts";
 import {
     createTRPCRouter,
     protectedProcedure,
     publicProcedure,
 } from "../trpc.ts";
+
+const matchmaking = Matchmaking.getInstance();
 
 export const gameRouter = createTRPCRouter({
     create: protectedProcedure
@@ -39,7 +36,10 @@ export const gameRouter = createTRPCRouter({
                     })
                     .returning();
                 emitter.emit("game:created", { game, players: [] });
-                gamesMap.set(game.id, new GameEngine(input, [ctx.user.id]));
+                matchmaking.gamesMap.set(
+                    game.id,
+                    new GameEngine(input, [ctx.user.id]),
+                );
                 const [gamedb] = await db
                     .select()
                     .from(games)
@@ -55,10 +55,37 @@ export const gameRouter = createTRPCRouter({
             matchmaking.joinQueue(ctx.user.id, input);
             return true;
         }),
+    join: protectedProcedure
+        .input(z.number())
+        .mutation(async ({ ctx, input }) => {
+            const game = matchmaking.gamesMap.get(input);
+            if (!game) {
+                throw new Error("Game not found");
+            }
+            const [player] = await db
+                .insert(players)
+                .values({
+                    gameId: input,
+                    userId: ctx.user.id,
+                })
+                .returning();
+            if (!player) {
+                throw new Error("Failed to join game");
+            }
+            game.addPlayer(player.userId);
+        }),
     start: protectedProcedure.input(z.number()).mutation(async ({ input }) => {
-        const game = gamesMap.get(input);
+        const game = matchmaking.gamesMap.get(input);
         if (!game) {
             throw new Error("Game not found");
+        }
+        const [dbgame] = await db
+            .select()
+            .from(games)
+            .where(eq(games.id, input))
+            .values({ status: "playing" });
+        if (!dbgame) {
+            throw new Error("Failed to start game");
         }
         game.startGame();
     }),
@@ -66,39 +93,42 @@ export const gameRouter = createTRPCRouter({
         .input(
             z.object({
                 gameId: z.number(),
-                playerId: z.number(),
-                input: z.number(),
+                key: z.union([
+                    z.literal("up"),
+                    z.literal("down"),
+                    z.literal("none"),
+                ]),
             }),
         )
-        .mutation(({ input }) => {
-            const game = gamesMap.get(input.gameId);
+        .mutation(({ input, ctx }) => {
+            const game = matchmaking.gamesMap.get(input.gameId);
             if (!game) {
                 throw new Error("Game not found");
             }
             if (
                 !game
                     .getState()
-                    .players.some((player) => player.id === input.playerId)
+                    .players.some((player) => player.id === ctx.user.id)
             ) {
                 console.log(
                     "Player not found",
-                    input.playerId,
+                    ctx.user.id,
                     game.getState().players,
                 );
                 throw new Error("Player not found");
             }
-            game.testWithPlayerInput(input.input); // ONLY FOR TESTING
-            // game.setPlayerInput(input.playerId, input.input); // UNCOMMENT THIS
+            // game.testWithPlayerInput(input.key); // ONLY FOR TESTING
+            game.setPlayerInput(ctx.user.id, input.key);
         }),
     state: publicProcedure.input(z.number()).query(async ({ input }) => {
-        const game = gamesMap.get(input);
+        const game = matchmaking.gamesMap.get(input);
         if (!game) {
             throw new Error("Game not found");
         }
         emitter.emit("game:state", game.getState());
     }),
     reset: protectedProcedure.input(z.number()).mutation(async ({ input }) => {
-        const game = gamesMap.get(input);
+        const game = matchmaking.gamesMap.get(input);
         if (!game) {
             throw new Error("Game not found");
         }
@@ -169,20 +199,59 @@ export const gameRouter = createTRPCRouter({
         }),
     ongoing: protectedProcedure.subscription(async function* () {
         while (true) {
-            const ongoing = await db
-                .select()
+            const ongoingWithPlayers = await db
+                .select({
+                    game: games,
+                    players: {
+                        id: users.id,
+                        name: users.name,
+                        email: users.email,
+                        createdAt: users.createdAt,
+                        avatar: users.avatar,
+                        oAuthProvider: users.oAuthProvider,
+                    },
+                })
                 .from(games)
                 .where(eq(games.status, "playing"))
-                .limit(3)
-                .orderBy(desc(games.createdAt));
-            yield ongoing;
+                .innerJoin(players, eq(games.id, players.gameId))
+                .innerJoin(users, eq(players.userId, users.id))
+                .orderBy(desc(games.updatedAt))
+                .limit(3);
+            const groupedGames = ongoingWithPlayers.reduce(
+                (acc: { game: Game; players: User[] }[], curr) => {
+                    const existingGame = acc.find(
+                        (item) => item.game.id === curr.game.id,
+                    );
+
+                    if (existingGame) {
+                        existingGame.players = [
+                            ...existingGame.players,
+                            curr.players,
+                        ];
+                    } else {
+                        acc.push({ game: curr.game, players: [curr.players] });
+                    }
+
+                    return acc;
+                },
+                [],
+            );
+
+            yield groupedGames;
             await new Promise((resolve) => setTimeout(resolve, 200000));
         }
     }),
+    queueListen: protectedProcedure.subscription(({ ctx }) =>
+        emitter.subscribeDomain("queue", ({ type, data }) => {
+            if (type === "players") return true;
+            if (type === "newMatch") return data.userId === ctx.user.id;
+            return false;
+        }),
+    ),
     listen: protectedProcedure.input(z.number()).subscription(async function* ({
         input,
     }) {
-        const game = gamesMap.get(input);
+        const game = matchmaking.gamesMap.get(input);
         if (!game) {
             throw new Error("Game not found");
         }

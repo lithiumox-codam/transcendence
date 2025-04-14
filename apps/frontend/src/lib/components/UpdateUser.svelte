@@ -1,9 +1,14 @@
 <script lang="ts">
     import { client } from "$lib/trpc";
+    import type { User } from "@repo/database";
 
     let email = $state<string | undefined>(undefined);
     let name = $state<string | undefined>(undefined);
     let avatarFile = $state<File | undefined>(undefined);
+
+    let { user }: { user: User } = $props();
+
+    let errorMessage = $state(""); // State for error message
 
     const handleAvatarChange = (e: Event) => {
         const files = (e.target as HTMLInputElement).files;
@@ -14,6 +19,7 @@
 
     async function updateUserSubmit(event: Event) {
         event.preventDefault();
+        errorMessage = ""; // Clear previous error message
         try {
             let avatar: string | undefined;
             if (avatarFile) {
@@ -34,12 +40,18 @@
             });
             console.log(res);
         } catch (error) {
+            errorMessage =
+                "Invalid email address or password. Please try again.";
             console.error(error);
         }
     }
 </script>
 
 <div>
+    <!-- Error Message -->
+    {#if errorMessage}
+        <p class="text-red-500 text-sm">{errorMessage}</p>
+    {/if}
     <form class="space-y-4" onsubmit={updateUserSubmit}>
         <div class="space-y-2">
             <label
@@ -49,7 +61,7 @@
             <input
                 id="email"
                 type="email"
-                placeholder="New email"
+                placeholder={user.email}
                 class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 bind:value={email}
             />
@@ -61,7 +73,7 @@
             <input
                 id="username"
                 type="text"
-                placeholder="New Username"
+                placeholder={user.name}
                 class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 bind:value={name}
             />
@@ -73,12 +85,13 @@
             <input
                 id="avatar"
                 type="file"
+                class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 accept="image/png, image/jpeg"
                 onchange={handleAvatarChange}
             />
 
             <button
-                class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-10 px-4 py-2 bg-primary text-primary-foreground"
+                class="flex mt-8 bg-blue-500 text-white px-4 py-2 rounded-md transition duration-300 hover:bg-blue-700"
             >
                 Update User
             </button>

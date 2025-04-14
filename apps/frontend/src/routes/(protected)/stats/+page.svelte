@@ -24,7 +24,7 @@
 	<div class="flex justify-around items-stretch gap-12 w-full">
 		<Leaderboard leaderboard={data.leaderboard} />
 
-	<Leaderboard leaderboard={data.leaderboard} />
+	<!-- <Leaderboard leaderboard={data.leaderboard} /> -->
 
 	<!-- <GameHistory
 		GameHistory={data.gameHistory.map((game) => ({

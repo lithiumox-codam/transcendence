@@ -8,11 +8,14 @@
 	};
 
 	// Props
-	let { GameHistory }: { GameHistory: GameHistory[] } = $props();
+	let {
+		GameHistory,
+		maxHeight = "max-h-96",
+	}: { GameHistory: GameHistory[]; maxHeight?: string } = $props();
 
 	function formatDate(dateString: string): string {
 		const date = new Date(dateString);
-		return date.toLocaleDateString() + " " + date.toLocaleTimeString();
+		return `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
 	}
 </script>
 
@@ -31,7 +34,8 @@
 		{#if GameHistory.length === 0}
 			<p class="text-center text-gray-400">No match history available.</p>
 		{:else}
-			<div class="space-y-4">
+			<!-- Scrollable container -->
+			<div class={`space-y-4 overflow-y-auto ${maxHeight}`}>
 				{#each GameHistory as match}
 					<div
 						class="bg-white/5 border border-white/10 p-4 rounded-md hover:bg-blue-500/10 transition duration-300"

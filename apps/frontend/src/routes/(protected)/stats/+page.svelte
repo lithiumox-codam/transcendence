@@ -24,13 +24,22 @@
 
 	<Leaderboard leaderboard={data.leaderboard} />
 
+	<!-- <GameHistory
+		GameHistory={data.gameHistory.map((game) => ({
+			...game,
+			createdAt: game.createdAt ?? "",
+			updatedAt: game.updatedAt ?? "",
+		}))}
+	/> -->
 	<GameHistory
 		GameHistory={data.gameHistory.map((game) => ({
 			...game,
 			createdAt: game.createdAt ?? "",
 			updatedAt: game.updatedAt ?? "",
 		}))}
+		maxHeight="max-h-150"
 	/>
+
 	<UserStats
 		userStats={{
 			...data.userStats,
@@ -40,5 +49,4 @@
 			...data.user[0],
 		}}
 	/>
-
 </main>

@@ -2,6 +2,7 @@
 	import type { PageData } from "./$types";
 	import Leaderboard from "$lib/components/Stats/Leaderboard.svelte";
 	import UserStats from "$lib/components/Stats/UserStats.svelte";
+	import GameHistory from "$lib/components/Stats/GameHistory.svelte";
 
 	let { data }: { data: PageData } = $props();
 </script>
@@ -23,14 +24,31 @@
 	<div class="flex justify-around items-stretch gap-12 w-full">
 		<Leaderboard leaderboard={data.leaderboard} />
 
-		<UserStats
-			userStats={{
-				...data.userStats,
-				highestScore: data.userStats.highestScore ?? 0,
-			}}
-			userData={{
-				...data.user[0],
-			}}
-		/>
-	</div>
+	<!-- <Leaderboard leaderboard={data.leaderboard} /> -->
+
+	<!-- <GameHistory
+		GameHistory={data.gameHistory.map((game) => ({
+			...game,
+			createdAt: game.createdAt ?? "",
+			updatedAt: game.updatedAt ?? "",
+		}))}
+	/> -->
+	<GameHistory
+		GameHistory={data.gameHistory.map((game) => ({
+			...game,
+			createdAt: game.createdAt ?? "",
+			updatedAt: game.updatedAt ?? "",
+		}))}
+		maxHeight="max-h-150"
+	/>
+
+	<UserStats
+		userStats={{
+			...data.userStats,
+			highestScore: data.userStats.highestScore ?? 0,
+		}}
+		userData={{
+			...data.user[0],
+		}}
+	/>
 </main>

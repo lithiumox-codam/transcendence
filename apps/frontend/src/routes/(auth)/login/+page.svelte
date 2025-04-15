@@ -22,8 +22,8 @@
 			if (data.redirect) goto(data.redirect);
 			else goto("/stats");
 		} catch (error) {
-			// Display error message if login fails
-			errorMessage = "Invalid username or password. Please try again.";
+			errorMessage =
+				"Invalid email address or password. Please try again.";
 			console.error(error);
 		}
 	}
@@ -91,10 +91,7 @@
 			<!-- Google Login -->
 			<p class="mt-2 text-sm text-center text-gray-400">or</p>
 			<div class="flex justify-center">
-				<GoogleButton
-					providerConfig={data.clientGoogleProvider}
-					
-				>
+				<GoogleButton providerConfig={data.clientGoogleProvider}>
 					Login with Google
 				</GoogleButton>
 			</div>

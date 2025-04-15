@@ -6,13 +6,15 @@
     import Nav from "$lib/components/Nav/Nav.svelte";
     import Popout from "$lib/components/Nav/Popout.svelte";
     import { Popout as PopoutClass } from "$lib/classes/Popout.svelte";
+    import { GameClass } from "$lib/classes/Game.svelte";
 
     const user = new UserClass();
     setContext("user", user);
     setContext("chat", new Chat(user));
     setContext("popout", new PopoutClass());
+    setContext("game", new GameClass(user));
 
-	let { data, children }: { data: LayoutData; children: Snippet } = $props();
+    let { data, children }: { data: LayoutData; children: Snippet } = $props();
 </script>
 
 <main class="h-[100vh] bg-zinc-800">

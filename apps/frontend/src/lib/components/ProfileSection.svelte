@@ -1,47 +1,59 @@
 <script lang="ts">
-	import { getContext } from "svelte";
-	import { UserClass } from "$lib/classes/User.svelte";
-	import { goto } from "$app/navigation";
+    import { getContext } from "svelte";
+    import { UserClass } from "$lib/classes/User.svelte";
+    import Avatar from "$lib/components/Avatar.svelte";
+    import UpdateUser from "$lib/components/UpdateUser.svelte";
 
-	const user = getContext<UserClass>("user");
+    const user = getContext<UserClass>("user");
 
-	function viewProfile(userId: number) {
-		goto(`/user/${userId}`);
-	}
+    let editMode = $state(false); // Toggle edit mode
 </script>
 
-<main class="py-10 px-6 max-w-5xl mx-auto">
-	<!-- User Header Section -->
-	<header
-		class="flex items-center p-8 bg-gray-800 shadow-2xl border-b border-gray-600 rounded-lg"
-	>
-		<img
-			class="w-24 h-24 rounded-full mr-8 border-4 border-double border-gray-400 filter drop-shadow"
-			src="/favicon.png"
-			alt="User Avatar"
-		/>
-		<div>
-			<h1 class="text-3xl font-extrabold text-white drop-shadow">
-				{user.data?.name}
-			</h1>
-			<p class="text-lg text-gray-300 italic">{user.data?.email}</p>
-			<button
-				class="mt-4 px-4 py-2 text-sm font-bold bg-blue-500 text-white rounded-md transition-all duration-300 hover:bg-blue-700"
-			>
-				Edit Profile
-			</button>
-		</div>
-	</header>
-
-	<!-- Bio -->
-	<section
-		class="mt-8 bg-gray-700 p-6 rounded-lg shadow-lg border border-gray-600"
-	>
-		<h2 class="text-2xl font-semibold mb-4 text-white">Bio</h2>
-		<button
-			class="mt-4 px-4 py-2 text-sm font-bold bg-blue-500 text-white rounded-md transition-all duration-300 hover:bg-blue-700"
-		>
-			Edit Bio
-		</button>
-	</section>
-</main>
+{#if user.data}
+    <main class="relative min-h-screen bg-black text-white">
+        {#if editMode}
+            <!-- Render UpdateUser component in edit mode -->
+            <section class="px-6 py-12 max-w-5xl mx-auto">
+                <header
+                    class="flex items-center justify-between p-8 bg-gray-950 rounded-xl shadow-lg border border-gray-800 mb-8"
+                >
+                    <UpdateUser
+                        user={user.data}
+                        on:updateComplete={() => (editMode = false)}
+                    />
+                </header>
+            </section>
+        {:else}
+            <section class="px-6 py-12 max-w-5xl mx-auto">
+                <header
+                    class="flex items-center justify-between p-8 bg-gray-950 rounded-xl shadow-lg border border-gray-800 mb-8"
+                >
+                    <div class="flex items-center">
+                        <Avatar
+                            name={user.data.name}
+                            avatar={user.data.avatar}
+                            class="w-24 h-24 mr-6 text-3xl"
+                        />
+                        <div>
+                            <h1 class="text-3xl font-extrabold text-white">
+                                {user.data.name}
+                            </h1>
+                            <p class="text-lg text-gray-400 italic">
+                                {user.data.email}
+                            </p>
+                        </div>
+                    </div>
+                    <!-- Edit Profile Button -->
+                    <button
+                        class="bg-blue-500 text-white px-4 py-2 rounded-md transition duration-300 hover:bg-blue-700"
+                        onclick={() => (editMode = true)}
+                    >
+                        Edit Profile
+                    </button>
+                </header>
+            </section>
+        {/if}
+    </main>
+{:else}
+    <p class="text-center text-gray-400">No user data available.</p>
+{/if}

@@ -1,28 +1,34 @@
 <script lang="ts">
 	import * as BABYLON from "babylonjs";
 	import { onMount } from "svelte";
-	import { playerInputs, type GameState, type Player } from "@repo/game";
+	import type { GameState, Player } from "@repo/game";
 	import { client } from "$lib/trpc";
-	import { vec2 } from "gl-matrix";
-	// import { players } from "@repo/database";
+
+	let { gameId }: { gameId: number } = $props();
 
 	const ARENA_WIDTH = 40;
-	const PADDLE_LENGTH = 8;
+	const PADDLE_LENGTH = 6;
 	const PADDLE_WIDTH = 1;
-	const BALL_RADIUS = 1;
 	const axisX = 0;
 	const axisY = 1;
+	const COLOR_ARRAY = [
+		new BABYLON.Color3(1, 0, 0),
+		new BABYLON.Color3(0, 1, 0),
+		new BABYLON.Color3(0, 0, 1),
+		new BABYLON.Color3(1, 1, 0),
+	];
+
+	const COLOR_WHITE = new BABYLON.Color3(1, 1, 1);
 
 	let arenaHeight: 30 | 40 = 30;
 	let paddleCount: 2 | 4 = 2;
 
+	let winner = $state<string>("");
 	let canvas = $state<HTMLCanvasElement>();
 	let engine = $state<BABYLON.Engine>();
 	let scene = $state<BABYLON.Scene>();
 
 	let gameState = $state<GameState | null>(null);
-	let playerId = $state<number | null>(null);
-	let gameId = $state<number | null>(null);
 
 	let ground = $state<BABYLON.Mesh>();
 	let paddles = $state<BABYLON.Mesh[]>();
@@ -31,8 +37,6 @@
 
 	let topBorder = $state<BABYLON.Mesh>();
 	let bottomBorder = $state<BABYLON.Mesh>();
-
-	const keysPressed = $state<Record<string, boolean>>({});
 
 	async function startGame() {
 		if (!gameId) {
@@ -49,16 +53,9 @@
 
 	onMount(() => {
 		(async () => {
-			const gameInfo = await client.game.create.mutate(2);
-
-			if (!gameInfo) return;
-			gameId = gameInfo.gameId;
-			playerId = gameInfo.players.userId;
-
-			await client.game.join.mutate(gameId);
 			client.game.listen.subscribe(gameId, {
 				onData: (data) => {
-					console.log("received data", data);
+					// console.log("received data", data);
 					gameState = data;
 				},
 				onError: (error) => {
@@ -70,44 +67,23 @@
 			}
 		})();
 		if (!canvas) return;
+
 		initBabylon();
 		if (!engine || !scene) return;
-		window.addEventListener("resize", () => engine?.resize());
+		if (gameState?.players.length === 4) {
+			paddleCount = 4;
+			arenaHeight = 40;
+		} else {
+			paddleCount = 2;
+			arenaHeight = 30;
+		}
 		engine.runRenderLoop(() => {
 			updateScene();
 			scene?.render();
 		});
 
-		const handleKey = (e: KeyboardEvent, pressed: boolean) => {
-			e.preventDefault();
-			if (keysPressed[e.key] === pressed) return;
-			keysPressed[e.key] = pressed;
-			if (!["w", "s", "ArrowUp", "ArrowDown"].includes(e.key)) return;
-			const input = pressed
-				? e.key === "w" || e.key === "ArrowUp"
-					? playerInputs.up
-					: e.key === "s" || e.key === "ArrowDown"
-						? playerInputs.down
-						: playerInputs.none
-				: playerInputs.none;
-
-			if (!gameId || !playerId) return;
-			console.log("sending input", input);
-			client.game.sendInput.mutate({
-				gameId: gameId,
-				playerId: playerId,
-				input: input,
-			});
-		};
-
-		window.addEventListener("resize", () => engine?.resize());
-		window.addEventListener("keydown", (e) => handleKey(e, true));
-		window.addEventListener("keyup", (e) => handleKey(e, false));
-
 		return () => {
 			engine?.dispose();
-			window.removeEventListener("keydown", (e) => handleKey(e, true));
-			window.removeEventListener("keyup", (e) => handleKey(e, false));
 		};
 	});
 
@@ -117,13 +93,6 @@
 		scene = new BABYLON.Scene(engine);
 		scene.clearColor = new BABYLON.Color4(0, 0, 0, 1);
 		const axes = new BABYLON.Debug.AxesViewer(scene, 2);
-
-		const ambientLight = new BABYLON.HemisphericLight(
-			"ambientLight",
-			new BABYLON.Vector3(0, 1, 0),
-			scene,
-		);
-		ambientLight.intensity = 0.1;
 
 		const mirrorMaterial = new BABYLON.StandardMaterial(
 			"mirrorMaterial",
@@ -151,14 +120,21 @@
 			BABYLON.Vector3.Zero(),
 			scene,
 		);
-		// camera.attachControl(canvas, true);
+		camera.attachControl(canvas, true);
 
 		const neonMaterial = new BABYLON.StandardMaterial(
 			"neonMaterial",
 			scene,
 		);
 		neonMaterial.emissiveColor = new BABYLON.Color3(1, 1, 1);
-		initBorders();
+		if (paddleCount === 2) {
+			initBorders();
+			console.log("paddleCount", paddleCount);
+		}
+		if (paddleCount === 4) {
+			initFourPlayerArena();
+			console.log("paddleCount", paddleCount);
+		}
 
 		const createDashedLine = () => {
 			const dashCount = 15;
@@ -181,7 +157,7 @@
 			}
 		};
 
-		createDashedLine();
+		if (paddleCount === 2) createDashedLine();
 
 		neonMaterial.emissiveColor = new BABYLON.Color3(1, 1, 1);
 
@@ -206,23 +182,15 @@
 		paddles = createPaddles();
 
 		if (!paddles) return;
-		paddles[0].position.x = -ARENA_WIDTH / 2 + 1;
-		paddles[1].position.x = ARENA_WIDTH / 2 - 1;
-		// leftPaddle = BABYLON.MeshBuilder.CreateBox(
-		// 	"leftPaddle",
-		// 	{ width: PADDLE_WIDTH, height: PADDLE_LENGTH, depth: PADDLE_WIDTH },
-		// 	scene,
-		// );
-		// leftPaddle.position.x = -(ARENA_WIDTH / 2) + 1;
-		// leftPaddle.material = neonMaterial;
+		paddles[0].position.x = -ARENA_WIDTH / 2 - 0.5;
+		paddles[1].position.x = ARENA_WIDTH / 2 + 0.5;
 
-		// rightPaddle = BABYLON.MeshBuilder.CreateBox(
-		// 	"rightPaddle",
-		// 	{ width: PADDLE_WIDTH, height: PADDLE_LENGTH, depth: PADDLE_WIDTH },
-		// 	scene,
-		// );
-		// rightPaddle.position.x = ARENA_WIDTH / 2 - 1;
-		// rightPaddle.material = neonMaterial;
+		if (paddleCount === 4) {
+			paddles[2].position.y = -arenaHeight / 2 - 0.5;
+			paddles[2].rotate(BABYLON.Axis.Z, Math.PI / 2);
+			paddles[3].position.y = arenaHeight / 2 + 0.5;
+			paddles[3].rotate(BABYLON.Axis.Z, Math.PI / 2);
+		}
 		const ballMaterial = new BABYLON.StandardMaterial(
 			"ballMaterial",
 			scene,
@@ -236,7 +204,117 @@
 
 		ballLight = new BABYLON.PointLight("ballLight", ball.position, scene);
 		ballLight.diffuse = new BABYLON.Color3(1, 0, 0);
-		ballLight.intensity = 0.4;
+		ballLight.intensity = 0.5;
+	}
+
+	function initFourPlayerArena() {
+		if (!scene) return;
+		const borderMaterial = new BABYLON.StandardMaterial("borderMat", scene);
+		borderMaterial.emissiveColor = new BABYLON.Color3(1, 1, 1);
+		borderMaterial.diffuseColor = new BABYLON.Color3(0, 0, 0);
+
+		const borderThickness = 2;
+		const borderDepth = 1;
+
+		const playerBorders = [
+			createBorder(
+				new BABYLON.Vector3(
+					-ARENA_WIDTH / 2 - borderThickness / 2 - 1,
+					0,
+					0,
+				),
+				new BABYLON.Vector3(
+					borderThickness,
+					arenaHeight + 2,
+					borderDepth,
+				),
+				COLOR_ARRAY[0],
+			),
+			createBorder(
+				new BABYLON.Vector3(
+					ARENA_WIDTH / 2 + borderThickness / 2 + 1,
+					0,
+					0,
+				),
+				new BABYLON.Vector3(
+					borderThickness,
+					arenaHeight + 2,
+					borderDepth,
+				),
+				COLOR_ARRAY[1],
+			),
+			createBorder(
+				new BABYLON.Vector3(
+					0,
+					arenaHeight / 2 + borderThickness / 2 + 1,
+					0,
+				),
+				new BABYLON.Vector3(
+					ARENA_WIDTH + 2,
+					borderThickness,
+					borderDepth,
+				),
+				COLOR_ARRAY[2],
+			),
+			createBorder(
+				new BABYLON.Vector3(
+					0,
+					-arenaHeight / 2 - borderThickness / 2 - 1,
+					0,
+				),
+				new BABYLON.Vector3(
+					ARENA_WIDTH + 2,
+					borderThickness,
+					borderDepth,
+				),
+				COLOR_ARRAY[3],
+			),
+		];
+
+		const createCorner = (
+			position: BABYLON.Vector3,
+			size: BABYLON.Vector3,
+		) => {
+			const corner = BABYLON.MeshBuilder.CreateBox(
+				"corner",
+				{ width: size.x, height: size.y, depth: size.z },
+				scene,
+			);
+			corner.position = position;
+			corner.material = borderMaterial;
+			return corner;
+		};
+
+		const cornerSize = new BABYLON.Vector3(2, 2, 1);
+		for (let i = 0; i < 4; i++) {
+			createCorner(
+				new BABYLON.Vector3(
+					i % 2 === 0 ? ARENA_WIDTH / 2 + 2 : -ARENA_WIDTH / 2 - 2,
+					i < 2 ? arenaHeight / 2 + 2 : -arenaHeight / 2 - 2,
+					0,
+				),
+				cornerSize,
+			);
+		}
+	}
+
+	function createBorder(
+		position: BABYLON.Vector3,
+		size: BABYLON.Vector3,
+		color: BABYLON.Color3,
+	): BABYLON.Mesh {
+		const borderMat = new BABYLON.StandardMaterial("BorderMat", scene);
+		borderMat.emissiveColor = color;
+		borderMat.diffuseColor = color;
+
+		const border = BABYLON.MeshBuilder.CreateBox(
+			"Border",
+			{ width: size.x, height: size.y, depth: size.z },
+			scene,
+		);
+		border.position = position;
+		border.material = borderMat;
+		return border;
 	}
 
 	function initBorders() {
@@ -245,31 +323,16 @@
 		borderMaterial.emissiveColor = new BABYLON.Color3(1, 1, 1); // White glow
 		borderMaterial.diffuseColor = new BABYLON.Color3(0, 0, 0); // Black base
 
-		const createBorder = (
-			position: BABYLON.Vector3,
-			size: BABYLON.Vector3,
-		) => {
-			const border = BABYLON.MeshBuilder.CreateBox(
-				"border",
-				{
-					width: size.x,
-					height: size.y,
-					depth: size.z,
-				},
-				scene,
-			);
-			border.position = position;
-			border.material = borderMaterial;
-			return border;
-		};
 		topBorder = createBorder(
 			new BABYLON.Vector3(0, arenaHeight / 2 + 0.5, 0),
-			new BABYLON.Vector3(42, 1, 1),
+			new BABYLON.Vector3(43, 1, 1),
+			COLOR_WHITE,
 		);
 
 		bottomBorder = createBorder(
 			new BABYLON.Vector3(0, -arenaHeight / 2 - 0.5, 0),
-			new BABYLON.Vector3(42, 1, 1),
+			new BABYLON.Vector3(43, 1, 1),
+			COLOR_WHITE,
 		);
 	}
 
@@ -290,8 +353,24 @@
 		ball.position.x = gameState.ball.pos[axisX];
 		ball.position.y = gameState.ball.pos[axisY];
 		ballLight.position = ball.position;
+		if (!gameState.ball.lastHit) return;
+		const colorIndex = gameState.players.findIndex(
+			(player: Player) =>
+				gameState && player.id === gameState.ball.lastHit,
+		);
+		const newcolor = COLOR_ARRAY[colorIndex];
+		if (newcolor === ballLight.diffuse) return;
+		console.log("player", gameState.ball.lastHit);
+		console.log("colorIndex", colorIndex);
+		const newMaterial = new BABYLON.StandardMaterial("ballMaterial", scene);
+		newMaterial.emissiveColor = newcolor;
+		newMaterial.diffuseColor = newcolor;
+		ball.material = newMaterial;
+		ballLight.diffuse = newcolor;
 	}
 </script>
+
+<svelte:window onresize={() => engine?.resize()} />
 
 <div
 	class="absolute top-0 left-0 right-0 flex justify-between p-4 text-white text-4xl font-mono z-10 [text-shadow:0_0_10px_#fff]"
@@ -301,23 +380,17 @@
 	<div>{gameState?.players[1].score}</div>
 </div>
 
-<div class="absolute top-20 left-0 p-4 z-20">
-	<button
-		onclick={startGame}
-		class="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded transition duration-200"
-	>
-		Test Start Game
-	</button>
-</div>
-
 {#if gameState?.gameOver}
 	<div class="absolute inset-0 grid place-items-center bg-black/80 z-20">
 		<div class="text-center">
 			<h2 class="text-6xl text-white mb-8 animate-pulse">
-				{gameState.ball.lastHit} Wins!
+				{winner} Wins!
 			</h2>
 			<button
-				onclick={() => {}}
+				onclick={() => {
+					if (!gameId) return;
+					client.game.reset.mutate(gameId);
+				}}
 				class="px-8 py-4 text-2xl bg-transparent border-2 border-white/50 rounded-lg
 				   text-white hover:bg-white/10 transition-all backdrop-blur-sm"
 			>
@@ -327,8 +400,5 @@
 	</div>
 {/if}
 
-<canvas
-	bind:this={canvas}
-	class="z-0"
-	style="width: 100%; height: 100vh; display: block;"
+<canvas bind:this={canvas} class="z-0 absolute top-0 left-0 w-full h-full"
 ></canvas>

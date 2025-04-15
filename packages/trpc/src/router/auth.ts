@@ -5,7 +5,7 @@ import {
     googleProvider,
     TokenPayload,
 } from "@repo/auth";
-import { db, passwordSchema, userInputSchema, users } from "@repo/database";
+import { db, passwordSchema, userNameSchema, users } from "@repo/database";
 import { TRPCError } from "@trpc/server";
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
@@ -17,54 +17,62 @@ import {
 import { authenticator } from "otplib";
 
 export const authRouter = createTRPCRouter({
-    signup: publicProcedure.input(userInputSchema).mutation(async (opts) => {
-        const emailExists = await db
-            .select()
-            .from(users)
-            .where(eq(users.email, opts.input.email));
-        if (emailExists.length > 0) {
-            throw new TRPCError({
-                code: "FORBIDDEN",
-                message: "Email is already taken",
-                cause: "email",
-            });
-        }
-        const nameExists = await db
-            .select()
-            .from(users)
-            .where(eq(users.name, opts.input.name));
-        if (nameExists.length > 0) {
-            throw new TRPCError({
-                code: "FORBIDDEN",
-                message: "Name is already taken",
-                cause: "name",
-            });
-        }
+    signup: publicProcedure
+        .input(
+            z.object({
+                email: z.string().email(),
+                password: passwordSchema,
+                name: userNameSchema,
+            }),
+        )
+        .mutation(async (opts) => {
+            const emailExists = await db
+                .select()
+                .from(users)
+                .where(eq(users.email, opts.input.email));
+            if (emailExists.length > 0) {
+                throw new TRPCError({
+                    code: "FORBIDDEN",
+                    message: "Email is already taken",
+                    cause: "email",
+                });
+            }
+            const nameExists = await db
+                .select()
+                .from(users)
+                .where(eq(users.name, opts.input.name));
+            if (nameExists.length > 0) {
+                throw new TRPCError({
+                    code: "FORBIDDEN",
+                    message: "Name is already taken",
+                    cause: "name",
+                });
+            }
 
-        const { password, name, email } = opts.input;
+            const { password, name, email } = opts.input;
 
-        const hashedPassword = await hashPassword(password);
+            const hashedPassword = await hashPassword(password);
 
-        // create user
-        const user = await db
-            .insert(users)
-            .values({
-                name,
-                email,
-                password: hashedPassword,
-            })
-            .returning();
-        if (user.length === 0 || !user[0]) {
-            throw new TRPCError({
-                code: "INTERNAL_SERVER_ERROR",
-                message: "Failed to create user",
-            });
-        }
-        opts.ctx.user = user[0];
-        const jwt = await sign({ userId: user[0].id });
+            // create user
+            const user = await db
+                .insert(users)
+                .values({
+                    name,
+                    email,
+                    password: hashedPassword,
+                })
+                .returning();
+            if (user.length === 0 || !user[0]) {
+                throw new TRPCError({
+                    code: "INTERNAL_SERVER_ERROR",
+                    message: "Failed to create user",
+                });
+            }
+            opts.ctx.user = user[0];
+            const jwt = await sign({ userId: user[0].id });
 
-        return jwt;
-    }),
+            return jwt;
+        }),
     changePassword: protectedProcedure
         .input(
             z.object({
@@ -163,7 +171,7 @@ export const authRouter = createTRPCRouter({
             if (!clientId || !clientSecret) {
                 throw new TRPCError({
                     code: "INTERNAL_SERVER_ERROR",
-                    message: `Google Sign-in not configured`,
+                    message: "Google Sign-in not configured",
                 });
             }
 
@@ -208,6 +216,7 @@ export const authRouter = createTRPCRouter({
                             email,
                             name: email.split("@")[0],
                             password: "",
+							oAuthProvider: "google",
                         })
                         .returning();
 

@@ -1,32 +1,35 @@
 import { db, games, players, users } from "@repo/database";
-import { and, count, desc, eq, max, sql } from "drizzle-orm";
+import { and, count, desc, eq, max, ne, sql } from "drizzle-orm";
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "../trpc.ts";
 
 export const statsRouter = createTRPCRouter({
     leaderboard: protectedProcedure.query(async () => {
-        // Query top 10 players by score and include user details
-        const leaderboard = await db
-            .select({
-                userId: players.userId,
-                userName: users.name,
-                userEmail: users.email,
-                userAvatar: users.avatar,
-                totalScore: sql<number>`sum(${players.score})`.as("totalScore"),
-                gamesPlayed: sql<number>`count(${players.gameId})`.as(
-                    "gamesPlayed",
-                ),
-            })
-            .from(players)
-            .innerJoin(users, eq(players.userId, users.id))
-            .innerJoin(games, eq(players.gameId, games.id))
-            .where(eq(games.status, "finished"))
-            .groupBy(players.userId)
-            .orderBy(desc(sql`totalScore`))
-            .limit(10);
-
+		const leaderboard = await db
+			.select({
+				userId: players.userId,
+				userName: users.name,
+				userEmail: users.email,
+				userAvatar: users.avatar,
+				totalScore: sql<number>`sum(${players.score})`.as("totalScore"),
+				gamesPlayed: sql<number>`count(${players.gameId})`.as("gamesPlayed"),
+			})
+			.from(players)
+			.where(
+				and(
+					eq(games.status, "finished"),
+					ne(users.name, "[DELETED]")
+				)
+			)
+			.innerJoin(users, eq(players.userId, users.id))
+			.innerJoin(games, eq(players.gameId, games.id))
+			.groupBy(players.userId)
+			.orderBy(desc(sql`totalScore`))
+			.limit(10);
+	
 		return leaderboard;
 	}),
+	
 
     userStats: protectedProcedure
         .input(z.number().optional())

@@ -18,7 +18,7 @@
     <img
         src={avatar}
         alt="{name}'s avatar"
-        class="rounded-full mr-4 object-cover border-2 border-double border-gray-400 {className}"
+        class="rounded-full object-cover border-2 border-double border-gray-400 {className}"
     />
 {:else}
     <div

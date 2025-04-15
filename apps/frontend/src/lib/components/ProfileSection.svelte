@@ -32,7 +32,7 @@
                         <Avatar
                             name={user.data.name}
                             avatar={user.data.avatar}
-                            class="w-24 h-24 mr-6"
+                            class="w-24 h-24 mr-6 text-3xl"
                         />
                         <div>
                             <h1 class="text-3xl font-extrabold text-white">

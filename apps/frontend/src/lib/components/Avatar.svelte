@@ -18,11 +18,11 @@
     <img
         src={avatar}
         alt="{name}'s avatar"
-        class="w-16 h-16 rounded-full mr-4 object-cover border-2 border-double border-gray-400 {className}"
+        class="rounded-full mr-4 object-cover border-2 border-double border-gray-400 {className}"
     />
 {:else}
     <div
-        class="w-16 h-16 rounded-full mr-4 bg-blue-600 text-white flex items-center justify-center font-bold text-xl border-2 border-double border-gray-400 {className}"
+        class=" rounded-full  bg-blue-600 text-white flex items-center justify-center font-bold border-2 border-double border-gray-400 {className}"
     >
         {getInitials()}
     </div>

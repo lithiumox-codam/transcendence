@@ -56,7 +56,7 @@
 				<Avatar
 					name={data.user.name}
 					avatar={data.user.avatar}
-					class="w-24 h-24 mr-6"
+					class="w-24 h-24 mr-6 text-3xl"
 				></Avatar>
 				<div>
 					<h1 class="text-3xl font-extrabold text-white retro-glow">

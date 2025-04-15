@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto } from "$app/navigation";
+	import Avatar from "$lib/components/Avatar.svelte";
 
 	type leaderboardEntry = {
 		userId: number;
@@ -26,7 +27,7 @@
 <div class="w-full max-w-md mx-auto group text-white relative">
 	<div
 		class="bg-black/10 border border-white/10 rounded-xl p-6
-		skew-x-3 shadow-[0_0_20px_rgba(0,255,255,0.05)] backdrop-blur-sm"
+		shadow-[0_0_20px_rgba(0,255,255,0.05)] backdrop-blur-sm skew-x-1"
 	>
 		<h2
 			class="mb-3 text-2xl font-bold text-center text-white tracking-widest"
@@ -63,11 +64,11 @@
 				class="shrink-0 cursor-pointer"
 				onclick={() => viewProfile(item.userId)}
 			>
-				<img
-					src={item.userAvatar}
-					alt="Avatar"
-					class="w-8 h-8 rounded-full border-2 border-yellow-300 object-cover"
-				/>
+				<Avatar
+					name={item.userName}
+					avatar={item.userAvatar}
+					class="w-8 h-8 text-xs"
+				></Avatar>
 			</button>
 			<button
 				class="text-yellow-200 cursor-pointer font-semibold truncate max-w-[90px]"
@@ -96,11 +97,11 @@
 				class="shrink-0 cursor-pointer"
 				onclick={() => viewProfile(item.userId)}
 			>
-				<img
-					src={item.userAvatar}
-					alt="Avatar"
-					class="w-8 h-8 rounded-full border-2 border-gray-300 object-cover shrink-0"
-				/>
+				<Avatar
+					name={item.userName}
+					avatar={item.userAvatar}
+					class="w-8 h-8 text-xs"
+				></Avatar>
 			</button>
 			<button
 				class="text-gray-200 cursor-pointer font-semibold truncate max-w-[90px]"
@@ -129,11 +130,11 @@
 				class="shrink-0 cursor-pointer"
 				onclick={() => viewProfile(item.userId)}
 			>
-				<img
-					src={item.userAvatar}
-					alt="Avatar"
-					class="w-8 h-8 rounded-full border-2 border-orange-400 object-cover shrink-0"
-				/>
+				<Avatar
+					name={item.userName}
+					avatar={item.userAvatar}
+					class="w-8 h-8 text-xs"
+				></Avatar>
 			</button>
 			<button
 				class="text-orange-100 cursor-pointer font-semibold truncate max-w-[90px]"

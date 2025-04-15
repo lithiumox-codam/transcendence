@@ -1,2 +1,2 @@
 export * from "./logic.ts";
-export * from "./matchmaking.ts";
+export * from "../../trpc/src/matchmaking.ts";

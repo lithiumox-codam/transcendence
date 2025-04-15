@@ -6,6 +6,6 @@ export const load = (async () => {
         leaderboard: await client.stats.leaderboard.query(),
         userStats: await client.stats.userStats.query(),
         gameHistory: await client.stats.userGameHistory.query(),
-        user: await client.user.get.query(),
+		user: await client.user.get.query(),
     };
 }) satisfies PageLoad;

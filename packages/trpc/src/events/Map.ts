@@ -1,5 +1,10 @@
-import type { Friend, Game, Message, Player, User } from "@repo/database";
-import type { GameState } from "@repo/game";
+import type {
+    Friend,
+    Game,
+    Message,
+    Player,
+    User,
+} from "@repo/database/types";
 
 /**
  * Defines the structure of events for the application, mapping event domains to event names and payload types.
@@ -18,6 +23,10 @@ export interface EventMap {
         removed: Friend[];
         update: number;
         request: Friend;
+    };
+    queue: {
+        newMatch: { userId: number; gameId: number };
+        players: User[];
     };
     [key: string]: Record<string, unknown>; // Added to tell TypeScript that the key is a string
 }

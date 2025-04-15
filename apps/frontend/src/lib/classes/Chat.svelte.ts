@@ -1,6 +1,6 @@
 import type { UserClass } from "$lib/classes/User.svelte";
 import { client } from "$lib/trpc";
-import type { Message, User } from "@repo/database";
+import type { Message, User } from "@repo/database/types";
 import { tick } from "svelte";
 import { SvelteMap } from "svelte/reactivity";
 
@@ -89,10 +89,17 @@ export class Chat {
         });
     }
 
-    private async scrollDown() {
-        if (this.messagesContainer) {
-            this.messagesContainer.scrollTop =
-                this.messagesContainer.scrollHeight;
+    scrollDown() {
+        const container = this.messagesContainer;
+        if (container) {
+            tick().then(() => {
+                const scrollHeight = container.scrollHeight;
+                container.scrollTop = scrollHeight;
+
+                setTimeout(() => {
+                    container.scrollTop = container.scrollHeight;
+                }, 50);
+            });
         }
     }
 
@@ -157,8 +164,8 @@ export class Chat {
         }
     }
 
-    // Method to manually reset the observer when the container or popout changes
     resetObserver() {
         this.setupObserver();
+        this.scrollDown();
     }
 }

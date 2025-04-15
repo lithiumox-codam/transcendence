@@ -1,8 +1,32 @@
 <script lang="ts">
+	import GameHistory from "$lib/components/Stats/GameHistory.svelte";
 	import UserStats from "$lib/components/Stats/UserStats.svelte";
-	// import MatchHistory from "$lib/components/Stats/MatchHistory.svelte";
+	import Avatar from "$lib/components/Avatar.svelte";
+	import { Home } from "@lucide/svelte"; // Import the house icon
+	import { goto } from "$app/navigation"; // Import goto for navigation
 	import type { PageData } from "./$types";
+
 	let { data }: { data: PageData } = $props();
+
+	let arrowLeft = $state(-100); // Initial position of the arrow
+
+	function goBack() {
+		// Slide the arrow further to the left
+		arrowLeft -= 50;
+
+		// Wait for 1 second before redirecting
+		setTimeout(() => {
+			if (history.length > 1) {
+				history.back();
+			} else {
+				goto("/stats");
+			}
+		}, 300); // 1 second delay
+	}
+
+	function goToStats() {
+		goto("/stats"); // Redirect to the /stats page
+	}
 </script>
 
 <main class="relative min-h-screen bg-black overflow-hidden">
@@ -18,34 +42,68 @@
 
 	<!-- Main Content -->
 	<section class="relative z-10 px-6 py-12 max-w-5xl mx-auto">
-		<!-- Header -->
-		<header
-			class="flex items-center p-8 bg-black/40 backdrop-blur-sm rounded-xl shadow-lg border border-white/10 mb-8"
-		>
-			<img
-				class="w-24 h-24 rounded-full mr-8 border-4 border-cyan-400 shadow-lg"
-				src="/favicon.png"
-				alt="User Avatar"
-			/>
-			<div>
-				<h1 class="text-3xl font-extrabold text-white retro-glow">
-					{data.user.name}
-				</h1>
-				<!-- <p class="text-lg text-gray-300 italic">{data.user.email}</p> -->
+		<div class="relative">
+			<!-- Back Arrow -->
+			<button
+				class="absolute top-[32%] transform -translate-y-1/2 text-white hover:text-gray-300 active:text-gray-500 transition-all duration-300 text-5xl bg-transparent cursor-pointer"
+				style={`left: ${arrowLeft}px;`}
+				onclick={goBack}
+				aria-label="Go Back"
+			>
+				←
+			</button>
+
+			<!-- House Button -->
+			<button
+				class="absolute top-[calc(32%+60px)] left-[-98px] transform -translate-y-1/2 text-white hover:text-gray-300 active:text-gray-500 transition-all duration-300 text-4xl bg-transparent cursor-pointer group"
+				onclick={goToStats}
+				aria-label="Go to Stats"
+			>
+				<Home class="w-10 h-10 stroke-current" />
+			</button>
+
+			<!-- Profile Box -->
+			<header
+				class="flex items-center p-8 bg-black/40 backdrop-blur-sm rounded-xl shadow-lg border border-white/10 mb-8"
+			>
+				<!-- Avatar and User Info -->
+				<Avatar
+					name={data.user.name}
+					avatar={data.user.avatar}
+					class="w-24 h-24 mr-6 text-3xl"
+				></Avatar>
+				<div>
+					<h1 class="text-3xl font-extrabold text-white retro-glow">
+						{data.user.name}
+					</h1>
+					<!-- <p class="text-lg text-gray-300 italic">{data.user.email}</p> -->
+				</div>
+			</header>
+		</div>
+
+		<!-- User Stats and Game History -->
+		<div class="flex flex-row flex-wrap gap-x-6 gap-y-6">
+			<!-- Game History -->
+			<div class="flex-1 min-w-[300px] skew-[1deg]">
+				<GameHistory
+					GameHistory={data.gameHistory.map((game) => ({
+						...game,
+						createdAt: game.createdAt ?? "",
+						updatedAt: game.updatedAt ?? "",
+					}))}
+				/>
 			</div>
-		</header>
 
-		<!-- User Stats -->
-		<div class="flex flex-col space-y-6">
-			<UserStats
-				userStats={{
-					...data.userStats,
-					highestScore: data.userStats.highestScore ?? 0,
-				}}
-				userData={{ ...data.user }}
-			/>
-
-			<!-- <MatchHistory history={data.history} /> -->
+			<!-- User Stats -->
+			<div class="flex-1 min-w-[300px] skew-[1deg]">
+				<UserStats
+					userStats={{
+						...data.userStats,
+						highestScore: data.userStats.highestScore ?? 0,
+					}}
+					userData={{ ...data.user }}
+				/>
+			</div>
 		</div>
 	</section>
 </main>

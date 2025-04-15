@@ -230,7 +230,7 @@ export const authRouter = createTRPCRouter({
                             email,
                             name,
                             password: "",
-                            oAuthProvider: "google",
+							oAuthProvider: "google",
                         })
                         .returning();
 

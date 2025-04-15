@@ -2,6 +2,7 @@
 	import GameHistory from "$lib/components/Stats/GameHistory.svelte";
 	import UserStats from "$lib/components/Stats/UserStats.svelte";
 	import Avatar from "$lib/components/Avatar.svelte";
+	import { Home } from "@lucide/svelte"; // Import the house icon
 	import { goto } from "$app/navigation"; // Import goto for navigation
 	import type { PageData } from "./$types";
 
@@ -22,6 +23,10 @@
 			}
 		}, 300); // 1 second delay
 	}
+
+	function goToStats() {
+		goto("/stats"); // Redirect to the /stats page
+	}
 </script>
 
 <main class="relative min-h-screen bg-black overflow-hidden">
@@ -40,12 +45,21 @@
 		<div class="relative">
 			<!-- Back Arrow -->
 			<button
-				class="absolute top-1/2 transform -translate-y-1/2 text-white hover:text-gray-300 active:text-gray-500 transition-all duration-300 text-5xl bg-transparent cursor-pointer"
+				class="absolute top-[32%] transform -translate-y-1/2 text-white hover:text-gray-300 active:text-gray-500 transition-all duration-300 text-5xl bg-transparent cursor-pointer"
 				style={`left: ${arrowLeft}px;`}
 				onclick={goBack}
 				aria-label="Go Back"
 			>
 				←
+			</button>
+
+			<!-- House Button -->
+			<button
+				class="absolute top-[calc(32%+60px)] left-[-98px] transform -translate-y-1/2 text-white hover:text-gray-300 active:text-gray-500 transition-all duration-300 text-4xl bg-transparent cursor-pointer group"
+				onclick={goToStats}
+				aria-label="Go to Stats"
+			>
+				<Home class="w-10 h-10 stroke-current" />
 			</button>
 
 			<!-- Profile Box -->

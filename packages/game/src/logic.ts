@@ -22,7 +22,6 @@ const VICTORY_SCORE = 7;
 const axisX = 0;
 const axisY = 1;
 const ARENA_WIDTH = 40;
-// const arenaRadius = ARENA_WIDTH / 2;
 const PADDLE_LENGTH = 6;
 const BALL_SPEED = 10;
 const PADDLE_SPEED = 20;
@@ -194,128 +193,108 @@ export class GameEngine {
         );
     }
 
-	// Fixed collision handling
-	private checkCollisions(deltaTime: number): void {
-    // Convert cooldown to frame-based system
-    if (this.collisionCooldown > 0) {
-        this.collisionCooldown--;
-        return;
-    }
+    private checkCollisions(deltaTime: number): void {
+        if (this.collisionCooldown > 0) {
+            this.collisionCooldown--;
+            return;
+        }
 
-    const ballPos = this.state.ball.pos;
-    
-    // Wall collisions (2-player mode only)
-    if (this.maxPlayers === 2) {
-        const verticalBounds = this.arenaHeight/2;
-        if (ballPos[axisY] > verticalBounds - 0.5 || ballPos[axisY] < -verticalBounds + 0.5) {
-            this.state.ball.vel[axisY] *= -1;
+        const ballPos = this.state.ball.pos;
+
+        if (this.maxPlayers === 2) {
+            const verticalBounds = this.arenaHeight / 2;
+            if (
+                ballPos[axisY] > verticalBounds - 0.5 ||
+                ballPos[axisY] < -verticalBounds + 0.5
+            ) {
+                this.state.ball.vel[axisY] *= -1;
+            }
+        }
+        if (!this.isInScoringZone()) return;
+        let collisionOccurred = false;
+        for (const player of this.state.players) {
+            if (!player || this.state.ball.lastHit === player.id) continue;
+
+            if (this.handlePaddleCollision(player)) {
+                collisionOccurred = true;
+            }
         }
     }
-	if (!this.isInScoringZone()) return;
-	// Check collisions with all players
-	let collisionOccurred = false;
-	for (const player of this.state.players) {
-		if (!player || this.state.ball.lastHit === player.id) continue;
-		
-		if (this.handlePaddleCollision(player)) {
-			collisionOccurred = true;
-			break; // Only process first collision
-		}
-	}
-}
 
-	// Fixed border checking
-	private isInScoringZone(): boolean {
-		const pos = this.state.ball.pos;
-		return (
-			pos[axisX] + 0.5 > ARENA_WIDTH/2 ||
-			pos[axisX] - 0.5 < -ARENA_WIDTH/2 ||
-			pos[axisY] + 0.5 > this.arenaHeight/2 ||
-			pos[axisY] - 0.5 < -this.arenaHeight/2
-		);
-	}
+    private isInScoringZone(): boolean {
+        const pos = this.state.ball.pos;
+        return (
+            pos[axisX] + 0.5 > ARENA_WIDTH / 2 ||
+            pos[axisX] - 0.5 < -ARENA_WIDTH / 2 ||
+            pos[axisY] + 0.5 > this.arenaHeight / 2 ||
+            pos[axisY] - 0.5 < -this.arenaHeight / 2
+        );
+    }
 
-// Proper vector reflection implementation
-	private handlePaddleCollision(player: Player): boolean {
-		const ballPos = this.state.ball.pos;
-		const isVertical = player.movementAxis === "y";
-		
-		// Determine collision axes
-		const paddleAxis = isVertical ? axisX : axisY;
-		const lengthAxis = isVertical ? axisY : axisX;
-		
-		// Paddle boundaries
-		const paddleCenter = player.position[lengthAxis];
-		const paddleStart = paddleCenter - PADDLE_LENGTH/2;
-		const paddleEnd = paddleCenter + PADDLE_LENGTH/2;
-		
-		// Ball distance from paddle plane
-		const planeDistance = Math.abs(ballPos[paddleAxis] - player.position[paddleAxis]);
-		
-		// Collision check
-		if (
-			planeDistance <= 0.5 && // Close enough to paddle
-			ballPos[lengthAxis] + 0.5 >= paddleStart && // Within paddle length
-			ballPos[lengthAxis] - 0.5 <= paddleEnd &&
-			this.isInScoringZone()
-		) {
-			// Proper reflection using normal vectors
-			const normal = this.getPaddleNormal(player);
-			this.reflectBall(normal, player);
-			return true;
-		}
-		return false;
-	}
+    private handlePaddleCollision(player: Player): boolean {
+        const ballPos = this.state.ball.pos;
+        const isVertical = player.movementAxis === "y";
 
-	private getPaddleNormal(player: Player): vec2 {
-		const pos = player.position;
-		if (player.movementAxis === "y") { // Vertical paddles
-			return vec2.fromValues(
-				pos[axisX] > 0 ? -1 : 1, 
-				0
-			);
-		} 
-		return vec2.fromValues(
-			0,
-			pos[axisY] > 0 ? -1 : 1
-		);
-	}
+        const paddleAxis = isVertical ? axisX : axisY;
+        const lengthAxis = isVertical ? axisY : axisX;
 
-	private reflectBall(normal: vec2, player: Player): void {
-		// Store original speed
-		const originalSpeed = this.state.ball.speed;
+        const paddleCenter = player.position[lengthAxis];
+        const paddleStart = paddleCenter - PADDLE_LENGTH / 2;
+        const paddleEnd = paddleCenter + PADDLE_LENGTH / 2;
 
-		this.reflectVector(this.state.ball.vel, this.state.ball.vel, normal);
-		
-		// Add paddle velocity influence
-		const PADDLE_INFLUENCE = 0.10;
-		const influenceAxis = player.movementAxis === "y" ? axisY : axisX;
-		this.state.ball.vel[influenceAxis] += this.directionToNumber(player.input) * PADDLE_INFLUENCE;
-		
-		// Maintain speed consistency
-		vec2.normalize(this.state.ball.vel, this.state.ball.vel);
-		this.state.ball.speed = originalSpeed * BALL_SPEED_INCREASE;
-		
-		// Update collision state
-		this.state.ball.lastHit = player.id;
-		this.collisionCooldown = COLLISION_COOLDOWN;
-	}
+        const planeDistance = Math.abs(
+            ballPos[paddleAxis] - player.position[paddleAxis],
+        );
 
-	private reflectVector(out: vec2, v: vec2, normal: vec2): vec2 {
-		// Normalize the normal vector first
-		const normalizedNormal = vec2.create();
-		vec2.normalize(normalizedNormal, normal);
-		
-		// Calculate dot product
-		const dot = vec2.dot(v, normalizedNormal);
-		
-		// Calculate reflection components
-		const x = v[0] - 2 * dot * normalizedNormal[0];
-		const y = v[1] - 2 * dot * normalizedNormal[1];
-		
-		// Return new vector through output parameter
-		return vec2.set(out, x, y);
-	}
+        if (
+            planeDistance <= 0.5 &&
+            ballPos[lengthAxis] + 0.5 >= paddleStart &&
+            ballPos[lengthAxis] - 0.5 <= paddleEnd &&
+            this.isInScoringZone()
+        ) {
+            const normal = this.getPaddleNormal(player);
+            this.reflectBall(normal, player);
+            return true;
+        }
+        return false;
+    }
+
+    private getPaddleNormal(player: Player): vec2 {
+        const pos = player.position;
+        if (player.movementAxis === "y") {
+            return vec2.fromValues(pos[axisX] > 0 ? -1 : 1, 0);
+        }
+        return vec2.fromValues(0, pos[axisY] > 0 ? -1 : 1);
+    }
+
+    private reflectBall(normal: vec2, player: Player): void {
+        const originalSpeed = this.state.ball.speed;
+
+        this.reflectVector(this.state.ball.vel, this.state.ball.vel, normal);
+
+        const PADDLE_INFLUENCE = 0.1;
+        const influenceAxis = player.movementAxis === "y" ? axisY : axisX;
+        this.state.ball.vel[influenceAxis] +=
+            this.directionToNumber(player.input) * PADDLE_INFLUENCE;
+
+        vec2.normalize(this.state.ball.vel, this.state.ball.vel);
+        this.state.ball.speed = originalSpeed * BALL_SPEED_INCREASE;
+
+        this.state.ball.lastHit = player.id;
+        this.collisionCooldown = COLLISION_COOLDOWN;
+    }
+
+    private reflectVector(out: vec2, v: vec2, normal: vec2): vec2 {
+        const normalizedNormal = vec2.create();
+        vec2.normalize(normalizedNormal, normal);
+
+        const dot = vec2.dot(v, normalizedNormal);
+
+        const x = v[0] - 2 * dot * normalizedNormal[0];
+        const y = v[1] - 2 * dot * normalizedNormal[1];
+
+        return vec2.set(out, x, y);
+    }
 
     private checkScore(): void {
         const pos = this.state.ball.pos;

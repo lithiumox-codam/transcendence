@@ -27,12 +27,17 @@ export class Matchmaking {
     public async createGame(
         playerIds: number[],
         maxPlayers: 2 | 4,
+        privateGame = false,
     ): Promise<number> {
         try {
             // Create the game
             const [game] = await db
                 .insert(games)
-                .values({ status: "waiting", maxPlayers })
+                .values({
+                    status: "waiting",
+                    maxPlayers,
+                    private: privateGame ? 1 : 0,
+                })
                 .returning();
             if (!game) throw new Error("Failed to create game");
 
@@ -134,5 +139,17 @@ export class Matchmaking {
         ).then(() => {
             emitter.emit("queue:players", playerList);
         });
+    }
+
+    public async leaveQueue(playerId: number): Promise<void> {
+        this.queuedPlayers = this.queuedPlayers.filter(
+            (player) => player.id !== playerId,
+        );
+        this.emitQueuedPlayers();
+    }
+
+    public async createPrivateGame(playerIds: number[]): Promise<number> {
+        const gameId = await this.createGame(playerIds, 2, true);
+        return gameId;
     }
 }

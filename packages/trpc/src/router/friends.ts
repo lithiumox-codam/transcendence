@@ -71,9 +71,6 @@ export const friendsRouter = createTRPCRouter({
     add: protectedProcedure
         .input(z.number())
         .mutation(async ({ ctx, input }) => {
-            console.log("Adding friend", input);
-            console.log("User", ctx.user.id);
-
             // Prevent adding yourself as a friend
             if (ctx.user.id === input) {
                 throw new TRPCError({

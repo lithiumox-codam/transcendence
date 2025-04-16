@@ -2,11 +2,23 @@
 	import GameHistory from "$lib/components/Stats/GameHistory.svelte";
 	import UserStats from "$lib/components/Stats/UserStats.svelte";
 	import Avatar from "$lib/components/Avatar.svelte";
-	import { Home } from "@lucide/svelte"; // Import the house icon
-	import { goto } from "$app/navigation"; // Import goto for navigation
+	import { Home } from "@lucide/svelte";
+	import { goto } from "$app/navigation";
 	import type { PageData } from "./$types";
+	import { client } from "$lib/trpc";
 
 	let { data }: { data: PageData } = $props();
+
+	let blocked = $state(data.isBlocked); // State to track if the user is blocked
+
+	async function handleBlock() {
+		if (blocked) {
+			await client.block.remove.mutate(data.user.id);
+		} else {
+			await client.block.add.mutate(data.user.id);
+		}
+		blocked = !blocked; // Toggle the blocked state
+	}
 
 	let arrowLeft = $state(-100); // Initial position of the arrow
 
@@ -76,8 +88,22 @@
 					<h1 class="text-3xl font-extrabold text-white retro-glow">
 						{data.user.name}
 					</h1>
-					<!-- <p class="text-lg text-gray-300 italic">{data.user.email}</p> -->
 				</div>
+				{#if !blocked}
+					<button
+						class="ml-auto px-4 py-2 bg-red-600 text-white font-bold rounded-lg hover:bg-red-500 active:bg-red-700 transition-all duration-300"
+						onclick={handleBlock}
+					>
+						Block
+					</button>
+				{:else}
+					<button
+						class="ml-auto px-4 py-2 bg-green-600 text-white font-bold rounded-lg hover:bg-green-500 active:bg-green-700 transition-all duration-300"
+						onclick={handleBlock}
+					>
+						Unblock
+					</button>
+				{/if}
 			</header>
 		</div>
 

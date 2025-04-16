@@ -94,6 +94,9 @@ importers:
       '@trpc/client':
         specifier: 11.0.0-rc.764
         version: 11.0.0-rc.764(@trpc/server@11.0.0-rc.764)(typescript@5.8.3)
+      '@trpc/server':
+        specifier: 11.0.0-rc.764
+        version: 11.0.0-rc.764(typescript@5.8.3)
       babylon:
         specifier: ^6.18.0
         version: 6.18.0

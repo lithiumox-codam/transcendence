@@ -113,3 +113,26 @@ export type FriendInsert = typeof friends.$inferInsert;
 export type Friend = typeof friends.$inferSelect;
 export const friendInsertSchema = createInsertSchema(friends);
 export const friendSelectSchema = createSelectSchema(friends);
+
+export const blocks = sqliteTable(
+    "blocks",
+    {
+        userId: integer("user_id")
+            .notNull()
+            .references(() => users.id),
+        blockedUserId: integer("blocked_user_id")
+            .notNull()
+            .references(() => users.id),
+        createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`),
+    },
+    (table) => [
+        primaryKey({
+            name: "user_block_pk",
+            columns: [table.userId, table.blockedUserId],
+        }),
+    ],
+);
+export type BlockInsert = typeof blocks.$inferInsert;
+export type Block = typeof blocks.$inferSelect;
+export const blockInsertSchema = createInsertSchema(blocks);
+export const blockSelectSchema = createSelectSchema(blocks);

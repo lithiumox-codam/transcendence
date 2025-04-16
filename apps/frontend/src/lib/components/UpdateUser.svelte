@@ -52,6 +52,19 @@
 		}
 	}
 
+	async function deleteAvatar() {
+		try {
+			const res = await client.user.deleteAvatar.mutate();
+			console.log(res);
+
+			// Notify parent to refresh the profile
+			dispatch("updateComplete");
+		} catch (error) {
+			errorMessage = "Failed to delete avatar. Please try again.";
+			console.error(error);
+		}
+	}
+
 	function cancelEdit() {
 		dispatch("updateComplete"); // Notify parent to exit edit mode
 	}
@@ -92,13 +105,15 @@
 				class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
 				for="avatar">Avatar</label
 			>
-			<input
-				id="avatar"
-				type="file"
-				class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-				accept="image/png, image/jpeg"
-				onchange={handleAvatarChange}
-			/>
+			<div class="flex items-center gap-4">
+				<input
+					id="avatar"
+					type="file"
+					class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+					accept="image/png, image/jpeg"
+					onchange={handleAvatarChange}
+				/>
+			</div>
 
 			<!-- Buttons -->
 			<div class="flex justify-start space-x-4 mt-4">

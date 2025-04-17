@@ -20,9 +20,11 @@
 	}
 </script>
 
-<main class="py-10 px-6 max-w-5xl mx-auto">
+<main class="py-10 px-6 mx-auto">
 	<!-- Tabs navigation with fixed height to prevent layout shifts -->
+	<FriendSearch />
 	<div class="flex justify-between mb-8">
+
 		<div class="flex">
 			<button
 				class="px-6 py-3 font-medium text-lg transition-all border-b-2 {activeTab ===
@@ -60,9 +62,6 @@
 					>{outgoingRequestCount}</span
 				>
 			</button>
-		</div>
-		<div class="flex items-center">
-			<FriendSearch />
 		</div>
 	</div>
 
@@ -116,7 +115,7 @@
 			<ul class="space-y-4">
 				{#each user.incomingRequests as request (request.id)}
 					<li
-					class="flex items-center p-4 bg-white/5 shadow-lg rounded-lg transition duration-300 hover:bg-white/10"
+						class="flex items-center p-4 bg-white/5 shadow-lg rounded-lg transition duration-300 hover:bg-white/10"
 					>
 						<button
 							class="text-lg font-semibold text-white/80 text-left cursor-pointer"

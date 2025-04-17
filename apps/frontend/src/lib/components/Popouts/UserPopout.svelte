@@ -4,6 +4,7 @@
 	import ProfileSection from "$lib/components/ProfileSection.svelte";
 	import SettingsSection from "$lib/components/SettingsSection.svelte";
 	import type { Component } from "svelte";
+	import BlockedSection from "../BlockedSection.svelte";
 
 	const userNav = new Map<
 		string,
@@ -11,6 +12,7 @@
 	>([
 		["profile", { component: ProfileSection, displayName: "Profile" }],
 		["friends", { component: FriendSection, displayName: "Friends" }],
+		["blocked", { component: BlockedSection, displayName: "Blocked" }],
 		["settings", { component: SettingsSection, displayName: "Settings" }],
 	]);
 

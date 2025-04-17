@@ -18,7 +18,8 @@ export const statsRouter = createTRPCRouter({
 			.where(
 				and(
 					eq(games.status, "finished"),
-					ne(users.name, "[DELETED]")
+					ne(users.name, "[DELETED]"),
+					eq(games.private, 0)
 				)
 			)
 			.innerJoin(users, eq(players.userId, users.id))
@@ -56,6 +57,7 @@ export const statsRouter = createTRPCRouter({
 					and(
 						eq(players.userId, userId),
 						eq(games.status, "finished"),
+						eq(games.private, 0)
 					),
 				)
 				.groupBy(players.userId);
@@ -127,7 +129,7 @@ export const statsRouter = createTRPCRouter({
                 })
                 .from(players)
                 .innerJoin(games, eq(players.gameId, games.id))
-                .where(eq(players.userId, userId))
+                .where(and(eq(players.userId, userId), eq(games.status, "finished")))
                 .orderBy(desc(games.updatedAt))
                 .limit(10);
 

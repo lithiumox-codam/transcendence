@@ -37,7 +37,7 @@ export const gdprRouter = createTRPCRouter({
 			await db.update(users).set({
 				name: "[DELETED]",
 				email: "[DELETED]",
-				avatar: "[DELETED]",
+				avatar: null,
 				password: "",
 			}).where(eq(users.id, ctx.user.id));
 

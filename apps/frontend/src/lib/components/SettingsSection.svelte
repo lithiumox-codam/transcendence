@@ -124,8 +124,6 @@
 </script>
 
 <section class="max-w-3xl mx-auto p-5 bg-transparent text-center">
-	<h2 class="text-2xl text-white mb-5 text-left">Settings</h2>
-
 	<div class="flex flex-col gap-5">
 		<!-- Password Change UI -->
 		<div

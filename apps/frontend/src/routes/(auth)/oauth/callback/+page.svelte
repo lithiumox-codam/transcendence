@@ -16,8 +16,10 @@
 			}
 			try {
 				const res = await client.auth.oauthLogin.mutate(code);
-				if (browser) localStorage.setItem("token", res);
-				goto("/stats");
+				if (browser) {
+					localStorage.setItem("token", res);
+					window.location.href = "/stats";
+				}
 			} catch (error) {
 				console.error(error);
 			}

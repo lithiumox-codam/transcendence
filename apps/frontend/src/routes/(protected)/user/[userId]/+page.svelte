@@ -5,10 +5,21 @@
 	import { Home } from "@lucide/svelte";
 	import { goto } from "$app/navigation";
 	import type { PageData } from "./$types";
+	import { client } from "$lib/trpc";
 
 	let { data }: { data: PageData } = $props();
-
 	let arrowLeft = $state(-100);
+
+	let blocked = $state(data.isBlocked); // State to track if the user is blocked
+
+	async function handleBlock() {
+		if (blocked) {
+			await client.block.remove.mutate(data.user.id);
+		} else {
+			await client.block.add.mutate(data.user.id);
+		}
+		blocked = !blocked; // Toggle the blocked state
+	}
 
 	function goBack() {
 		arrowLeft -= 50;
@@ -73,6 +84,21 @@
 						{data.user.name}
 					</h1>
 				</div>
+				{#if !blocked}
+					<button
+						class="ml-auto px-4 py-2 bg-red-600 text-white font-bold rounded-lg hover:bg-red-500 active:bg-red-700 transition-all duration-300"
+						onclick={handleBlock}
+					>
+						Block
+					</button>
+				{:else}
+					<button
+						class="ml-auto px-4 py-2 bg-green-600 text-white font-bold rounded-lg hover:bg-green-500 active:bg-green-700 transition-all duration-300"
+						onclick={handleBlock}
+					>
+						Unblock
+					</button>
+				{/if}
 			</header>
 		</div>
 

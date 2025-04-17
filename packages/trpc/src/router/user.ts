@@ -2,6 +2,7 @@ import {
     type User,
     type UserFull,
     avatarSchema,
+    blocks,
     db,
     friendSelectSchema,
     updateUserSchema,
@@ -9,7 +10,7 @@ import {
     users,
 } from "@repo/database";
 import { TRPCError } from "@trpc/server";
-import { and, eq, like, ne, sql } from "drizzle-orm";
+import { and, eq, like, ne, or, sql } from "drizzle-orm";
 import { z } from "zod";
 import { emitter } from "../events/index.ts";
 import {
@@ -138,7 +139,17 @@ export const userRouter = createTRPCRouter({
     search: protectedProcedure
         .input(z.string())
         .query(async ({ input, ctx }) => {
-            return await db
+            const block_list = await db
+                .select()
+                .from(blocks)
+                .where(
+                    or(
+                        eq(blocks.blockedUserId, ctx.user.id),
+                        eq(blocks.userId, ctx.user.id),
+                    ),
+                );
+
+            const list = await db
                 .select({
                     id: users.id,
                     name: users.name,
@@ -151,6 +162,15 @@ export const userRouter = createTRPCRouter({
                         ne(users.id, ctx.user.id),
                     ),
                 );
+
+            return list.filter((user) => {
+                return !block_list.some((blocked) => {
+                    return (
+                        blocked.blockedUserId === user.id ||
+                        blocked.userId === user.id
+                    );
+                });
+            });
         }),
     listen: protectedProcedure.subscription(({ ctx }) =>
         emitter.subscribeDomain("user", (event) => {

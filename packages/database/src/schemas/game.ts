@@ -10,6 +10,7 @@ export const games = sqliteTable("games", {
     })
         .notNull()
         .default("waiting"),
+    private: integer("private").default(0),
     maxPlayers: integer("max_players").notNull().default(2),
     createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`),
     updatedAt: text("updated_at")

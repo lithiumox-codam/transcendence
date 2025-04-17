@@ -10,7 +10,7 @@ import {
     users,
 } from "@repo/database";
 import { TRPCError } from "@trpc/server";
-import { and, eq, like, ne, sql } from "drizzle-orm";
+import { and, eq, like, ne, or, sql } from "drizzle-orm";
 import { z } from "zod";
 import { emitter } from "../events/index.ts";
 import {

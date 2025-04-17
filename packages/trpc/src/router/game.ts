@@ -3,6 +3,7 @@ import {
     type User,
     db,
     games,
+    message,
     players,
     users,
 } from "@repo/database";
@@ -67,7 +68,24 @@ export const gameRouter = createTRPCRouter({
     }),
     sendInvite: protectedProcedure
         .input(z.number())
-        .mutation(async ({ input, ctx }) => {}),
+        .mutation(async ({ input, ctx }) => {
+            const matchId = await matchmaking.createPrivateGame(ctx.user.id);
+
+            const [msg] = await db
+                .insert(message)
+                .values({
+                    senderId: ctx.user.id,
+                    receiverId: input,
+                    content: `invite://${matchId}`,
+                })
+                .returning();
+            if (msg) emitter.emit("chat:message", msg);
+        }),
+    acceptInvite: protectedProcedure
+        .input(z.number())
+        .mutation(async ({ ctx, input }) => {
+            matchmaking.acceptInvite(input, ctx.user.id);
+        }),
     sendInput: protectedProcedure
         .input(
             z.object({

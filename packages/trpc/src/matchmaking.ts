@@ -27,7 +27,6 @@ export class Matchmaking {
     public async createGame(
         playerIds: number[],
         maxPlayers: 2 | 4,
-        privateGame = false,
     ): Promise<number> {
         try {
             // Create the game
@@ -36,7 +35,6 @@ export class Matchmaking {
                 .values({
                     status: "waiting",
                     maxPlayers,
-                    private: privateGame ? 1 : 0,
                 })
                 .returning();
             if (!game) throw new Error("Failed to create game");
@@ -148,8 +146,81 @@ export class Matchmaking {
         this.emitQueuedPlayers();
     }
 
-    public async createPrivateGame(playerIds: number[]): Promise<number> {
-        const gameId = await this.createGame(playerIds, 2, true);
-        return gameId;
+    public async createPrivateGame(playerId: number): Promise<number> {
+        try {
+            // Create the game
+            const [game] = await db
+                .insert(games)
+                .values({
+                    status: "waiting",
+                    maxPlayers: 2,
+                    private: 1,
+                })
+                .returning();
+            if (!game) throw new Error("Failed to create private game");
+
+            const gamePlayers = await db
+                .insert(players)
+                .values({
+                    gameId: game.id,
+                    userId: playerId,
+                })
+                .returning();
+
+            // Initialize game engine with all players
+            const gameInstance = new GameEngine(2, [playerId]);
+            this.gamesMap.set(game.id, gameInstance);
+
+            // Note: Unlike createGame, we don't emit 'queue:newMatch' or start the game immediately.
+            // The game status remains 'waiting'.
+
+            return game.id;
+        } catch (error) {
+            console.error("Error creating private game:", error);
+            // Clean up potentially created game entry if players failed to insert? (Consider transaction)
+            throw new Error("Failed to create private game");
+        }
+    }
+
+    public async acceptInvite(gameId: number, playerId: number): Promise<void> {
+        try {
+            const [game] = await db
+                .select()
+                .from(games)
+                .where(eq(games.id, gameId))
+                .limit(1);
+            if (!game) throw new Error("Game not found");
+
+            const [player] = await db
+                .insert(players)
+                .values({
+                    gameId: game.id,
+                    userId: playerId,
+                })
+                .returning();
+
+            if (!player) throw new Error("Failed to add player to game");
+
+            const gameInstance = this.gamesMap.get(game.id);
+            if (!gameInstance) {
+                throw new Error("Game instance not found");
+            }
+
+            // Add the player to the game instance
+            gameInstance.addPlayer(playerId);
+            // Emit event for both the players
+            for (const player of gameInstance.getState().players) {
+                emitter.emit("queue:newMatch", {
+                    userId: player.id,
+                    gameId: game.id,
+                });
+                console.log("Emitting new match event for player", player.id);
+            }
+
+            // Start the game immediately after accepting the invite
+            gameInstance.startGame();
+        } catch (error) {
+            console.error("Error accepting invite:", error);
+        }
     }
 }

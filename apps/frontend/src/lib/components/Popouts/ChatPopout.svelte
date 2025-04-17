@@ -207,12 +207,12 @@
                             </button>
                             <button
                                 class="bg-cyan-500/50 hover:bg-cyan-600/50 text-white text-xs font-medium py-1 px-2 rounded focus:outline-none focus:ring-2 focus:ring-cyan-400 transition duration-150"
-                                onclick={() => {
-                                    /* TODO: Implement game invite */
-                                    console.log(
-                                        "Invite to game:",
-                                        chat.selectedFriend,
-                                    );
+                                onclick={async () => {
+                                    if (chat.selectedFriend) {
+                                        await client.game.sendInvite.mutate(
+                                            chat.selectedFriend,
+                                        );
+                                    }
                                 }}
                             >
                                 Invite to Game

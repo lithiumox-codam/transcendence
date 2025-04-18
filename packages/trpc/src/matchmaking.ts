@@ -159,15 +159,11 @@ export class Matchmaking {
                 .returning();
             if (!game) throw new Error("Failed to create private game");
 
-            const gamePlayers = await db
-                .insert(players)
-                .values({
-                    gameId: game.id,
-                    userId: playerId,
-                })
-                .returning();
+            await db.insert(players).values({
+                gameId: game.id,
+                userId: playerId,
+            });
 
-            // Initialize game engine with all players
             const gameInstance = new GameEngine(2, [playerId]);
             this.gamesMap.set(game.id, gameInstance);
 
@@ -177,7 +173,6 @@ export class Matchmaking {
             return game.id;
         } catch (error) {
             console.error("Error creating private game:", error);
-            // Clean up potentially created game entry if players failed to insert? (Consider transaction)
             throw new Error("Failed to create private game");
         }
     }
@@ -189,38 +184,120 @@ export class Matchmaking {
                 .from(games)
                 .where(eq(games.id, gameId))
                 .limit(1);
-            if (!game) throw new Error("Game not found");
 
-            const [player] = await db
-                .insert(players)
-                .values({
-                    gameId: game.id,
-                    userId: playerId,
-                })
-                .returning();
+            if (!game) throw new Error(`Game not found: ${gameId}`);
+            if (game.status !== "waiting") {
+                const existingInstance = this.gamesMap.get(gameId);
+                if (existingInstance) {
+                    emitter.emit("queue:newMatch", {
+                        userId: playerId,
+                        gameId: game.id,
+                    });
+                }
+                return;
+            }
 
-            if (!player) throw new Error("Failed to add player to game");
+            if (!game.private) {
+                throw new Error(`Game ${gameId} is not private.`);
+            }
 
-            const gameInstance = this.gamesMap.get(game.id);
+            const existingPlayers = await db
+                .select({ userId: players.userId })
+                .from(players)
+                .where(eq(players.gameId, gameId));
+
+            const isAlreadyInGame = existingPlayers.some(
+                (p) => p.userId === playerId,
+            );
+
+            if (!isAlreadyInGame && existingPlayers.length >= game.maxPlayers) {
+                throw new Error(`Game ${gameId} is already full.`);
+            }
+
+            let playerAddedNow = false;
+            if (!isAlreadyInGame) {
+                const [newPlayerEntry] = await db
+                    .insert(players)
+                    .values({ gameId: game.id, userId: playerId })
+                    .returning();
+                if (!newPlayerEntry)
+                    throw new Error(
+                        `Failed to add player ${playerId} to game ${gameId}`,
+                    );
+                playerAddedNow = true;
+                console.log(
+                    `Player ${playerId} added to game ${gameId} in DB.`,
+                );
+            } else {
+                console.warn(
+                    `Player ${playerId} is already in game ${gameId}, ensuring game state.`,
+                );
+            }
+
+            const finalPlayerIds = playerAddedNow
+                ? [...existingPlayers.map((p) => p.userId), playerId]
+                : existingPlayers.map((p) => p.userId);
+
+            let gameInstance = this.gamesMap.get(gameId);
+
             if (!gameInstance) {
-                throw new Error("Game instance not found");
+                // Instance lost or never created (e.g., server restart) - Recreate/Recover
+                console.log(
+                    `Game instance for ${gameId} not found in map. Recreating with players: ${finalPlayerIds.join(", ")}.`,
+                );
+                gameInstance = new GameEngine(
+                    game.maxPlayers as 2 | 4,
+                    finalPlayerIds,
+                );
+                if (!gameInstance)
+                    throw new Error(
+                        "Failed to create game instance on recovery",
+                    );
+                this.gamesMap.set(gameId, gameInstance);
+            } else if (playerAddedNow) {
+                // Instance exists, ensure the newly added player is known to the engine
+                console.log(
+                    `Adding player ${playerId} to existing game instance ${gameId}.`,
+                );
+                gameInstance.addPlayer(playerId); // Assuming GameEngine handles adding logic
             }
 
-            // Add the player to the game instance
-            gameInstance.addPlayer(playerId);
-            // Emit event for both the players
-            for (const player of gameInstance.getState().players) {
-                emitter.emit("queue:newMatch", {
-                    userId: player.id,
-                    gameId: game.id,
-                });
-                console.log("Emitting new match event for player", player.id);
-            }
+            // 6. Check if game is full and ready to start
+            if (finalPlayerIds.length === game.maxPlayers) {
+                console.log(
+                    `Game ${gameId} is now full with players: ${finalPlayerIds.join(", ")}. Starting game.`,
+                );
+                // Update Game Status in DB
+                await db
+                    .update(games)
+                    .set({ status: "playing" })
+                    .where(eq(games.id, game.id));
 
-            // Start the game immediately after accepting the invite
-            gameInstance.startGame();
+                // Emit Match Event for all players
+                for (const pId of finalPlayerIds) {
+                    emitter.emit("queue:newMatch", {
+                        userId: pId,
+                        gameId: game.id,
+                    });
+                }
+
+                // Start the Game Logic
+                gameInstance.startGame();
+            } else {
+                console.log(
+                    `Game ${gameId} is not full yet. Current players: ${finalPlayerIds.join(
+                        ", ",
+                    )}. Waiting for more players.`,
+                );
+            }
         } catch (error) {
-            console.error("Error accepting invite:", error);
+            console.error(
+                `Error accepting invite for game ${gameId}, player ${playerId}:`,
+                error,
+            );
+            throw new Error(
+                `Failed to accept invite for game ${gameId}: ${error}`,
+            );
         }
     }
 }

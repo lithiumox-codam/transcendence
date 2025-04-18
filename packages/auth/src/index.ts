@@ -78,4 +78,4 @@ export async function verifyPassword(
     return argon2.verify(hashedPassword, password);
 }
 
-export * from "./oauth/index.ts";
+export * from "./oauth.ts";

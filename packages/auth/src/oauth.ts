@@ -1,5 +1,3 @@
-export * from "./providers.ts";
-
 export class TokenPayload {
     grant_type: string;
     scope: string;

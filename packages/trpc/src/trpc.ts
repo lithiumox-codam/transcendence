@@ -45,6 +45,7 @@ export async function createTRPCContext({
                 id: users.id,
                 name: users.name,
                 email: users.email,
+                oAuthProvider: users.oAuthProvider,
             })
             .from(users)
             .where(and(eq(users.id, userId), ne(users.password, "[DELETED]")));

@@ -6,6 +6,7 @@
 	import UpdateUser from "$lib/components/UpdateUser.svelte";
 	import { Trash2 } from "@lucide/svelte";
 	import UserStats from "$lib/components/Stats/UserStats.svelte";
+	import MatchHistory from "$lib/components/Stats/MatchHistory.svelte";
 	import type { Game, User } from "@repo/database/types";
 
 	const user = getContext<UserClass>("user");
@@ -35,6 +36,7 @@
 			console.error("Failed to fetch user stats", error);
 		}
 	});
+
 	async function deleteAvatar() {
 		try {
 			await client.user.deleteAvatar.mutate();
@@ -51,23 +53,26 @@
 {#if user.data}
 	<main class="relative text-white">
 		{#if editMode}
-			<section class="px-6 py-12 max-w-5xl mx-auto">
-				<header
-					class="flex items-center justify-between p-8 bg-gray-950 rounded-xl shadow-lg border border-gray-800 mb-8"
-				>
-					<UpdateUser
-						user={user.data}
-						on:updateComplete={() => (editMode = false)}
-					/>
-				</header>
-			</section>
+		<section class="px-6 py-8 max-w-5xl mx-auto">
+			<!-- <header
+				class="relative bg-black/10 border border-white/10 rounded-xl p-6 shadow-[0_0_20px_rgba(0,255,255,0.05)] backdrop-blur-sm flex flex-col gap-6"
+			>
+				<h2 class="text-2xl font-extrabold text-center text-white">
+					Edit Profile
+				</h2> -->
+				<UpdateUser
+					user={user.data}
+					on:updateComplete={() => (editMode = false)}
+				/>
+			<!-- </header> -->
+		</section>
 		{:else}
-			<section class="px-6 py-12 max-w-5xl mx-auto">
+			<section class="px-6 py-8 max-w-5xl mx-auto">
 				<header
-					class="flex items-center justify-between p-8 bg-gray-950 rounded-xl shadow-lg border border-gray-800 mb-8 relative"
+					class="relative bg-black/10 border border-white/10 rounded-xl p-6 shadow-[0_0_20px_rgba(0,255,255,0.05)] backdrop-blur-sm flex items-center justify-between"
 				>
-					<div class="flex items-center relative">
-						<div class="relative group">
+					<div class="flex items-center min-w-0">
+						<div class="relative group flex-shrink-0">
 							<Avatar
 								name={user.data.name}
 								avatar={user.data.avatar}
@@ -83,19 +88,23 @@
 								</button>
 							{/if}
 						</div>
-						<div>
+						<div class="min-w-0">
 							<h1
 								class="text-3xl font-extrabold text-white truncate"
+								title={user.data.name}
 							>
 								{user.data.name}
 							</h1>
-							<p class="text-lg text-gray-400 italic truncate">
+							<p
+								class="text-lg text-gray-400 italic truncate"
+								title={user.data.email}
+							>
 								{user.data.email}
 							</p>
 						</div>
 					</div>
 					<button
-						class="bg-blue-500 text-white px-4 py-2 rounded-md transition duration-300 hover:bg-blue-700"
+						class="bg-white/5 border border-white/10 p-2.5 rounded-md hover:bg-blue-600/10"
 						onclick={() => (editMode = true)}
 					>
 						Edit Profile
@@ -103,36 +112,28 @@
 				</header>
 			</section>
 		{/if}
-		<div class="flex flex-row flex-wrap gap-x-6 gap-y-6">
-			<div
-				class="flex-1 min-w-[300px] skew-[1deg] overflow-scroll max-h-[400px]"
-			>
-				{#each history as { game, players }}
-					<div
-						class="flex items-center p-4 bg-white/5 shadow-lg rounded-lg transition duration-300 hover:bg-white/10"
-					>
-						<div class="flex-1">
-							<p class="text-sm text-gray-300/40">
-								{game.createdAt}
-							</p>
-							<p class="text-sm text-gray-300/40">
-								{players
-									.map((player) => `${player.name}${player.score !== null && player.score !== undefined ? ` (${player.score})` : ''}`)
-									.join(", ")}
-							</p>
-						</div>
-					</div>
-				{/each}
+		<div class="flex flex-row flex-wrap justify-center gap-x-6 gap-y-6 px-6 max-w-5xl mx-auto">
+			<!-- Match History -->
+			<div class="flex-1 min-w-[300px] max-w-[500px] w-full sm:w-auto">
+				<MatchHistory
+					matches={history.map(({ game, players }) => ({
+						game,
+						players,
+						userId: user.data.id,
+					}))}
+					maxHeight="max-h-64"
+				/>
 			</div>
-
-			<div class="flex-1 min-w-[300px] skew-[1deg]">
+		
+			<!-- User Stats -->
+			<div class="flex-1 min-w-[300px] max-w-[500px] w-full sm:w-auto">
 				{#if stats}
 					<UserStats
 						userStats={stats}
 						userData={{ name: user.data.name }}
 					/>
 				{:else}
-					<p class="text-center text-gray-400">Loading...</p>
+					<p class="text-center text-gray-400">No stats available</p>
 				{/if}
 			</div>
 		</div>

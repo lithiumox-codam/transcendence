@@ -37,7 +37,7 @@
 <div class="w-full max-w-md mx-auto group text-white relative">
 	<div
 		class="relative bg-black/10 border border-white/10 rounded-xl p-6
-        shadow-[0_0_20px_rgba(0,255,255,0.05)] backdrop-blur-sm skew-[-1deg]"
+        shadow-[0_0_20px_rgba(0,255,255,0.05)] backdrop-blur-sm"
 	>
 		<h2
 			class="mb-2 text-center text-2xl font-extrabold tracking-widest text-white"

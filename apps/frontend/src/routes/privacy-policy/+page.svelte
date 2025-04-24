@@ -7,17 +7,28 @@
 </script>
 
 <main
-    class="flex min-h-screen bg-black text-white items-center justify-center p-5"
+    class="relative min-h-screen w-full px-6 py-12 flex justify-center items-center bg-black overflow-hidden"
 >
+    <!-- Background Effects -->
+    <div class="absolute inset-0 pointer-events-none z-0">
+        <div
+            class="absolute inset-0 bg-[size:40px_40px] bg-[linear-gradient(to_right,#4a55681a_1px,transparent_1px),linear-gradient(to_bottom,#4a55681a_1px,transparent_1px)] opacity-50"
+        ></div>
+        <div
+            class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-r from-cyan-500/20 to-purple-500/20 rounded-full blur-3xl"
+        ></div>
+    </div>
+
+    <!-- Content -->
     <div
-        class="flex flex-col w-full max-w-4xl rounded-md border border-gray-800 bg-gray-950 text-white shadow-lg p-6"
+        class="relative z-10 flex flex-col w-full max-w-4xl rounded-xl border border-white/10 bg-black/10 backdrop-blur-sm shadow-lg p-6"
     >
         <!-- Title -->
-        <h1 class="text-3xl font-semibold text-gray-200 mb-6 text-center">
+        <h1 class="text-3xl font-extrabold text-white mb-6 text-center">
             Privacy Policy
         </h1>
 
-        <!-- Content -->
+        <!-- Content Sections -->
         <section class="space-y-6">
             <div>
                 <h3 class="text-xl font-semibold text-gray-300 mb-2">
@@ -91,6 +102,7 @@
             </div>
         </section>
 
+        <!-- Close Button -->
         <div class="mt-6 text-center">
             <button
                 class="bg-gray-700 text-white px-4 py-2 rounded-md transition duration-300 hover:bg-gray-600"

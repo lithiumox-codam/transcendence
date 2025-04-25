@@ -111,32 +111,32 @@
 					</button>
 				</header>
 			</section>
-		{/if}
-		<div class="flex flex-row flex-wrap justify-center gap-x-6 gap-y-6 px-6 max-w-5xl mx-auto">
-			<!-- Match History -->
-			<div class="flex-1 min-w-[300px] max-w-[500px] w-full sm:w-auto">
-				<MatchHistory
-					matches={history.map(({ game, players }) => ({
-						game,
-						players,
-						userId: user.data.id,
-					}))}
-					maxHeight="max-h-64"
-				/>
-			</div>
-		
-			<!-- User Stats -->
-			<div class="flex-1 min-w-[300px] max-w-[500px] w-full sm:w-auto">
-				{#if stats}
-					<UserStats
-						userStats={stats}
-						userData={{ name: user.data.name }}
+			<div class="flex flex-row flex-wrap justify-center gap-x-6 gap-y-6 px-6 max-w-5xl mx-auto">
+				<!-- Match History -->
+				<div class="flex-1 min-w-[300px] max-w-[500px] w-full sm:w-auto">
+					<MatchHistory
+						matches={history.map(({ game, players }) => ({
+							game,
+							players,
+							userId: user.data.id,
+						}))}
+						maxHeight="max-h-64"
 					/>
-				{:else}
-					<p class="text-center text-gray-400">No stats available</p>
-				{/if}
+				</div>
+			
+				<!-- User Stats -->
+				<div class="flex-1 min-w-[300px] max-w-[500px] w-full sm:w-auto">
+					{#if stats}
+						<UserStats
+							userStats={stats}
+							userData={{ name: user.data.name }}
+						/>
+					{:else}
+						<p class="text-center text-gray-400">No stats available</p>
+					{/if}
+				</div>
 			</div>
-		</div>
+		{/if}
 	</main>
 {:else}
 	<p class="text-center text-gray-400">No user data available.</p>

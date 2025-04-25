@@ -88,7 +88,7 @@
 				class="w-5 h-5 stroke-current transition-all duration-300"
 			/>
 		</div>
-		<span class="text-xs truncate">{item.label}</span>
+		<span class="text-xs truncate select-none">{item.label}</span>
 	</button>
 {/snippet}
 

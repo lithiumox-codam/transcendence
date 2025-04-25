@@ -7,6 +7,7 @@
 
     let email = $state("");
     let password = $state("");
+    let otpToken = $state<string | undefined>(undefined);
     let errorMessage = $state(""); // State for error message
 
     async function handleSubmit(event: Event) {
@@ -16,7 +17,12 @@
             const res = await client.auth.login.mutate({
                 email,
                 password,
+                otpToken,
             });
+            if (res === "2fa") {
+                otpToken = "";
+                return;
+            }
             if (browser) localStorage.setItem("token", res);
             redirectParam();
         } catch (error) {
@@ -70,6 +76,22 @@
                         bind:value={password}
                     />
                 </div>
+
+                {#if otpToken !== undefined}
+                    <div class="space-y-2">
+                        <label class="text-sm font-medium" for="password">
+                            2FA Token
+                        </label>
+                        <input
+                            type="text"
+                            placeholder="Enter your 2FA token"
+                            required
+                            class="flex h-10 w-full rounded-md border border-gray-700 bg-gray-900 px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            id="password"
+                            bind:value={otpToken}
+                        />
+                    </div>
+                {/if}
 
                 <!-- Error Message -->
                 {#if errorMessage}

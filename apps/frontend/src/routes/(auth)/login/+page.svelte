@@ -2,9 +2,8 @@
     import { client } from "$lib/trpc";
     import { browser } from "$app/environment";
     import { goto } from "$app/navigation";
+    import { redirectParam } from "$lib/utils/redirect";
     import GoogleButton from "$lib/components/GoogleButton.svelte";
-
-    let { data } = $props();
 
     let email = $state("");
     let password = $state("");
@@ -18,24 +17,14 @@
             const res = await client.auth.login.mutate({
                 email,
                 password,
-                otpToken,
             });
-            if (res === "2fa") {
-                otpToken = "";
-                return;
-            }
             if (browser) localStorage.setItem("token", res);
-            if (data.redirect) goto(data.redirect);
-            else goto("/stats");
+            redirectParam();
         } catch (error) {
             errorMessage =
                 "Invalid email address or password. Please try again.";
             console.error(error);
         }
-    }
-
-    function redirectToSignup() {
-        goto("/signup");
     }
 </script>
 
@@ -97,7 +86,6 @@
                             bind:value={otpToken}
                         />
                     </div>
-                {/if}
 
                 <!-- Error Message -->
                 {#if errorMessage}
@@ -113,9 +101,7 @@
             <!-- Google Login -->
             <p class="mt-2 text-sm text-center text-gray-400">or</p>
             <div class="flex justify-center">
-                <GoogleButton providerConfig={data.clientGoogleProvider}>
-                    Login with Google
-                </GoogleButton>
+                <GoogleButton>Login with Google</GoogleButton>
             </div>
         </div>
 
@@ -124,7 +110,7 @@
             <p class="text-sm text-gray-400">Don't have an account?</p>
             <button
                 class="mt-2 w-full h-10 cursor-pointer rounded-md bg-gray-700 text-white font-medium hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                onclick={redirectToSignup}
+                onclick={() => goto("/signup")}
             >
                 Sign Up
             </button>

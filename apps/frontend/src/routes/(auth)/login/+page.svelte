@@ -17,7 +17,12 @@
             const res = await client.auth.login.mutate({
                 email,
                 password,
+                otpToken,
             });
+            if (res === "2fa") {
+                otpToken = "";
+                return;
+            }
             if (browser) localStorage.setItem("token", res);
             redirectParam();
         } catch (error) {
@@ -86,6 +91,7 @@
                             bind:value={otpToken}
                         />
                     </div>
+                {/if}
 
                 <!-- Error Message -->
                 {#if errorMessage}

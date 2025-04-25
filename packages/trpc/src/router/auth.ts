@@ -216,7 +216,7 @@ export const authRouter = createTRPCRouter({
                             email,
                             name: email.split("@")[0],
                             password: "",
-							oAuthProvider: "google",
+                            oAuthProvider: "google",
                         })
                         .returning();
 
@@ -278,5 +278,31 @@ export const authRouter = createTRPCRouter({
         }
 
         return null;
+    }),
+
+    getOtpUrl: protectedProcedure.query(async ({ ctx }) => {
+        const user = await db
+            .select()
+            .from(users)
+            .where(eq(users.id, ctx.user.id));
+
+        if (user.length === 0 || !user[0]) {
+            throw new TRPCError({
+                code: "FORBIDDEN",
+                message: "Invalid credentials",
+            });
+        }
+
+        if (!user[0].secret) {
+            return null;
+        }
+
+        const otp = authenticator.keyuri(
+            user[0].name,
+            "transcendence",
+            user[0].secret,
+        );
+
+        return otp;
     }),
 });

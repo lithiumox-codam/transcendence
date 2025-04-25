@@ -12,8 +12,8 @@ import { encryptedText } from "../encryptedText.ts";
 
 export const users = sqliteTable("users", {
     id: integer("id").primaryKey({ autoIncrement: true }),
-    name: text("name", { length: 255 }).notNull(),
-    email: text("email", { length: 255 }).notNull(),
+    name: text("name", { length: 255 }).unique().notNull(),
+    email: text("email", { length: 255 }).unique().notNull(),
     password: text("password").notNull(),
     oAuthProvider: text("oauth_provider"),
     avatar: text("avatar"),

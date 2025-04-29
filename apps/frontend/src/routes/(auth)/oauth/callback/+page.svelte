@@ -1,12 +1,12 @@
 <script lang="ts">
-	import { page } from "$app/state";
-	import { onMount } from "svelte";
+    import { page } from "$app/state";
+    import { onMount } from "svelte";
 
-	const code = page.url.searchParams.get("code");
+    const code = page.url.searchParams.get("code");
 
-	import { client } from "$lib/trpc";
-	import { browser } from "$app/environment";
-	import { goto } from "$app/navigation";
+    import { client } from "$lib/trpc";
+    import { browser } from "$app/environment";
+    import { goto } from "$app/navigation";
 
 	onMount(() => {
 		const fetchToken = async () => {
@@ -24,7 +24,6 @@
 				console.error(error);
 			}
 		};
-
-		fetchToken();
-	});
+        fetchToken();
+    });
 </script>

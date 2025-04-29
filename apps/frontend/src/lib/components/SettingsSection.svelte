@@ -2,6 +2,7 @@
     import { client } from "$lib/trpc";
     import { goto } from "$app/navigation";
     import { onMount } from "svelte";
+    import TWOFA from "./2FA.svelte";
 
     let showDeleteModal = $state(false);
     let showPasswordModal = $state(false);
@@ -145,6 +146,19 @@
             >
                 {isOAuth && !isPasswordSet ? "Set Password" : "Change Password"}
             </button>
+        </div>
+  
+     <!-- Toggle 2FA -->
+        <div
+            class="flex justify-between items-center bg-white/5 p-4 rounded-lg transition duration-300 hover:bg-white/10"
+        >
+            <div class="text-left">
+                Toggle 2FA
+                <p class="text-gray-400">
+                    Enable two-factor authentication for added security.
+                </p>
+            </div>
+            <TWOFA />
         </div>
 
         <div

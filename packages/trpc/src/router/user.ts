@@ -66,6 +66,14 @@ export const userRouter = createTRPCRouter({
                 });
             }
 
+            if (email && ctx.user.oAuthProvider) {
+                throw new TRPCError({
+                    code: "BAD_REQUEST",
+
+                    message: "Cannot change email for OAuth users",
+                });
+            }
+
             try {
                 const [edit] = await db
                     .update(users)

@@ -10,7 +10,7 @@ import {
     users,
 } from "@repo/database";
 import { TRPCError } from "@trpc/server";
-import { and, eq, like, ne, sql } from "drizzle-orm";
+import { and, eq, like, ne, or, sql } from "drizzle-orm";
 import { z } from "zod";
 import { emitter } from "../events/index.ts";
 import {
@@ -105,6 +105,35 @@ export const userRouter = createTRPCRouter({
                 });
             }
         }),
+		
+	deleteAvatar: protectedProcedure.mutation(async ({ ctx }) => {
+		const [edit] = await db
+			.update(users)
+			.set({
+				avatar: null,
+			})
+			.where(eq(users.id, ctx.user.id))
+			.returning({
+				id: users.id,
+				name: users.name,
+				email: users.email,
+				oAuthProvider: users.oAuthProvider,
+				avatar: users.avatar,
+				createdAt: users.createdAt,
+			});
+		if (edit) {
+			emitter.emit("user:update", edit);
+			emitter.emit("friends:update", edit.id);
+		}
+		if (!edit) {
+			throw new TRPCError({
+				code: "NOT_FOUND",
+				message: "User not found or avatar not deleted",
+			});
+		}
+		return edit;
+	}),
+	
     all: publicProcedure.query(async () => {
         return await db
             .select({

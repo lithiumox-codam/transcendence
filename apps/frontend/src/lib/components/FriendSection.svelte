@@ -3,10 +3,13 @@
     import FriendSearch from "$lib/components/FriendSearch.svelte";
     import { goto } from "$app/navigation";
     import { getContext } from "svelte";
+    import Avatar from "$lib/components/Avatar.svelte";
+    import { Search, SearchX, Check, X } from "@lucide/svelte"; // Import Check and X icons
 
     const user = getContext<UserClass>("user");
 
     let activeTab: "friends" | "outgoing" | "incoming" = $state("friends");
+    let showSearchBar = $state(false); // State to toggle the search bar
 
     // Computed values for easy access
     let friendCount = $derived(user.friends?.length || 0);
@@ -14,23 +17,19 @@
     let outgoingRequestCount = $derived(user.outgoingRequests?.length || 0);
 
     function viewProfile(userId: number) {
-        goto(`/user/${userId}`);
-    }
-
-    // Helper function to get user initials for avatar fallback
-    function getInitials(name: string): string {
-        return name
-            .split(" ")
-            .map((n) => n[0])
-            .join("")
-            .toUpperCase()
-            .substring(0, 2);
+        if (window.location.pathname !== `/user/${userId}`)
+            goto(`/user/${userId}`);
     }
 </script>
 
-<main class="py-10 px-6 max-w-5xl mx-auto">
-    <!-- Tabs navigation with fixed height to prevent layout shifts -->
-    <div class="flex justify-between mb-8">
+<main class="py-10 px-6 mx-auto">
+    {#if showSearchBar}
+        <div class="relative mb-6">
+            <FriendSearch />
+        </div>
+    {/if}
+
+    <div class="flex justify-between items-center mb-8">
         <div class="flex">
             <button
                 class="px-6 py-3 font-medium text-lg transition-all border-b-2 {activeTab ===
@@ -69,83 +68,84 @@
                 >
             </button>
         </div>
-        <div class="flex items-center">
-            <FriendSearch />
-        </div>
+
+        <button
+            class="p-2 text-white/70 hover:text-blue-400 transition ml-4 cursor-pointer"
+            onclick={() => (showSearchBar = !showSearchBar)}
+            aria-label={showSearchBar ? "Close search" : "Open search"}
+        >
+            {#if showSearchBar}
+                <SearchX class="w-5 h-5" />
+            {:else}
+                <Search class="w-5 h-5" />
+            {/if}
+        </button>
     </div>
 
-    <!-- Content container with fixed height to prevent layout shifts -->
     <div class="min-h-[400px]">
         {#if activeTab === "friends" && friendCount > 0}
-            <!-- Friends list with avatars -->
             <ul class="space-y-4">
                 {#each user.friends as friend (friend.id)}
                     <li
-                        class="flex items-center p-4 bg-gray-700 shadow-lg rounded-lg border border-gray-500 transition-all hover:bg-gray-650"
+                        class="flex items-center p-4 bg-white/5 shadow-lg rounded-lg transition duration-300 hover:bg-white/10"
                     >
-                        {#if friend.avatar}
-                            <img
-                                src={friend.avatar}
-                                alt="{friend.name}'s avatar"
-                                class="w-16 h-16 rounded-full mr-4 object-cover border-2 border-double border-gray-400"
+                        <button
+                            class="text-lg font-semibold text-white/80 text-left cursor-pointer"
+                            onclick={() => viewProfile(friend.id)}
+                        >
+                            <Avatar
+                                name={friend.name}
+                                avatar={friend.avatar}
+                                class="w-16 h-16 mr-4 text-3xl cursor-pointer opacity-80"
                             />
-                        {:else}
-                            <div
-                                class="w-16 h-16 rounded-full mr-4 bg-blue-600 text-white flex items-center justify-center font-bold text-xl border-2 border-double border-gray-400"
-                            >
-                                {getInitials(friend.name)}
-                            </div>
-                        {/if}
+                        </button>
                         <div class="flex-1">
-                            <h3 class="text-lg font-semibold text-white">
+                            <button
+                                class="text-lg font-semibold text-white/80 text-left cursor-pointer"
+                                onclick={() => viewProfile(friend.id)}
+                            >
                                 {friend.name}
-                            </h3>
-                            <p class="text-sm text-gray-300">
+                            </button>
+                            <p class="text-sm text-gray-300/40">
                                 {friend.email}
                             </p>
                         </div>
                         <div class="flex gap-2">
                             <button
-                                onclick={() => viewProfile(friend.id)}
-                                class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
-                            >
-                                View Profile
-                            </button>
-                            <button
                                 onclick={() => user.removeFriend(friend.id)}
-                                class="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition"
+                                class="p-2 bg-red-600/20 border border-red-500/30 text-red-300 rounded-md hover:bg-red-600/40 hover:text-red-200 transition cursor-pointer"
+                                aria-label="Remove friend"
                             >
-                                Remove Friend
+                                <X class="w-4 h-4" />
                             </button>
                         </div>
                     </li>
                 {/each}
             </ul>
         {:else if activeTab === "incoming" && incomingRequestCount > 0}
-            <!-- Incoming friend requests with avatars -->
             <ul class="space-y-4">
                 {#each user.incomingRequests as request (request.id)}
                     <li
-                        class="flex items-center p-4 bg-gray-700 shadow-lg rounded-lg border border-gray-500 transition-all hover:bg-gray-650"
+                        class="flex items-center p-4 bg-white/5 shadow-lg rounded-lg transition duration-300 hover:bg-white/10"
                     >
-                        {#if request.avatar}
-                            <img
-                                src={request.avatar}
-                                alt="{request.name}'s avatar"
-                                class="w-16 h-16 rounded-full mr-4 object-cover border-2 border-double border-gray-400"
+                        <button
+                            class="text-lg font-semibold text-white/80 text-left cursor-pointer"
+                            onclick={() => viewProfile(request.id)}
+                        >
+                            <Avatar
+                                name={request.name}
+                                avatar={request.avatar}
+                                class="w-16 h-16 mr-4 text-3xl cursor-pointer opacity-80"
                             />
-                        {:else}
-                            <div
-                                class="w-16 h-16 rounded-full mr-4 bg-green-600 text-white flex items-center justify-center font-bold text-xl border-2 border-double border-gray-400"
-                            >
-                                {getInitials(request.name)}
-                            </div>
-                        {/if}
+                        </button>
                         <div class="flex-1">
-                            <h3 class="text-lg font-semibold text-white">
+                            <button
+                                class="text-lg font-semibold text-white/80 text-left cursor-pointer"
+                                onclick={() => viewProfile(request.id)}
+                            >
                                 {request.name}
-                            </h3>
-                            <p class="text-sm text-gray-300">
+                            </button>
+                            <p class="text-sm text-gray-300/40">
                                 {request.email}
                             </p>
                         </div>
@@ -153,52 +153,47 @@
                             <button
                                 onclick={() =>
                                     user.acceptFriendRequest(request.id)}
-                                class="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 transition"
+                                class="p-2 bg-green-600/20 border border-green-500/30 text-green-300 rounded-md hover:bg-green-600/40 hover:text-green-200 transition cursor-pointer"
+                                aria-label="Accept friend request"
                             >
-                                Accept
+                                <Check class="w-4 h-4" />
                             </button>
                             <button
                                 onclick={() =>
                                     user.rejectFriendRequest(request.id)}
-                                class="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition"
+                                class="p-2 bg-red-600/20 border border-red-500/30 text-red-300 rounded-md hover:bg-red-600/40 hover:text-red-200 transition cursor-pointer"
+                                aria-label="Reject friend request"
                             >
-                                Reject
-                            </button>
-                            <button
-                                onclick={() => viewProfile(request.id)}
-                                class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
-                            >
-                                View
+                                <X class="w-4 h-4" />
                             </button>
                         </div>
                     </li>
                 {/each}
             </ul>
         {:else if activeTab === "outgoing" && outgoingRequestCount > 0}
-            <!-- Outgoing friend requests with avatars -->
             <ul class="space-y-4">
                 {#each user.outgoingRequests as request (request.id)}
                     <li
-                        class="flex items-center p-4 bg-gray-700 shadow-lg rounded-lg border border-gray-500 transition-all hover:bg-gray-650"
+                        class="flex items-center p-4 bg-white/5 shadow-lg rounded-lg transition duration-300 hover:bg-white/10"
                     >
-                        {#if request.avatar}
-                            <img
-                                src={request.avatar}
-                                alt="{request.name}'s avatar"
-                                class="w-16 h-16 rounded-full mr-4 object-cover border-2 border-double border-gray-400"
+                        <button
+                            class="text-lg font-semibold text-white/80 text-left cursor-pointer"
+                            onclick={() => viewProfile(request.id)}
+                        >
+                            <Avatar
+                                name={request.name}
+                                avatar={request.avatar}
+                                class="w-16 h-16 mr-4 text-3xl cursor-pointer opacity-80"
                             />
-                        {:else}
-                            <div
-                                class="w-16 h-16 rounded-full mr-4 bg-purple-600 text-white flex items-center justify-center font-bold text-xl border-2 border-double border-gray-400"
-                            >
-                                {getInitials(request.name)}
-                            </div>
-                        {/if}
+                        </button>
                         <div class="flex-1">
-                            <h3 class="text-lg font-semibold text-white">
+                            <button
+                                class="text-lg font-semibold text-white/80 text-left cursor-pointer"
+                                onclick={() => viewProfile(request.id)}
+                            >
                                 {request.name}
-                            </h3>
-                            <p class="text-sm text-gray-300">
+                            </button>
+                            <p class="text-sm text-gray-300/40">
                                 {request.email}
                             </p>
                         </div>
@@ -206,15 +201,10 @@
                             <button
                                 onclick={() =>
                                     user.cancelFriendRequest(request.id)}
-                                class="px-3 py-1 bg-gray-600 text-white rounded hover:bg-gray-700 transition"
+                                class="p-2 bg-red-600/20 border border-red-500/30 text-red-300 rounded-md hover:bg-red-600/40 hover:text-red-200 transition cursor-pointer"
+                                aria-label="Cancel friend request"
                             >
-                                Cancel
-                            </button>
-                            <button
-                                onclick={() => viewProfile(request.id)}
-                                class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
-                            >
-                                View
+                                <X class="w-4 h-4" />
                             </button>
                         </div>
                     </li>

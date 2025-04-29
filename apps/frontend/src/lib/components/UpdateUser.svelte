@@ -52,12 +52,30 @@
 		}
 	}
 
+	async function deleteAvatar() {
+		try {
+			const res = await client.user.deleteAvatar.mutate();
+			console.log(res);
+
+			// Notify parent to refresh the profile
+			dispatch("updateComplete");
+		} catch (error) {
+			errorMessage = "Failed to delete avatar. Please try again.";
+			console.error(error);
+		}
+	}
+
 	function cancelEdit() {
 		dispatch("updateComplete"); // Notify parent to exit edit mode
 	}
 </script>
 
-<div>
+<div
+	class="relative bg-black/10 border border-white/10 rounded-xl p-6 shadow-[0_0_20px_rgba(0,255,255,0.05)] backdrop-blur-sm"
+>
+	<h2 class="text-2xl font-extrabold text-center text-white mb-6">
+		Edit Profile
+	</h2>
 	<!-- Error Message -->
 	{#if errorMessage}
 		<p class="text-red-500 text-sm">{errorMessage}</p>
@@ -65,52 +83,56 @@
 	<form class="space-y-4" onsubmit={updateUserSubmit}>
 		<div class="space-y-2">
 			<label
-				class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+				class="block text-sm font-medium text-gray-300 mb-1"
 				for="email">Email</label
 			>
 			<input
 				id="email"
 				type="email"
 				placeholder={user.email}
-				class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+				class="w-full px-4 py-2 bg-gray-700/20 border border-gray-600/20 rounded-md text-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
 				bind:value={email}
 			/>
 
-			<label
-				class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-				for="username">Username</label
-			>
-			<input
-				id="username"
-				type="text"
-				placeholder={user.name}
-				class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-				bind:value={name}
-			/>
+			<div>
+				<label
+					class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+					for="username">Username</label
+				>
+				<input
+					id="username"
+					type="text"
+					placeholder={user.name}
+					class="w-full px-4 py-2 bg-gray-700/20 border border-gray-600/20 rounded-md text-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+					bind:value={name}
+				/>
+			</div>
 
-			<label
-				class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-				for="avatar">Avatar</label
-			>
-			<input
-				id="avatar"
-				type="file"
-				class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-				accept="image/png, image/jpeg"
-				onchange={handleAvatarChange}
-			/>
+			<div>
+				<label
+					class="block text-sm font-medium text-gray-300 mb-1"
+					for="avatar">Avatar</label
+				>
+				<input
+					id="avatar"
+					type="file"
+					class="w-full px-4 py-2 bg-gray-700/20 border border-gray-600/20 rounded-md text-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all cursor-pointer"
+					accept="image/png, image/jpeg"
+					onchange={handleAvatarChange}
+				/>
+			</div>
 
 			<!-- Buttons -->
 			<div class="flex justify-start space-x-4 mt-4">
 				<button
 					type="submit"
-					class="bg-blue-500 text-white px-4 py-2 rounded-md transition duration-300 hover:bg-blue-700"
+					class="bg-white/5 border border-white/10 p-2.5 rounded-md hover:bg-green-600/10 cursor-pointer"
 				>
 					Save
 				</button>
 				<button
 					type="button"
-					class="bg-gray-500 text-white px-4 py-2 rounded-md transition duration-300 hover:bg-gray-700"
+					class="bg-white/5 border border-white/10 p-2.5 rounded-md hover:bg-gray-700/10 cursor-pointer"
 					onclick={cancelEdit}
 				>
 					Cancel

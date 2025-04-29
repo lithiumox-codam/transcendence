@@ -125,30 +125,30 @@
 </script>
 
 <section class="max-w-3xl mx-auto p-5 bg-transparent text-center">
-    <h2 class="text-2xl text-white mb-5 text-left">Settings</h2>
-
     <div class="flex flex-col gap-5">
         <!-- Password Change UI -->
         <div
             class="flex justify-between items-center bg-white/5 p-4 rounded-lg transition duration-300 hover:bg-white/10"
         >
-            <div class="text-left">
-                {isOAuth && !isPasswordSet ? "Set Password" : "Change Password"}
-                <p class="text-gray-400">
+            <div class="text-left mr-4"> 
+                <h3 class="text-lg font-semibold text-white mb-1">
+                    {isOAuth && !isPasswordSet ? "Set Password" : "Change Password"}
+                </h3>
+                <p class="text-gray-400 text-sm">
                     {isOAuth && !isPasswordSet
                         ? "Set a password for your account to enable regular login."
                         : "Update your password to keep your account secure."}
                 </p>
             </div>
             <button
-                class="bg-blue-500 text-white px-4 py-2 rounded-md transition duration-300 hover:bg-blue-700"
+                class="bg-white/5 border border-white/10 text-white px-4 py-2 rounded-md transition duration-300 hover:bg-blue-600/10 cursor-pointer flex-shrink-0" 
                 onclick={togglePasswordModal}
             >
                 {isOAuth && !isPasswordSet ? "Set Password" : "Change Password"}
             </button>
         </div>
-
-        <!-- Toggle 2FA -->
+  
+     <!-- Toggle 2FA -->
         <div
             class="flex justify-between items-center bg-white/5 p-4 rounded-lg transition duration-300 hover:bg-white/10"
         >
@@ -161,43 +161,41 @@
             <TWOFA />
         </div>
 
-        <!-- Delete Account -->
         <div
             class="flex justify-between items-center bg-white/5 p-4 rounded-lg transition duration-300 hover:bg-red-100/10"
         >
-            <div class="text-left">
-                <h3 class="text-xl text-white mb-1">Delete Account</h3>
-                <p class="text-gray-400">
+            <div class="text-left mr-4">
+                <h3 class="text-lg font-semibold text-red-400 mb-1">Delete Account</h3>
+                <p class="text-gray-400 text-sm">
                     Permanently delete your account and all associated data.
                     Before proceeding, please review our <a
                         href="/privacy-policy"
-                        class="text-blue-500 underline">Privacy Policy</a
+                        class="text-blue-500 underline hover:text-blue-400">Privacy Policy</a
                     >
                 </p>
             </div>
             <button
-                class="bg-red-600 text-white px-4 py-2 rounded-md transition duration-300 hover:bg-red-800"
+                class="bg-red-600/20 border border-red-500/30 text-red-300 px-4 py-2 rounded-md transition duration-300 hover:bg-red-600/40 hover:text-red-200 cursor-pointer flex-shrink-0" 
                 onclick={toggleDeleteModal}>Delete</button
             >
         </div>
     </div>
 
-    <!-- Password Modal -->
     {#if showPasswordModal}
         <button
             type="button"
-            class="fixed inset-0 bg-black/70 backdrop-blur-sm z-10"
+            class="fixed inset-0 bg-black/70 backdrop-blur-sm z-10 cursor-pointer"
             onclick={togglePasswordModal}
             aria-label="Close modal"
             onkeydown={(e) => e.key === "Enter" && togglePasswordModal()}
         ></button>
         <div
-            class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-gray-800 p-6 rounded-lg shadow-lg z-20 w-96 max-w-full"
+            class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-black/10 border border-white/10 rounded-xl p-6 shadow-[0_0_20px_rgba(0,255,255,0.05)] backdrop-blur-sm z-20 w-96 max-w-full"
         >
-            <h2 class="text-xl text-white mb-4">
+            <h2 class="text-xl text-white mb-4 text-center font-bold">
                 {isOAuth && !isPasswordSet ? "Set Password" : "Change Password"}
             </h2>
-            <p class="text-gray-300 mb-4">
+            <p class="text-gray-300 mb-4 text-sm text-center">
                 {isOAuth && !isPasswordSet
                     ? "Set a password for your account to enable regular login."
                     : "Enter your current password and choose a new one."}
@@ -206,20 +204,20 @@
             <div class="flex flex-col gap-3">
                 {#if !(isOAuth && !isPasswordSet)}
                     <input
-                        class="p-3 border border-gray-600 rounded-md bg-gray-700 text-white"
+                        class="p-3 border border-gray-600/20 rounded-md bg-gray-700/20 text-white placeholder-gray-400/60 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                         type="password"
                         placeholder="Current Password"
                         bind:value={oldPassword}
                     />
                 {/if}
                 <input
-                    class="p-3 border border-gray-600 rounded-md bg-gray-700 text-white"
+                    class="p-3 border border-gray-600/20 rounded-md bg-gray-700/20 text-white placeholder-gray-400/60 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                     type="password"
                     placeholder="New Password"
                     bind:value={newPassword}
                 />
                 <input
-                    class="p-3 border border-gray-600 rounded-md bg-gray-700 text-white"
+                    class="p-3 border border-gray-600/20 rounded-md bg-gray-700/20 text-white placeholder-gray-400/60 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                     type="password"
                     placeholder="Confirm New Password"
                     bind:value={confirmPassword}
@@ -227,12 +225,12 @@
             </div>
 
             {#if errorMessage}
-                <p class="text-red-500 text-sm mt-2">{errorMessage}</p>
+                <p class="text-red-500 text-sm mt-2 text-center">{errorMessage}</p>
             {/if}
 
             <div class="flex justify-center gap-3 mt-4">
                 <button
-                    class="bg-blue-500 text-white px-4 py-2 rounded-md transition duration-300 hover:bg-blue-700"
+                    class="bg-white/5 border border-white/10 text-white px-4 py-2 rounded-md transition duration-300 hover:bg-blue-600/10 cursor-pointer"
                     onclick={isOAuth && !isPasswordSet
                         ? handleSetPassword
                         : handleChangePassword}
@@ -240,7 +238,7 @@
                     {isOAuth && !isPasswordSet ? "Set Password" : "Save"}
                 </button>
                 <button
-                    class="bg-gray-600 text-white px-4 py-2 rounded-md transition duration-300 hover:bg-gray-700"
+                    class="bg-white/5 border border-white/10 text-white px-4 py-2 rounded-md transition duration-300 hover:bg-gray-700/10 cursor-pointer"
                     onclick={togglePasswordModal}
                 >
                     Cancel
@@ -253,30 +251,30 @@
     {#if showDeleteModal}
         <button
             type="button"
-            class="fixed inset-0 bg-black/70 backdrop-blur-sm z-10"
+            class="fixed inset-0 bg-black/70 backdrop-blur-sm z-10 cursor-pointer"
             onclick={toggleDeleteModal}
             aria-label="Close modal"
         ></button>
         <div
-            class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-gray-800 p-6 rounded-lg shadow-lg z-20 w-96 max-w-full"
+            class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-black/10 border border-white/10 rounded-xl p-6 shadow-[0_0_20px_rgba(255,0,0,0.1)] backdrop-blur-sm z-20 w-96 max-w-full"
         >
             <!-- Modal Header -->
             <div class="border-b border-gray-600 pb-4 mb-4 text-center">
-                <h2 class="text-xl text-white">Confirm Account Deletion</h2>
+                <h2 class="text-xl text-red-400 font-bold">Confirm Account Deletion</h2>
             </div>
 
             <!-- Modal Content -->
             <div class="text-center">
-                <p class="text-gray-300 mb-4">
+                <p class="text-gray-300 mb-4 text-sm">
                     To proceed with account deletion, please enter your
-                    username.
+                    username. This action is irreversible.
                 </p>
 
                 <!-- Username Input -->
                 <div class="flex flex-col items-center gap-3">
                     <input
                         id="username"
-                        class="p-3 border border-gray-600 rounded-md bg-gray-700 text-white w-full"
+                        class="p-3 border border-gray-600/20 rounded-md bg-gray-700/20 text-white placeholder-gray-400/60 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all w-full"
                         type="text"
                         placeholder="Enter your username"
                         bind:value={username}
@@ -292,11 +290,11 @@
             <!-- Modal Footer -->
             <div class="flex justify-center gap-3 mt-4">
                 <button
-                    class="bg-red-600 text-white px-4 py-2 rounded-md transition duration-300 hover:bg-red-800"
+                    class="bg-red-600/20 border border-red-500/30 text-red-300 px-4 py-2 rounded-md transition duration-300 hover:bg-red-600/40 hover:text-red-200 cursor-pointer"
                     onclick={handleDeletion}>Delete</button
                 >
                 <button
-                    class="bg-gray-600 text-white px-4 py-2 rounded-md transition duration-300 hover:bg-gray-700"
+                    class="bg-white/5 border border-white/10 text-white px-4 py-2 rounded-md transition duration-300 hover:bg-gray-700/10 cursor-pointer"
                     onclick={toggleDeleteModal}>Cancel</button
                 >
             </div>

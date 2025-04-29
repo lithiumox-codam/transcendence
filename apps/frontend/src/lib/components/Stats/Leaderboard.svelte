@@ -27,16 +27,16 @@
 <div class="w-full max-w-md mx-auto group text-white relative">
 	<div
 		class="bg-black/10 border border-white/10 rounded-xl p-6
-		shadow-[0_0_20px_rgba(0,255,255,0.05)] backdrop-blur-sm skew-x-1"
+		shadow-[0_0_20px_rgba(0,255,255,0.05)] backdrop-blur-sm"
 	>
 		<h2
-			class="mb-3 text-2xl font-bold text-center text-white tracking-widest"
+			class="mb-4 text-2xl font-bold text-center text-white tracking-widest select-none"
 		>
 			Leaderboard
 		</h2>
 
 		{#if leaderboard.length === 0}
-			<p class="text-gray-400 text-center text-sm">
+			<p class="select-none text-gray-400 text-center text-sm">
 				No leaderboard data available.
 			</p>
 		{:else}
@@ -67,21 +67,21 @@
 				<Avatar
 					name={item.userName}
 					avatar={item.userAvatar}
-					class="w-8 h-8 text-xs"
+					class="w-8 h-8 text-xs select-none"
 				></Avatar>
 			</button>
 			<button
-				class="text-yellow-200 cursor-pointer font-semibold truncate max-w-[90px]"
+				class="text-yellow-200 cursor-pointer font-semibold truncate max-w-[90px] select-none"
 				onclick={() => viewProfile(item.userId)}
 			>
 				{item.userName}
 			</button>
 		</div>
-		<div class="text-yellow-200/50 text-xs text-center w-1/3">
+		<div class="text-yellow-200/50 text-xs text-center w-1/3 select-none">
 			{item.gamesPlayed}
 			{item.gamesPlayed === 1 ? "game" : "games"}
 		</div>
-		<div class="text-yellow-300 font-bold text-right w-1/3">
+		<div class="text-yellow-300 font-bold text-right w-1/3 select-none">
 			{item.totalScore}
 		</div>
 	</div>
@@ -100,21 +100,21 @@
 				<Avatar
 					name={item.userName}
 					avatar={item.userAvatar}
-					class="w-8 h-8 text-xs"
+					class="w-8 h-8 text-xs select-none"
 				></Avatar>
 			</button>
 			<button
-				class="text-gray-200 cursor-pointer font-semibold truncate max-w-[90px]"
+				class="text-gray-200 cursor-pointer font-semibold truncate max-w-[90px] select-none"
 				onclick={() => viewProfile(item.userId)}
 			>
 				{item.userName}
 			</button>
 		</div>
-		<div class="text-white/50 text-xs text-center w-1/3">
+		<div class="text-white/50 text-xs text-center w-1/3 select-none">
 			{item.gamesPlayed}
 			{item.gamesPlayed === 1 ? "game" : "games"}
 		</div>
-		<div class="text-gray-100 font-bold text-right w-1/3">
+		<div class="text-gray-100 font-bold text-right w-1/3 select-none">
 			{item.totalScore}
 		</div>
 	</div>
@@ -133,21 +133,21 @@
 				<Avatar
 					name={item.userName}
 					avatar={item.userAvatar}
-					class="w-8 h-8 text-xs"
+					class="w-8 h-8 text-xs select-none"
 				></Avatar>
 			</button>
 			<button
-				class="text-orange-100 cursor-pointer font-semibold truncate max-w-[90px]"
+				class="text-orange-100 cursor-pointer font-semibold truncate max-w-[90px] select-none"
 				onclick={() => viewProfile(item.userId)}
 			>
 				{item.userName}
 			</button>
 		</div>
-		<div class="text-orange-200/50 text-xs text-center w-1/3">
+		<div class="select-none text-orange-200/50 text-xs text-center w-1/3">
 			{item.gamesPlayed}
 			{item.gamesPlayed === 1 ? "game" : "games"}
 		</div>
-		<div class="text-orange-300 font-bold text-right w-1/3">
+		<div class="text-orange-300 font-bold text-right w-1/3 select-none">
 			{item.totalScore}
 		</div>
 	</div>
@@ -160,7 +160,7 @@
 	>
 		<div class="w-1/3 min-w-0">
 			<button
-				class="text-white cursor-pointer font-medium truncate max-w-[90px]"
+				class="text-white cursor-pointer font-medium truncate max-w-[90px] select-none"
 				onclick={() => viewProfile(item.userId)}
 			>
 				{item.userName.length > 10
@@ -168,11 +168,11 @@
 					: item.userName}
 			</button>
 		</div>
-		<div class="text-gray-300/50 text-xs text-center w-1/3">
+		<div class="text-gray-300/50 text-xs text-center w-1/3 select-none">
 			{item.gamesPlayed}
 			{item.gamesPlayed === 1 ? "game" : "games"}
 		</div>
-		<div class="text-white font-semibold text-right w-1/3">
+		<div class="text-white font-semibold text-right w-1/3 select-none">
 			{item.totalScore}
 		</div>
 	</div>

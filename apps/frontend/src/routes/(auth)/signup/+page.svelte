@@ -106,7 +106,7 @@
             <!-- Google Signup -->
             <p class="mt-2 text-sm text-center text-gray-400">or</p>
             <div class="flex justify-center">
-                <GoogleButton>Login with Google</GoogleButton>
+                <GoogleButton />
             </div>
         </div>
 

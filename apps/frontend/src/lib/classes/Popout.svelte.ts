@@ -12,9 +12,9 @@ interface PopoutPosition {
 }
 
 // Constants
-const DEFAULT_MIN_SIZE: PopoutSize = { width: 300, height: 300 };
+const DEFAULT_MIN_SIZE: PopoutSize = { width: 600, height: 300 };
 const DEFAULT_MAX_SIZE: PopoutSize = { width: 1080, height: 1920 };
-const DEFAULT_SIZE: PopoutSize = { width: 600, height: 900 };
+const DEFAULT_SIZE: PopoutSize = { width: 600, height: 850 };
 const DEFAULT_POSITION: PopoutPosition = { x: 20, y: 20 };
 const NAVBAR_HEIGHT = 80; // Estimated height including padding
 const NAVBAR_MARGIN = 20; // 5rem converted to px approximation

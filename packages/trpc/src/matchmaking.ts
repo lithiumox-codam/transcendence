@@ -1,11 +1,19 @@
-import { type User, db, games, players, users } from "@repo/database";
-import { GameEngine } from "@repo/game";
+import {
+    type User,
+    db,
+    games,
+    players,
+    users,
+    tournaments,
+    tournamentPlayers,
+} from "@repo/database";
+import { GameEngine, GameStatus } from "@repo/game";
 import { eq } from "drizzle-orm";
 import { emitter } from "./events/index.ts";
 
 type queuedPlayer = {
     id: number;
-    gameType: 2 | 4;
+    gameType: 2 | 4 | 8;
 };
 
 export class Matchmaking {
@@ -22,6 +30,8 @@ export class Matchmaking {
 
     private constructor() {
         this.gamesMap = new Map<number, GameEngine>();
+
+        this.updateGames();
     }
 
     public async createGame(
@@ -65,7 +75,7 @@ export class Matchmaking {
                 .set({ status: "playing" })
                 .where(eq(games.id, game.id));
 
-            gameInstance.startGame();
+            gameInstance.start();
 
             return game.id;
         } catch (error) {
@@ -74,8 +84,65 @@ export class Matchmaking {
         }
     }
 
+    private async removeGame(gameId: number): Promise<void> {
+        try {
+            await db
+                .update(games)
+                .set({ status: "finished" })
+                .where(eq(games.id, gameId));
+
+            this.gamesMap.delete(gameId);
+        } catch (error) {
+            console.error("Error removing game:", error);
+            throw new Error("Failed to remove game");
+        }
+    }
+
+    public async createTournament(playerIds: number[]): Promise<number> {
+        try {
+            // Create the tournament
+            const [tournament] = await db
+                .insert(tournaments)
+                .values({ status: "waiting" })
+                .returning();
+            if (!tournament) throw new Error("Failed to create tournament");
+
+            // Add all players to the tournament
+            const playerInserts = playerIds.map((userId) => ({
+                tournamentId: tournament.id,
+                userId,
+            }));
+
+            const tournamentGamePlayers = await db
+                .insert(tournamentPlayers)
+                .values(playerInserts)
+                .returning();
+
+            if (!tournamentGamePlayers || tournamentGamePlayers.length === 0)
+                throw new Error("Failed to add players to tournament");
+
+            // Create a game for every pair of players
+            for (let i = 0; i < playerIds.length; i += 2) {
+                const gameId = await this.createGame(
+                    playerIds.slice(i, i + 2),
+                    2,
+                );
+            }
+
+            await db
+                .update(tournaments)
+                .set({ status: "playing" })
+                .where(eq(tournaments.id, tournament.id));
+
+            return tournament.id;
+        } catch (error) {
+            console.error("Error creating tournament:", error);
+            throw new Error("Failed to create tournament");
+        }
+    }
+
     public async matchmake(): Promise<void> {
-        const gameTypes: (2 | 4)[] = [2, 4];
+        const gameTypes: (2 | 4 | 8)[] = [2, 4, 8];
         for (const gameType of gameTypes) {
             const playersOfType = this.queuedPlayers.filter(
                 (player) => player.gameType === gameType,
@@ -86,7 +153,8 @@ export class Matchmaking {
                 const playerIds = playersOfType
                     .slice(0, gameType)
                     .map((player) => player.id);
-                await this.createGame(playerIds, gameType);
+                if (gameType === 8) await this.createTournament(playerIds);
+                else await this.createGame(playerIds, gameType);
 
                 // Remove the matched players from the queue
                 this.queuedPlayers = this.queuedPlayers.filter(
@@ -97,7 +165,10 @@ export class Matchmaking {
         }
     }
 
-    public async joinQueue(playerId: number, gameType: 2 | 4): Promise<void> {
+    public async joinQueue(
+        playerId: number,
+        gameType: 2 | 4 | 8,
+    ): Promise<void> {
         const player = this.queuedPlayers.find((p) => p.id === playerId);
         if (player) {
             player.gameType = gameType;
@@ -218,9 +289,28 @@ export class Matchmaking {
             }
 
             // Start the game immediately after accepting the invite
-            gameInstance.startGame();
+            gameInstance.start();
         } catch (error) {
             console.error("Error accepting invite:", error);
+        }
+    }
+
+    /* Update game 60 times per second */
+    private async updateGames() {
+        const tickRate = 1000 / 240;
+        let delay = (ms: number) =>
+            new Promise((resolve) => setTimeout(resolve, ms));
+
+        while (true) {
+            for (const [gameId, game] of this.gamesMap.entries()) {
+                game.update(1 / 240);
+
+                // Remove game from map if finished
+                if (game.getState().status === "finished") {
+                    await this.removeGame(gameId);
+                }
+            }
+            await delay(tickRate);
         }
     }
 }

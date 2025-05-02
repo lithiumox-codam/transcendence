@@ -1,24 +1,8 @@
 import { vec2 } from "gl-matrix";
+import { GameState, GameStatus } from "./state.ts";
+import { Player } from "./player.ts";
 
-export interface GameState {
-    players: Player[];
-    ball: {
-        lastHit: number | null;
-        pos: vec2;
-        vel: vec2;
-        speed: number;
-    };
-    gameOver: boolean;
-}
-export interface Player {
-    id: number;
-    position: vec2;
-    score: number;
-    input: "up" | "down" | "none";
-    movementAxis: "x" | "y";
-}
-
-const VICTORY_SCORE = 7;
+const VICTORY_SCORE = 1;
 const axisX = 0;
 const axisY = 1;
 const ARENA_WIDTH = 40;
@@ -59,7 +43,7 @@ export class GameEngine {
                 vel: this.randomDirection(),
                 speed: BALL_SPEED,
             },
-            gameOver: false,
+            status: "waiting" as GameStatus,
         };
     }
 
@@ -131,19 +115,13 @@ export class GameEngine {
         return this.state;
     }
 
-    private update(deltaTime: number): void {
-        if (this.state.gameOver) return;
+    public update(deltaTime: number): void {
+        if (this.state.status !== "playing") return;
 
         this.updatePlayers(deltaTime);
         this.updateBall(deltaTime);
-        this.checkCollisions(deltaTime);
+        this.checkCollisions();
         this.checkScore();
-    }
-
-    public startGame(): void {
-        setInterval(() => {
-            this.update(1 / 240);
-        }, 1000 / 240);
     }
 
     public setPlayerInput(
@@ -193,7 +171,7 @@ export class GameEngine {
         );
     }
 
-    private checkCollisions(deltaTime: number): void {
+    private checkCollisions(): void {
         if (this.collisionCooldown > 0) {
             this.collisionCooldown--;
             return;
@@ -321,7 +299,7 @@ export class GameEngine {
                 if (!player) return;
                 player.score++;
                 if (player.score >= VICTORY_SCORE) {
-                    this.state.gameOver = true;
+                    this.state.status = "finished";
                 }
             }
             this.resetBall();
@@ -346,6 +324,10 @@ export class GameEngine {
             const player = this.state.players[i];
             if (player) player.score = 0;
         }
-        this.state.gameOver = false;
+        this.state.status = "waiting";
+    }
+
+    public start(): void {
+        this.state.status = "playing";
     }
 }

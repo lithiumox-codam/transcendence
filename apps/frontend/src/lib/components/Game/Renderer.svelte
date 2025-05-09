@@ -1,9 +1,11 @@
 <script lang="ts">
 	import * as BABYLON from "babylonjs";
-	import { onMount } from "svelte";
+	import { onMount, getContext } from "svelte";
 	import type { GameState, Player } from "@repo/game";
 	import { client } from "$lib/trpc";
 	import ScoreCard from "./ScoreCard.svelte";
+
+	import type { Popout } from "$lib/classes/Popout.svelte";
 
 	let { gameId }: { gameId: number } = $props();
 
@@ -52,12 +54,25 @@
 		}
 	}
 
+	const popout = getContext<Popout>("popout");
+	let hasAutoClosedPopout = false;
+
 	onMount(() => {
 		(async () => {
 			client.game.listen.subscribe(gameId, {
 				onData: (data) => {
+					const isGameJustStarting = !gameState && data;
 					// console.log("received data", data);
 					gameState = data;
+
+					if (
+						isGameJustStarting &&
+						popout?.shown &&
+						!hasAutoClosedPopout
+					) {
+						popout.hide();
+						hasAutoClosedPopout = true;
+					}
 				},
 				onError: (error) => {
 					console.error(error);
@@ -410,12 +425,14 @@
 
 {#snippet header(paddleCount: number)}
 	<h2
-	class="hidden sm:block text-4xl md:text-5xl font-extrabold uppercase tracking-wider text-white text-center retro-glow-static select-none"
+		class="hidden sm:block text-4xl md:text-5xl font-extrabold uppercase tracking-wider text-white text-center retro-glow-static select-none"
 	>
 		{#each Array(paddleCount) as _, i}
-			<span>1</span>{#if i < paddleCount - 1}<span class="text-2xl font-normal text-gray-400">
-				{" "}vs{" "}
-			</span>{/if}
+			<span>1</span>{#if i < paddleCount - 1}<span
+					class="text-2xl font-normal text-gray-400"
+				>
+					{" "}vs{" "}
+				</span>{/if}
 		{/each}
 	</h2>
 {/snippet}

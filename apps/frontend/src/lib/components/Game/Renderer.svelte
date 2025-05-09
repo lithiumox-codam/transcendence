@@ -3,6 +3,7 @@
 	import { onMount } from "svelte";
 	import type { GameState, Player } from "@repo/game";
 	import { client } from "$lib/trpc";
+	import ScoreCard from "./ScoreCard.svelte";
 
 	let { gameId }: { gameId: number } = $props();
 
@@ -28,7 +29,7 @@
 	let engine = $state<BABYLON.Engine>();
 	let scene = $state<BABYLON.Scene>();
 
-	let gameState = $state<GameState | null>(null);
+	let gameState = $state<GameState | null>(null); // TODO: show who is playing
 
 	let ground = $state<BABYLON.Mesh>();
 	let paddles = $state<BABYLON.Mesh[]>();
@@ -373,12 +374,51 @@
 <svelte:window onresize={() => engine?.resize()} />
 
 <div
-	class="absolute top-0 left-0 right-0 flex justify-between p-4 text-white text-4xl font-mono z-10 [text-shadow:0_0_10px_#fff]"
+	class="absolute top-0 left-0 right-0 flex flex-row justify-center items-center p-4 gap-4 text-white text-xl font-mono z-10"
 >
-	<div>{gameState?.players[0].score}</div>
-	<div class="opacity-50">|</div>
-	<div>{gameState?.players[1].score}</div>
+	{#each (gameState?.players ?? []).slice(0, (gameState?.players?.length ?? 0) / 2) as player, i}
+		<!-- <div class="mt-8">
+			<ScoreCard userId={player.id} score={player.score} />
+		</div> -->
+		<ScoreCard
+			userId={player.id}
+			score={player.score}
+			color={{
+				r: COLOR_ARRAY[i].r,
+				g: COLOR_ARRAY[i].g,
+				b: COLOR_ARRAY[i].b,
+			}}
+		/>
+	{/each}
+
+	<div class="mx-8 mt-5 mb-20">
+		{@render header((gameState?.players?.length ?? 0) === 4 ? 4 : 2)}
+	</div>
+
+	{#each (gameState?.players ?? []).slice((gameState?.players?.length ?? 0) / 2) as player, j}
+		<ScoreCard
+			userId={player.id}
+			score={player.score}
+			color={{
+				r: COLOR_ARRAY[j + (gameState?.players?.length ?? 0) / 2].r,
+				g: COLOR_ARRAY[j + (gameState?.players?.length ?? 0) / 2].g,
+				b: COLOR_ARRAY[j + (gameState?.players?.length ?? 0) / 2].b,
+			}}
+		/>
+	{/each}
 </div>
+
+{#snippet header(paddleCount: number)}
+	<h2
+	class="hidden sm:block text-4xl md:text-5xl font-extrabold uppercase tracking-wider text-white text-center retro-glow-static select-none"
+	>
+		{#each Array(paddleCount) as _, i}
+			<span>1</span>{#if i < paddleCount - 1}<span class="text-2xl font-normal text-gray-400">
+				{" "}vs{" "}
+			</span>{/if}
+		{/each}
+	</h2>
+{/snippet}
 
 {#if gameState?.gameOver}
 	<div class="absolute inset-0 grid place-items-center bg-black/80 z-20">
@@ -392,7 +432,7 @@
 					client.game.reset.mutate(gameId);
 				}}
 				class="px-8 py-4 text-2xl bg-transparent border-2 border-white/50 rounded-lg
-				   text-white hover:bg-white/10 transition-all backdrop-blur-sm"
+                   text-white hover:bg-white/10 transition-all backdrop-blur-sm"
 			>
 				Play Again
 			</button>
@@ -402,3 +442,13 @@
 
 <canvas bind:this={canvas} class="z-0 absolute top-0 left-0 w-full h-full"
 ></canvas>
+
+<style :global()>
+	.retro-glow-static {
+		text-shadow:
+			0 0 8px #0ff,
+			0 0 16px #0ff,
+			0 0 24px #f0f,
+			0 0 32px #f0f;
+	}
+</style>

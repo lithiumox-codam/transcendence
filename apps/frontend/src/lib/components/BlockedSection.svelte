@@ -57,7 +57,7 @@
 					<div class="flex gap-2 ml-4">
 						<button
 							onclick={() => unblockUser(blockedUser.id)}
-							class="px-3 py-1 bg-red-600/30 text-white/80 rounded hover:bg-red-700/50 transition cursor-pointer"
+							class="bg-red-600/20 border border-red-500/30 text-red-300 px-4 py-2 rounded-md transition duration-300 hover:bg-red-600/40 hover:text-red-200 cursor-pointer flex-shrink-0"
 							aria-label={`Unblock ${blockedUser.name}`}
 						>
 							Unblock

@@ -32,7 +32,7 @@
     <div class="flex justify-between items-center mb-8">
         <div class="flex">
             <button
-                class="px-6 py-3 font-medium text-lg transition-all border-b-2 {activeTab ===
+                class="px-6 py-3 font-medium text-lg transition-all border-b-2 cursor-pointer {activeTab ===
                 'friends'
                     ? 'text-blue-400 border-blue-400'
                     : 'text-gray-300 hover:text-blue-300 border-transparent'}"
@@ -44,7 +44,7 @@
                 >
             </button>
             <button
-                class="px-6 py-3 font-medium text-lg transition-all border-b-2 {activeTab ===
+                class="px-6 py-3 font-medium text-lg transition-all border-b-2 cursor-pointer {activeTab ===
                 'incoming'
                     ? 'text-blue-400 border-blue-400'
                     : 'text-gray-300 hover:text-blue-300 border-transparent'}"
@@ -56,7 +56,7 @@
                 >
             </button>
             <button
-                class="px-6 py-3 font-medium text-lg transition-all border-b-2 {activeTab ===
+                class="px-6 py-3 font-medium text-lg transition-all border-b-2 cursor-pointer {activeTab ===
                 'outgoing'
                     ? 'text-blue-400 border-blue-400'
                     : 'text-gray-300 hover:text-blue-300 border-transparent'}"

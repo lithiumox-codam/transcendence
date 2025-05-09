@@ -80,7 +80,7 @@
 							/>
 							{#if user.data.avatar}
 								<button
-									class="absolute top-16 right-4 bg-gray-400/50 text-white p-2 rounded-full hover:bg-red-700/90 transition duration-300"
+									class="absolute top-16 right-4 bg-white/15 border border-white/10 p-2 rounded-full hover:bg-red-600/20 hover:border hover:border-red-500/30 hover:text-red-300 transition duration-100 cursor-pointer"
 									onclick={deleteAvatar}
 									aria-label="Delete Avatar"
 								>
@@ -104,7 +104,7 @@
 						</div>
 					</div>
 					<button
-						class="bg-white/5 border border-white/10 p-2.5 rounded-md hover:bg-blue-600/10"
+						class="bg-white/5 border border-white/10 p-2.5 rounded-md hover:bg-blue-600/10 cursor-pointer"
 						onclick={() => (editMode = true)}
 					>
 						Edit Profile

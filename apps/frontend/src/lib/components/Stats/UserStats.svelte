@@ -117,7 +117,7 @@
 			>
 				<p class="text-cyan-300 font-xs mb-1 select-none">Avg. Score</p>
 				<p class="text-white text-3xl font-bold select-none">
-					{userStats.averageScore.toFixed(1)}
+					{userStats.averageScore.toFixed(0)}
 				</p>
 			</div>
 			<div

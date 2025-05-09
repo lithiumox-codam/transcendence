@@ -186,7 +186,8 @@
                     </p>
                     {#if !isGameFull}
                         <button
-                            class="inline-flex items-center text-sm font-medium bg-green-600 text-white hover:bg-green-700 rounded-md px-3 py-1 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-1 ring-offset-gray-900 transition-colors shrink-0"
+                            class="bg-cyan-500/20 border border-cyan-500/30 hover:bg-cyan-600/30 text-cyan-300 font-medium text-sm focus:outline-none focus:ring-2 focus:ring-cyan-300 disabled:opacity-50 select-none
+inline-flex items-center ransition duration-300 rounded-md px-3 py-1 cursor-pointer transition-colors shrink-0"
                             onclick={() => handleJoinGame(game.id)}
                         >
                             <Swords class="w-4 h-4 mr-1.5" stroke-width="2" />

@@ -189,7 +189,7 @@
 				</button>
 
 				<button
-					class="text-gray-400 hover:text-white focus:outline-none"
+					class="text-gray-400 hover:text-white focus:outline-none cursor-pointer"
 					onclick={handleClose}
 					aria-label="Close"
 					type="button"

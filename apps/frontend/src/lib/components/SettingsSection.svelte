@@ -3,6 +3,7 @@
 	import { goto } from "$app/navigation";
 	import { onMount } from "svelte";
 	import TWOFA from "./2FA.svelte";
+	import { updated } from "$app/state";
 
 	let showDeleteModal = $state(false);
 	let showPasswordModal = $state(false);
@@ -15,12 +16,14 @@
 
 	let isOAuth = $state(false);
 	let isPasswordSet = $state(false);
+	let clientUsername = $state("");
 
 	onMount(async () => {
 		try {
 			const user = await client.user.get.query();
 			isOAuth = user[0]?.oAuthProvider !== null;
 			isPasswordSet = user[0]?.passwordSet === 1;
+			clientUsername = user[0]?.name ?? "";
 		} catch (err) {
 			console.error("Failed to fetch user", err);
 		}
@@ -78,6 +81,60 @@
 			} else {
 				errorMessage = "An unexpected error occurred.";
 			}
+		}
+	}
+
+	async function handleDownloadData() {
+		try {
+			const userData = await client.user.get.query();
+			const user = userData.map((user) => ({
+				name: user.name,
+				email: user.email,
+				avatar: user.avatar,
+				oAuthProvider: user.oAuthProvider,
+			}))[0];
+			const blockedUsersList = await client.block.list.query();
+			const blockedUsers = blockedUsersList.map((user) => ({
+				username: user.name,
+			}));
+			const friendsList = await client.user.friends.list.query();
+			const friends = friendsList.map((friend) => ({
+				username: friend.name,
+			}));
+			const gamesList = await client.game.history.query();
+			const games = gamesList.map((game) => ({
+				createdAt: game.game.createdAt,
+				updatedAt: game.game.updatedAt,
+				maxPlayers: game.game.maxPlayers,
+				players: game.players.map((player) => ({
+					username: player.name,
+					score: player.score,
+				})),
+			}));
+			const messages = await client.chat.getAllSend.query();
+
+			const data = {
+				user,
+				blockedUsers,
+				friends,
+				games,
+				messages,
+			};
+
+			const blob = new Blob([JSON.stringify(data, null, 2)], {
+				type: "application/json",
+			});
+			const url = URL.createObjectURL(blob);
+
+			const a = document.createElement("a");
+			a.href = url;
+			a.download = "my-data.json";
+			a.click();
+
+			URL.revokeObjectURL(url);
+		} catch (error) {
+			console.error("Failed to download data:", error);
+			alert("There was an error gathering your data.");
 		}
 	}
 
@@ -169,7 +226,7 @@
 		>
 			<div class="text-left mr-4">
 				<h3 class="text-lg font-semibold text-white mb-1">
-					Download My Data
+					Download Your Data
 				</h3>
 				<p class="text-gray-400 text-sm">
 					Export a copy of your personal data.
@@ -307,7 +364,7 @@
 						id="username"
 						class="p-3 border border-gray-600/20 rounded-md bg-gray-700/20 text-white placeholder-gray-400/60 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all w-full"
 						type="text"
-						placeholder="Enter your username"
+						placeholder={clientUsername}
 						bind:value={username}
 					/>
 				</div>

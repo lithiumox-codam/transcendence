@@ -97,6 +97,18 @@ export class Matchmaking {
                 .set({ status: "finished" })
                 .where(eq(games.id, gameId));
 
+            for (const player of game.getState().players) {
+                await db
+                    .update(players)
+                    .set({ score: player.score })
+                    .where(
+                        and(
+                            eq(players.userId, player.id),
+                            eq(players.gameId, gameId),
+                        ),
+                    );
+            }
+
             this.gamesMap.delete(gameId);
 
             const tournamentId = game.getTournamentId();

@@ -2,7 +2,7 @@ import { vec2 } from "gl-matrix";
 import { GameState, GameStatus } from "./state.ts";
 import { Player } from "./player.ts";
 
-const VICTORY_SCORE = 1;
+const VICTORY_SCORE = 5;
 const axisX = 0;
 const axisY = 1;
 const ARENA_WIDTH = 40;

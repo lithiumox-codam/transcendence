@@ -3,6 +3,7 @@
 	import { goto } from "$app/navigation";
 	import { onMount } from "svelte";
 	import TWOFA from "./2FA.svelte";
+	import { updated } from "$app/state";
 
 	let showDeleteModal = $state(false);
 	let showPasswordModal = $state(false);
@@ -78,6 +79,60 @@
 			} else {
 				errorMessage = "An unexpected error occurred.";
 			}
+		}
+	}
+
+	async function handleDownloadData() {
+		try {
+			const userData = await client.user.get.query();
+			const user = userData.map((user) => ({
+				name: user.name,
+				email: user.email,
+				avatar: user.avatar,
+				oAuthProvider: user.oAuthProvider,
+			}))[0];
+			const blockedUsersList = await client.block.list.query();
+			const blockedUsers = blockedUsersList.map((user) => ({
+				username: user.name,
+			}));
+			const friendsList = await client.user.friends.list.query();
+			const friends = friendsList.map((friend) => ({
+				username: friend.name,
+			}));
+			const gamesList = await client.game.history.query();
+			const games = gamesList.map((game) => ({
+				createdAt: game.game.createdAt,
+				updatedAt: game.game.updatedAt,
+				maxPlayers: game.game.maxPlayers,
+				players: game.players.map((player) => ({
+					username: player.name,
+					score: player.score,
+				})),
+			}));
+			const messages = await client.chat.getAllSend.query();
+
+			const data = {
+				user,
+				blockedUsers,
+				friends,
+				games,
+				messages,
+			};
+
+			const blob = new Blob([JSON.stringify(data, null, 2)], {
+				type: "application/json",
+			});
+			const url = URL.createObjectURL(blob);
+
+			const a = document.createElement("a");
+			a.href = url;
+			a.download = "my-data.json";
+			a.click();
+
+			URL.revokeObjectURL(url);
+		} catch (error) {
+			console.error("Failed to download data:", error);
+			alert("There was an error gathering your data.");
 		}
 	}
 

@@ -35,6 +35,7 @@
         "@repo/database": "workspace:^",
         "@repo/game": "workspace:^",
         "@repo/trpc": "workspace:^",
+        "@sveltejs/adapter-node": "^5.2.12",
         "@trpc/client": "11.0.0-rc.764",
         "@trpc/server": "11.0.0-rc.764",
         "babylon": "^6.18.0",

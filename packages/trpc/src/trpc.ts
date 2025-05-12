@@ -1,5 +1,5 @@
 import { verify } from "@repo/auth";
-import { db, friends, users } from "@repo/database";
+import { type User, db, friends, users } from "@repo/database";
 import { TRPCError, initTRPC } from "@trpc/server";
 import type { CreateFastifyContextOptions } from "@trpc/server/adapters/fastify";
 import { and, eq, ne } from "drizzle-orm";
@@ -25,8 +25,7 @@ export async function createTRPCContext({
     req,
     res,
 }: CreateFastifyContextOptions) {
-    let user: { id: number; name: string; email: string } | undefined =
-        undefined;
+    let user: Omit<User, "avatar"> | undefined = undefined;
 
     try {
         const token = extractToken(req.url);
@@ -40,22 +39,23 @@ export async function createTRPCContext({
                 code: "UNAUTHORIZED",
                 message: "Invalid token",
             });
-        const dbResult = await db
+        const [dbResult] = await db
             .select({
                 id: users.id,
                 name: users.name,
                 email: users.email,
+                createdAt: users.createdAt,
                 oAuthProvider: users.oAuthProvider,
             })
             .from(users)
             .where(and(eq(users.id, userId), ne(users.password, "[DELETED]")));
-        if (dbResult.length === 0) {
+        if (!dbResult) {
             throw new TRPCError({
                 code: "UNAUTHORIZED",
                 message: "User not found",
             });
         }
-        user = dbResult[0];
+        user = dbResult;
     } catch (e) {
         console.error(e);
     }

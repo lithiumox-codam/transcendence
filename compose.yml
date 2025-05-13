@@ -23,10 +23,29 @@ services:
       - .env
     networks:
       - transcendance
+    volumes:
+      - backend_data:/app/data
+    depends_on:
+      init-db:
+        condition: service_completed_successfully
+
+  init-db:
+    build:
+      context: .
+      dockerfile: ./docker/init-db.dockerfile # Reference the new Dockerfile
+    container_name: init-db
+    restart: "no"
+    networks:
+      - transcendance
+    volumes:
+      - backend_data:/app/data # Ensure it uses the same volume as backend for DB persistence
+    env_file:
+      - .env
 
 volumes:
   caddy_data:
   caddy_config:
+  backend_data:
 
 
 networks:

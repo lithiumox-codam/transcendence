@@ -73,7 +73,7 @@
 </script>
 
 <div
-	class="bg-black/10 border border-white/10 rounded-xl shadow-[0_0_20px_rgba(0,255,255,0.05)] backdrop-blur-sm p-6 text-white"
+	class="bg-black/10 shadow-[0_0_20px_rgba(0,255,255,0.05)] backdrop-blur-sm p-6 text-white"
 >
 	{#if gameClass.queue.length > 0}
 		<div class="mb-6 flex items-center justify-center space-x-2">
@@ -83,29 +83,20 @@
 					<Avatar
 						name={player.name}
 						avatar={player.avatar}
-						class="w-6 h-6 rounded-full border-2 border-black/50"
+						class="w-6 h-6 rounded-full border-2 border-black/50 select-none"
 					/>
 				{/each}
 			</div>
 			{#if isUserInQueue()}
 				<button
 					onclick={async () => await client.game.leaveQueue.mutate()}
-					class="ml-3 text-xs bg-red-500/20 border border-red-500/30 hover:bg-red-600/30 text-red-300 font-medium py-1 px-2 rounded-full transition-all"
+					class="ml-3 text-xs bg-white/5 border border-white/10 text-white font-medium py-1 px-2 rounded-full hover:bg-red-600/20 hover:text-red-300 transition select-none cursor-pointer"
 				>
 					Leave Queue
 				</button>
 			{/if}
 		</div>
 	{/if}
-	<!-- <div class="flex -space-x-2">
-		{#each game.queue as player}
-			<img
-				src={player.avatar}
-				alt={player.name}
-				class="w-8 h-8 rounded-full border-2 border-gray-900 hover:border-white transition-border duration-300 ease-in-out"
-			/>
-		{/each}
-	</div> -->
 	<h2
 		class="text-3xl font-extrabold tracking-widest text-center text-white retro-glow mb-6 select-none"
 	>
@@ -118,7 +109,7 @@
 		<button
 			onclick={handleQueue1v1}
 			class="aspect-[3/4] relative overflow-hidden bg-gradient-to-br from-cyan-900/50 to-black/30 border border-cyan-500/40 rounded-lg p-4 flex flex-col justify-center items-center text-white shadow-[0_0_20px_rgba(0,255,255,0.15)] backdrop-blur-sm
-			   hover:from-cyan-800/60 hover:to-black/40 hover:border-cyan-400/60 hover:shadow-[0_0_30px_rgba(0,255,255,0.25)] transition-all duration-300 group transform hover:-translate-y-1 hover:scale-105 active:scale-100 active:-translate-y-0"
+			   hover:from-cyan-800/60 hover:to-black/40 hover:border-cyan-400/60 hover:shadow-[0_0_30px_rgba(0,255,255,0.25)] transition-all duration-300 group transform hover:-translate-y-1 hover:scale-105 active:scale-100 active:-translate-y-0 cursor-pointer"
 		>
 			<div
 				class="absolute inset-0 bg-grid-cyan opacity-10 group-hover:opacity-20 transition-opacity duration-300"
@@ -128,15 +119,19 @@
 					? 'animate-fight'
 					: ''}"
 			/>
-			<span class="text-xl font-bold tracking-wider z-10">1 VS 1</span>
-			<p class="text-sm text-cyan-200 mt-2 z-10">Classic Duel</p>
+			<span class="text-xl font-bold tracking-wider z-10 select-none"
+				>1 VS 1</span
+			>
+			<p class="text-sm text-cyan-200 mt-2 z-10 select-none">
+				Classic Duel
+			</p>
 		</button>
 
 		<!-- 1vs1vs1vs1 -->
 		<button
 			onclick={handleQueue4FFA}
 			class="aspect-[3/4] relative overflow-hidden bg-gradient-to-br from-pink-900/50 to-black/30 border border-pink-500/40 rounded-lg p-4 flex flex-col justify-center items-center text-white shadow-[0_0_20px_rgba(255,0,255,0.15)] backdrop-blur-sm
-                   hover:from-pink-800/60 hover:to-black/40 hover:border-pink-400/60 hover:shadow-[0_0_30px_rgba(255,0,255,0.25)] transition-all duration-300 group transform hover:-translate-y-1 hover:scale-105 active:scale-100 active:-translate-y-0"
+                   hover:from-pink-800/60 hover:to-black/40 hover:border-pink-400/60 hover:shadow-[0_0_30px_rgba(255,0,255,0.25)] transition-all duration-300 group transform hover:-translate-y-1 hover:scale-105 active:scale-100 active:-translate-y-0 cursor-pointer"
 		>
 			<div
 				class="absolute inset-0 bg-grid-pink opacity-10 group-hover:opacity-20 transition-opacity duration-300"
@@ -146,17 +141,19 @@
 					? 'animate-users'
 					: ''}"
 			/>
-			<span class="text-xl font-bold tracking-wider z-10"
+			<span class="text-xl font-bold tracking-wider z-10 select-none"
 				>4-Player FFA</span
 			>
-			<p class="text-sm text-pink-200 mt-2 z-10">Free-For-All Chaos</p>
+			<p class="text-sm text-pink-200 mt-2 z-10 select-none">
+				Free-For-All Chaos
+			</p>
 		</button>
 
 		<!-- Tournament -->
 		<button
 			onclick={handleSelectTournament}
 			class="mb-10 aspect-[3/4] relative overflow-hidden bg-gradient-to-br from-amber-900/50 to-black/30 border border-amber-500/40 rounded-lg p-4 flex flex-col justify-center items-center text-white shadow-[0_0_20px_rgba(255,200,0,0.15)] backdrop-blur-sm
-			   hover:from-amber-800/60 hover:to-black/40 hover:border-amber-400/60 hover:shadow-[0_0_30px_rgba(255,200,0,0.25)] transition-all duration-300 group transform hover:-translate-y-1 hover:scale-105 active:scale-100 active:-translate-y-0"
+			   hover:from-amber-800/60 hover:to-black/40 hover:border-amber-400/60 hover:shadow-[0_0_30px_rgba(255,200,0,0.25)] transition-all duration-300 group transform hover:-translate-y-1 hover:scale-105 active:scale-100 active:-translate-y-0 cursor-pointer"
 		>
 			<div
 				class="absolute inset-0 bg-grid-amber opacity-10 group-hover:opacity-20 transition-opacity duration-300"
@@ -166,14 +163,17 @@
 					? 'animate-trophy'
 					: ''}"
 			/>
-			<span class="text-xl font-bold tracking-wider z-10">Tournament</span
+			<span class="text-xl font-bold tracking-wider z-10 select-none"
+				>Tournament</span
 			>
-			<p class="text-sm text-amber-200 mt-2 z-10">Climb the Bracket</p>
+			<p class="select-none text-sm text-amber-200 mt-2 z-10">
+				Climb the Bracket
+			</p>
 		</button>
 	</div>
-<!-- </div> -->
+	<!-- </div> -->
 
-<!-- <div
+	<!-- <div
 	class="mt-6 bg-black/10 border border-white/10 rounded-xl shadow-[0_0_20px_rgba(0,255,255,0.05)] backdrop-blur-sm p-6 text-white"
 > -->
 	<h2
@@ -206,7 +206,7 @@
 					<Avatar
 						name={player.name}
 						avatar={player.avatar}
-						class="w-8 h-8 rounded-full border-2 border-black/50"
+						class="w-8 h-8 rounded-full border-2 border-black/50 select-none"
 					/>
 				{/each}
 			</div>
@@ -217,18 +217,24 @@
 					{#each data.players as player, i}
 						{player.name}
 						{#if i < data.players.length - 1}
-							<span class="mx-1 text-gray-500">vs</span>
+							<span class="text-gray-500 mr-2 mx-1">vs</span>
 						{/if}
 					{/each}
 				</h3>
 				<p class="select-none text-xs text-gray-400">
-					{data.game.maxPlayers} Players Max
+					{#if data.game.maxPlayers === 2}
+						1 vs 1
+					{:else if data.game.maxPlayers === 4}
+						4 Players FFA
+					{:else}
+						{data.game.maxPlayers} Players Max
+					{/if}
 				</p>
 			</div>
 		</div>
 
 		<button
-			class="ml-3 flex-shrink-0 bg-cyan-500/20 border border-cyan-500/30 hover:bg-cyan-600/30 text-cyan-300 font-medium py-1.5 px-3 rounded-md text-xs focus:outline-none focus:ring-2 focus:ring-cyan-300 transition-all flex items-center gap-1.5"
+			class="ml-3 flex-shrink-0 bg-white/5 border-white/10 border hover:border-cyan-500/30 hover:bg-cyan-600/20 text-cyan-300 font-medium py-1.5 px-3 rounded-md text-xs transition-all flex items-center gap-1.5 cursor-pointer select-none"
 			onclick={() => spectateGame(data.game.id)}
 			aria-label="Spectate Game"
 		>

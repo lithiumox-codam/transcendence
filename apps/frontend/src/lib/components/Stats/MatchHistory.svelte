@@ -1,6 +1,4 @@
 <script lang="ts">
-	import Avatar from "$lib/components/Avatar.svelte";
-
 	type Player = {
 		id: number;
 		name: string;
@@ -19,11 +17,14 @@
 		userId: number;
 	};
 
-	let { matches, maxHeight = "max-h-96" }: { matches: Match[]; maxHeight?: string } = $props();
+	let {
+		matches,
+		maxHeight = "max-h-96",
+	}: { matches: Match[]; maxHeight?: string } = $props();
 
 	function formatDate(dateString: string): string {
 		const date = new Date(dateString);
-		return date.toLocaleDateString(); // Only display the date
+		return date.toLocaleDateString();
 	}
 
 	function getResult(
@@ -51,20 +52,16 @@
 		</h2>
 
 		{#if matches.length === 0}
-			<p class="text-center text-gray-400 select-none">No match history available.</p>
+			<p class="text-center text-gray-400 select-none">
+				No match history available.
+			</p>
 		{:else}
 			<div class={`space-y-2 overflow-y-auto ${maxHeight}`}>
 				{#each matches as { game, players, userId }}
 					<div
-						class="flex items-center justify-between p-4 border border-white/10 bg-white/5  shadow-lg rounded-lg transition duration-300 hover:bg-white/10"
+						class="flex items-center justify-between p-4 border border-white/10 bg-white/5 shadow-lg rounded-lg transition duration-300 hover:bg-white/10"
 					>
-						<!-- User Avatar and Name -->
 						<div class="flex items-center space-x-2 w-1/3 min-w-0">
-							<!-- <Avatar
-                                name={players.find(p => p.id === userId)?.name || "Unknown"}
-                                avatar={players.find(p => p.id === userId)?.avatar || null}
-                                class="w-12 h-12 flex-shrink-0"
-                            /> -->
 							<div class="min-w-0">
 								<p
 									class="text-sm font-semibold text-white truncate select-none"
@@ -72,14 +69,15 @@
 									{players.find((p) => p.id === userId)
 										?.name || "Unknown"}
 								</p>
-								<p class="text-xs text-gray-400 truncate select-none">
+								<p
+									class="text-xs text-gray-400 truncate select-none"
+								>
 									Score: {players.find((p) => p.id === userId)
 										?.score ?? "N/A"}
 								</p>
 							</div>
 						</div>
 
-						<!-- Match Result and Date -->
 						<div class="text-center w-1/3 flex-shrink-0">
 							<p
 								class={`text-xs select-none font-bold ${
@@ -109,12 +107,13 @@
 										?.score ?? null,
 								)}
 							</p>
-							<p class="text-xs text-gray-400 truncate select-none">
+							<p
+								class="text-xs text-gray-400 truncate select-none"
+							>
 								{formatDate(game.createdAt)}
 							</p>
 						</div>
 
-						<!-- Opponent Avatar and Name -->
 						<div
 							class="flex items-center space-x-2 w-1/3 min-w-0 justify-end"
 						>
@@ -125,16 +124,13 @@
 									{players.find((p) => p.id !== userId)
 										?.name || "Unknown"}
 								</p>
-								<p class="text-xs text-gray-400 truncate select-none">
+								<p
+									class="text-xs text-gray-400 truncate select-none"
+								>
 									Score: {players.find((p) => p.id !== userId)
 										?.score ?? "N/A"}
 								</p>
 							</div>
-							<!-- <Avatar
-                                name={players.find(p => p.id !== userId)?.name || "Unknown"}
-                                avatar={players.find(p => p.id !== userId)?.avatar || null}
-                                class="w-12 h-12 flex-shrink-0"
-                            /> -->
 						</div>
 					</div>
 				{/each}

@@ -82,7 +82,7 @@
         </button>
     </div>
 
-    <div class="min-h-[400px]">
+    <div class={`space-y-2 overflow-y-auto max-h-110`}>
         {#if activeTab === "friends" && friendCount > 0}
             <ul class="space-y-4">
                 {#each user.friends as friend (friend.id)}
@@ -113,7 +113,7 @@
                         <div class="flex gap-2">
                             <button
                                 onclick={() => user.removeFriend(friend.id)}
-                                class="p-2 bg-red-600/20 border border-red-500/30 text-red-300 rounded-md hover:bg-red-600/40 hover:text-red-200 transition cursor-pointer"
+                                class="p-2 bg-white/5 border border-white/10 text-white rounded-md hover:bg-red-600/20 hover:text-red-300 transition cursor-pointer"
                                 aria-label="Remove friend"
                             >
                                 <X class="w-4 h-4" />
@@ -153,7 +153,7 @@
                             <button
                                 onclick={() =>
                                     user.acceptFriendRequest(request.id)}
-                                class="p-2 bg-green-600/20 border border-green-500/30 text-green-300 rounded-md hover:bg-green-600/40 hover:text-green-200 transition cursor-pointer"
+                                class="p-2  bg-white/5 border border-white/10 text-white rounded-md transition duration-300 hover:bg-blue-600/10 cursor-pointer"
                                 aria-label="Accept friend request"
                             >
                                 <Check class="w-4 h-4" />
@@ -161,7 +161,7 @@
                             <button
                                 onclick={() =>
                                     user.rejectFriendRequest(request.id)}
-                                class="p-2 bg-red-600/20 border border-red-500/30 text-red-300 rounded-md hover:bg-red-600/40 hover:text-red-200 transition cursor-pointer"
+                                class="p-2 bg-white/5 border border-white/10 text-white rounded-md hover:bg-red-600/20 hover:text-red-300 transition cursor-pointer"
                                 aria-label="Reject friend request"
                             >
                                 <X class="w-4 h-4" />
@@ -201,7 +201,7 @@
                             <button
                                 onclick={() =>
                                     user.cancelFriendRequest(request.id)}
-                                class="p-2 bg-red-600/20 border border-red-500/30 text-red-300 rounded-md hover:bg-red-600/40 hover:text-red-200 transition cursor-pointer"
+                                class="p-2 bg-white/5 border border-white/10 text-white rounded-md hover:bg-red-600/20 hover:text-red-300 transition cursor-pointer"
                                 aria-label="Cancel friend request"
                             >
                                 <X class="w-4 h-4" />

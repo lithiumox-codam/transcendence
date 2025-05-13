@@ -58,11 +58,19 @@ const unauthorizedRedirectLink: TRPCLink<AppRouter> = () => {
     };
 };
 
+// TODO: Make the hostname come from the environment so it can be easily changed
+const getBaseUrl = () => {
+    if (process.env.NODE_ENV === "production") {
+        return "https://localhost/api/";
+    }
+    return "http://localhost:8080/";
+};
+
 const wsClient = createWSClient({
     url: (() => {
         if (browser)
-            return `http://localhost:8080/trpc?token=${localStorage.getItem("token")}`;
-        return "http://localhost:8080/trpc";
+            return `${getBaseUrl()}trpc?token=${localStorage.getItem("token")}`;
+        return `${getBaseUrl()}trpc`;
     })(),
 });
 

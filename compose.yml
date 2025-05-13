@@ -13,6 +13,17 @@ services:
     networks:
       - transcendance
 
+  frontend:
+    build:
+      context: .
+      dockerfile: ./docker/frontend.dockerfile
+    container_name: frontend
+    restart: unless-stopped
+    env_file:
+      - .env
+    networks:
+      - transcendance
+
   backend:
     build:
       context: .
@@ -32,13 +43,13 @@ services:
   init-db:
     build:
       context: .
-      dockerfile: ./docker/init-db.dockerfile # Reference the new Dockerfile
+      dockerfile: ./docker/init-db.dockerfile
     container_name: init-db
     restart: "no"
     networks:
       - transcendance
     volumes:
-      - backend_data:/app/data # Ensure it uses the same volume as backend for DB persistence
+      - backend_data:/app/data
     env_file:
       - .env
 

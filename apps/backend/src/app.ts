@@ -12,8 +12,8 @@ export default (opts?: FastifyServerOptions) => {
 
     fastify.register(ws);
 
-    fastify.get("/", (req, reply) => {
-        reply.send({ hello: "world" });
+    fastify.get("/health-check", (req, reply) => {
+        reply.send({ status: "ok" });
     });
 
     fastify.register(fastifyTRPCPlugin, {

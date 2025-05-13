@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { goto } from "$app/navigation";
-	import * as m from "$lib/paraglide/messages";
 
 	let letters = $state(Array.from("TRANCENDENCE"));
 	let letterStates = $state(letters.map(() => false));
@@ -78,7 +77,7 @@
 			class="live-button relative inline-block px-10 py-5 bg-black border border-white/30 text-white font-bold uppercase tracking-wide rounded-lg overflow-hidden transform transition-transform duration-200 hover:scale-105"
 			onclick={handlePlayNow}
 		>
-			<span class="relative z-10 animate-pulseButton">{m.play()}</span>
+			<span class="relative z-10 animate-pulseButton">Play now!</span>
 			<!-- Isometric glowing overlay -->
 			<div
 				class="absolute inset-0 pointer-events-none bg-[linear-gradient(135deg,transparent_25%,rgba(255,255,255,0.1)_25%,rgba(255,255,255,0.1)_50%,transparent_50%,transparent_75%,rgba(255,255,255,0.1)_75%,rgba(255,255,255,0.1))] bg-[length:20px_20px] animate-isometric"

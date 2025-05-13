@@ -1,4 +1,3 @@
-import cors from "@fastify/cors";
 import ws from "@fastify/websocket";
 import {
     type FastifyTRPCPluginOptions,
@@ -12,13 +11,6 @@ export default (opts?: FastifyServerOptions) => {
     const fastify = Fastify(opts);
 
     fastify.register(ws);
-    fastify.register(cors, {
-        origin: "*",
-        methods: ["GET", "POST"],
-        allowedHeaders: ["Content-Type"],
-        exposedHeaders: ["Content-Type"],
-        credentials: true,
-    });
 
     fastify.get("/", (req, reply) => {
         reply.send({ hello: "world" });

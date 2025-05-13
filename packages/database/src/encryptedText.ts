@@ -1,15 +1,15 @@
 import crypto from "node:crypto";
 import { customType } from "drizzle-orm/sqlite-core";
 
-const CRYPTO_SECRET = process.env.CRYPTO_SECRET;
-if (!CRYPTO_SECRET) {
+const BACKEND_SECRET = process.env.BACKEND_SECRET;
+if (!BACKEND_SECRET) {
     throw new Error(
-        "Missing CRYPTO_SECRET in .env.  Provide a strong, long secret.",
+        "Missing BACKEND_SECRET in .env.  Provide a strong, long secret.",
     );
 }
 
 const ALGORITHM = "aes-256-ctr";
-const KEY = crypto.createHash("sha256").update(CRYPTO_SECRET).digest();
+const KEY = crypto.createHash("sha256").update(BACKEND_SECRET).digest();
 const IV_LENGTH = 16;
 
 function encrypt(value: string): string {

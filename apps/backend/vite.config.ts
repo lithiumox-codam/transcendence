@@ -3,11 +3,10 @@ import { defineConfig } from "vite";
 import { VitePluginNode } from "vite-plugin-node";
 
 export default defineConfig({
-    // Keep server config for dev mode
     server: {
         port: 8080,
     },
-
+    envPrefix: "BACKEND_",
     build: {
         ssr: "./src/server.ts",
         target: "node22",
@@ -30,10 +29,8 @@ export default defineConfig({
         }),
     ],
 
-    // --- Resolve Aliases ---
     resolve: {
         alias: {
-            // Use the derived __dirname for robustness
             "@": path.resolve(__dirname, "./src"),
         },
     },

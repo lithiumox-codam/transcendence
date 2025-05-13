@@ -6,10 +6,9 @@
     "scripts": {
         "dev": "dotenvx run -f ../../.env --debug -- vite dev",
         "build": "vite build --outDir build --ssr src/server.ts",
-        "preview": "node --trace-uncaught build/server.js"
+        "preview": "node build/server.cjs"
     },
     "dependencies": {
-        "@fastify/cors": "^10.0.2",
         "@fastify/jwt": "^9.0.4",
         "@fastify/websocket": "^11.0.2",
         "@repo/auth": "workspace:^",
@@ -20,13 +19,14 @@
         "argon2": "^0.41.1",
         "better-sqlite3": "^11.8.1",
         "env-schema": "^6.0.0",
+        "envalid": "^8.0.0",
         "fastify": "^5.0.0"
     },
     "devDependencies": {
         "@types/node": "^22.7.5",
         "c8": "^10.1.2",
         "jsdom": "^25.0.1",
-        "vite": "^5.4.8",
-        "vite-plugin-node": "^3.1.0"
+        "vite": "^6.3.5",
+        "vite-plugin-node": "^5.0.0"
     }
 }

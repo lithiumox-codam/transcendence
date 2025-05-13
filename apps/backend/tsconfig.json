@@ -1,5 +1,15 @@
 {
-    "extends": ["@repo/tsconfig/base.json"],
-    "include": ["src/**/*"],
-    "exclude": ["node_modules"]
+  "extends": "@repo/tsconfig/base.json",
+  "compilerOptions": {
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
+    "target": "ES2020",
+    "module": "esnext",
+    "types": ["vite/client"],
+    "paths": {
+      "~/*": ["./*"],
+      "@/*": ["./src/*"]
+    }
+  }
 }

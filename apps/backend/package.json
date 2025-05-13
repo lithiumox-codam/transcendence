@@ -1,17 +1,13 @@
 {
     "name": "backend",
-    "version": "1.0.0",
-    "description": "",
-    "main": "index.js",
+    "version": "0.0.0",
+    "main": "build/server.js",
     "type": "module",
     "scripts": {
-        "build": "tsc -p tsconfig.json",
-        "preview": "node build/index.js",
-        "dev": "dotenvx run -f ../../.env --debug -- tsx watch src/index.ts"
+        "dev": "dotenvx run -f ../../.env --debug -- vite dev",
+        "build": "vite build --outDir build --ssr src/server.ts",
+        "preview": "node --trace-uncaught build/server.js"
     },
-    "keywords": [],
-    "author": "",
-    "license": "ISC",
     "dependencies": {
         "@fastify/cors": "^10.0.2",
         "@fastify/jwt": "^9.0.4",
@@ -21,13 +17,16 @@
         "@repo/trpc": "workspace:^",
         "@repo/tsconfig": "workspace:^",
         "@trpc/server": "11.0.0-rc.764",
-        "fastify": "^5.2.1"
+        "argon2": "^0.41.1",
+        "better-sqlite3": "^11.8.1",
+        "env-schema": "^6.0.0",
+        "fastify": "^5.0.0"
     },
     "devDependencies": {
-        "@tsconfig/node22": "^22.0.0",
-        "@types/node": "^22.13.1",
-        "trpc-ui": "^1.0.12",
-        "tsx": "4.7.1",
-        "typescript": "5.7.3"
+        "@types/node": "^22.7.5",
+        "c8": "^10.1.2",
+        "jsdom": "^25.0.1",
+        "vite": "^5.4.8",
+        "vite-plugin-node": "^3.1.0"
     }
 }

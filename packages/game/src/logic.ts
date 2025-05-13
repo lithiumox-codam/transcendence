@@ -194,6 +194,7 @@ export class GameEngine {
 
         const ballPos = this.state.ball.pos;
 
+        // Check for wall collisions
         if (this.maxPlayers === 2) {
             const verticalBounds = this.arenaHeight / 2;
             if (
@@ -203,6 +204,7 @@ export class GameEngine {
                 this.state.ball.vel[axisY] *= -1;
             }
         }
+
         if (!this.isInScoringZone()) return;
         let collisionOccurred = false;
         for (const player of this.state.players) {
@@ -242,8 +244,7 @@ export class GameEngine {
         if (
             planeDistance <= 0.5 &&
             ballPos[lengthAxis] + 0.5 >= paddleStart &&
-            ballPos[lengthAxis] - 0.5 <= paddleEnd &&
-            this.isInScoringZone()
+            ballPos[lengthAxis] - 0.5 <= paddleEnd
         ) {
             const normal = this.getPaddleNormal(player);
             this.reflectBall(normal, player);

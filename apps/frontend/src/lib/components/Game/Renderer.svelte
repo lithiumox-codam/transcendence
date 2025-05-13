@@ -39,8 +39,6 @@
     let topBorder = $state<BABYLON.Mesh>();
     let bottomBorder = $state<BABYLON.Mesh>();
 
-    
-
     onMount(() => {
         (async () => {
             client.game.listen.subscribe(gameId, {
@@ -185,9 +183,9 @@
         paddles[1].position.x = ARENA_WIDTH / 2 + 0.5;
 
         if (paddleCount === 4) {
-            paddles[2].position.y = -arenaHeight / 2 - 0.5;
+            paddles[2].position.y = arenaHeight / 2 + 0.5;
             paddles[2].rotate(BABYLON.Axis.Z, Math.PI / 2);
-            paddles[3].position.y = arenaHeight / 2 + 0.5;
+            paddles[3].position.y = -arenaHeight / 2 - 0.5;
             paddles[3].rotate(BABYLON.Axis.Z, Math.PI / 2);
         }
         const ballMaterial = new BABYLON.StandardMaterial(

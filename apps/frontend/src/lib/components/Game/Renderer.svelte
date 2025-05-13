@@ -39,11 +39,17 @@
     let topBorder = $state<BABYLON.Mesh>();
     let bottomBorder = $state<BABYLON.Mesh>();
 
+    
+
     onMount(() => {
         (async () => {
             client.game.listen.subscribe(gameId, {
                 onData: (data) => {
-                    // console.log("received data", data);
+                    if (!gameState) {
+                        gameState = data;
+                        run();
+                    }
+
                     gameState = data;
                 },
                 onError: (error) => {
@@ -54,10 +60,11 @@
                 return;
             }
         })();
+    });
+
+    function run() {
         if (!canvas) return;
 
-        initBabylon();
-        if (!engine || !scene) return;
         if (gameState?.players.length === 4) {
             paddleCount = 4;
             arenaHeight = 40;
@@ -65,6 +72,10 @@
             paddleCount = 2;
             arenaHeight = 30;
         }
+
+        initBabylon();
+        if (!engine || !scene) return;
+
         engine.runRenderLoop(() => {
             updateScene();
             scene?.render();
@@ -73,7 +84,7 @@
         return () => {
             engine?.dispose();
         };
-    });
+    }
 
     function initBabylon() {
         if (!canvas) return;

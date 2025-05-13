@@ -14,21 +14,19 @@ const COLLISION_COOLDOWN = 10;
 
 export class GameEngine {
     private state: GameState;
-    private tournamentId?: number;
     private collisionCooldown = 0;
     private arenaHeight: 30 | 40 = 30;
 
     constructor(
         private maxPlayers: 2 | 4,
         playerIds: number[],
-        tournamentId?: number,
+        private tournamentId?: number,
     ) {
         console.log(
             "GameEngine constructror called with maxPlayers: ",
             maxPlayers,
         );
         this.state = this.initialState();
-        this.tournamentId = tournamentId;
         if (maxPlayers === 4) {
             this.arenaHeight = 40;
         }

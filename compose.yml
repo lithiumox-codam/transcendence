@@ -1,7 +1,7 @@
 services:
   proxy:
     image: caddy:2.10.0-alpine
-    container_name: caddy
+    container_name: proxy
     restart: unless-stopped
     ports:
       - "80:80"
@@ -10,6 +10,8 @@ services:
       - ./apps/caddy/Caddyfile:/etc/caddy/Caddyfile
       - caddy_data:/data
       - caddy_config:/config
+    env_file:
+      - .env.prod
     networks:
       - transcendance
 
@@ -20,7 +22,7 @@ services:
     container_name: frontend
     restart: unless-stopped
     env_file:
-      - .env
+      - .env.prod
     networks:
       - transcendance
 
@@ -31,7 +33,7 @@ services:
     container_name: backend
     restart: unless-stopped
     env_file:
-      - .env
+      - .env.prod
     networks:
       - transcendance
     volumes:
@@ -51,7 +53,7 @@ services:
     volumes:
       - backend_data:/app/data
     env_file:
-      - .env
+      - .env.prod
 
 volumes:
   caddy_data:

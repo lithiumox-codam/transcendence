@@ -1,19 +1,14 @@
 import fastify from "./app";
-import { env } from "./env";
 
 const app = fastify({
     pluginTimeout: 50000,
     bodyLimit: 15485760,
 });
 
-console.log(env);
-
 if (import.meta.env.PROD) {
     try {
-        app.listen({ port: env.BACKEND_PORT, host: env.BACKEND_HOST });
-        console.log(
-            `Server started on ${env.BACKEND_HOST}:${env.BACKEND_PORT}`,
-        );
+        app.listen({ port: 8000, host: "0.0.0.0" });
+        console.log("Server is running on port 8000");
     } catch (err) {
         app.log.error(err);
         process.exit(1);

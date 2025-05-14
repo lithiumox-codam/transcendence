@@ -4,7 +4,7 @@
     "main": "build/server.js",
     "type": "module",
     "scripts": {
-        "dev": "dotenvx run -f ../../.env --debug -- vite dev",
+        "dev": "dotenvx run -f ../../.env.dev --debug -- vite dev",
         "build": "vite build --outDir build --ssr src/server.ts",
         "preview": "node build/server.cjs"
     },

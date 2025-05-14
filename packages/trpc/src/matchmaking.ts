@@ -3,9 +3,9 @@ import {
     db,
     games,
     players,
-    users,
-    tournaments,
     tournamentPlayers,
+    tournaments,
+    users,
 } from "@repo/database";
 import { GameEngine, GameStatus } from "@repo/game";
 import { and, eq, sql } from "drizzle-orm";
@@ -113,7 +113,7 @@ export class Matchmaking {
 
             const tournamentId = game.getTournamentId();
             if (tournamentId) {
-                const winnerId = game.getWinnerId();
+                const winnerId = game.getState().winner;
                 if (winnerId) {
                     const [winner] = await db
                         .update(tournamentPlayers)
@@ -136,7 +136,7 @@ export class Matchmaking {
                         throw new Error("Failed to update tournament player");
                     }
 
-                    if (winner.score == 3) {
+                    if (winner.score === 3) {
                         await db
                             .update(tournaments)
                             .set({ status: "finished", winnerId })
@@ -266,7 +266,7 @@ export class Matchmaking {
             tournamentId,
             playerIds,
         ] of this.queuedTournamentPlayers.entries()) {
-            if (playerIds.length == 2) {
+            if (playerIds.length === 2) {
                 await this.createGame(playerIds, 2, tournamentId);
                 this.queuedTournamentPlayers.delete(tournamentId);
             }
@@ -382,7 +382,7 @@ export class Matchmaking {
     /* Update game 60 times per second */
     private async updateGames() {
         const tickRate = 1000 / 240;
-        let delay = (ms: number) =>
+        const delay = (ms: number) =>
             new Promise((resolve) => setTimeout(resolve, ms));
 
         while (true) {

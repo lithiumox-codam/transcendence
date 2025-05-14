@@ -1,14 +1,14 @@
-import { hashPassword, sign, verifyPassword, TokenPayload } from "@repo/auth";
+import { TokenPayload, hashPassword, sign, verifyPassword } from "@repo/auth";
 import { db, passwordSchema, userNameSchema, users } from "@repo/database";
 import { TRPCError } from "@trpc/server";
 import { and, eq } from "drizzle-orm";
+import { authenticator } from "otplib";
 import { z } from "zod";
 import {
     createTRPCRouter,
     protectedProcedure,
     publicProcedure,
 } from "../trpc.ts";
-import { authenticator } from "otplib";
 
 export const authRouter = createTRPCRouter({
     signup: publicProcedure

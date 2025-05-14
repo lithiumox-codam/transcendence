@@ -4,6 +4,8 @@
     import { goto } from "$app/navigation";
     import type { GameState, Player, GameStatus } from "@repo/game";
     import { client } from "$lib/trpc";
+	import ScoreCard from "./ScoreCard.svelte";
+    import WinnerCard from "./WinnerCard.svelte";
   
   	import type { Popout } from "$lib/classes/Popout.svelte";
 
@@ -26,7 +28,6 @@
     let arenaHeight: 30 | 40 = 30;
     let paddleCount: 2 | 4 = 2;
 
-    let winner = $state<string>("");
     let canvas = $state<HTMLCanvasElement>();
     let engine = $state<BABYLON.Engine>();
     let scene = $state<BABYLON.Scene>();
@@ -434,11 +435,12 @@
 	</h2>
 {/snippet}
 
-{#if gameState?.gameOver}
+
+{#if gameState?.status === "finished" && gameState.winner}
 	<div class="absolute inset-0 grid place-items-center bg-black/80 z-20">
 		<div class="text-center">
 			<h2 class="text-6xl text-white mb-8 animate-pulse">
-				{winner} Wins!
+                <WinnerCard userId={gameState.winner} />
 			</h2>
 			<button
         onclick={() => goto("/stats")}

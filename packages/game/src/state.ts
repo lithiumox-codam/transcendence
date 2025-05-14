@@ -1,5 +1,5 @@
-import { vec2 } from "gl-matrix";
-import { Player } from "./player.ts";
+import type { vec2 } from "gl-matrix";
+import type { Player } from "./player.ts";
 
 export type GameStatus = "waiting" | "playing" | "finished";
 
@@ -12,4 +12,5 @@ export interface GameState {
         speed: number;
     };
     status: GameStatus;
+    winner: number | null;
 }

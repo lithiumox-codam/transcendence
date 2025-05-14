@@ -102,19 +102,18 @@ export const chatRouter = createTRPCRouter({
         }),
     ),
 
-	getAllSend: protectedProcedure.query(async ({ ctx }) => {
-		const messages = await db
-			.select({
-				content: message.content,
-				createdAt: message.createdAt,
-				receiverUsername: users.name, 
-			})
-			.from(message)
-			.leftJoin(users, eq(message.receiverId, users.id)) 
-			.where(eq(message.senderId, ctx.user.id))
-			.orderBy(desc(message.createdAt));
+    getAllSend: protectedProcedure.query(async ({ ctx }) => {
+        const messages = await db
+            .select({
+                content: message.content,
+                createdAt: message.createdAt,
+                receiverUsername: users.name,
+            })
+            .from(message)
+            .leftJoin(users, eq(message.receiverId, users.id))
+            .where(eq(message.senderId, ctx.user.id))
+            .orderBy(desc(message.createdAt));
 
-		return messages;
-	}
-	),
+        return messages;
+    }),
 });

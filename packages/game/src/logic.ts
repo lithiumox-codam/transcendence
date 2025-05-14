@@ -1,8 +1,8 @@
 import { vec2 } from "gl-matrix";
-import { GameState, GameStatus } from "./state.ts";
-import { Player } from "./player.ts";
+import type { Player } from "./player.ts";
+import type { GameState, GameStatus } from "./state.ts";
 
-const VICTORY_SCORE = 5;
+const VICTORY_SCORE = 1;
 const axisX = 0;
 const axisY = 1;
 const ARENA_WIDTH = 40;
@@ -118,16 +118,6 @@ export class GameEngine {
 
     public getTournamentId(): number | undefined {
         return this.tournamentId;
-    }
-
-    public getWinnerId(): number | null {
-        if (this.state.status !== "finished") {
-            return null;
-        }
-        const winner = this.state.players.reduce((prev, current) =>
-            prev.score > current.score ? prev : current,
-        );
-        return winner.id;
     }
 
     public update(deltaTime: number): void {
@@ -315,6 +305,7 @@ export class GameEngine {
                 if (!player) return;
                 player.score++;
                 if (player.score >= VICTORY_SCORE) {
+                    this.state.winner = player.id;
                     this.state.status = "finished";
                 }
             }

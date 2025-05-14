@@ -7,7 +7,7 @@
 	let { children } = $props();
 </script>
 
-<main class="dark">
+<main class="dark select-none">
 	<ParaglideJS {i18n}>
 		{@render children()}
 	</ParaglideJS>

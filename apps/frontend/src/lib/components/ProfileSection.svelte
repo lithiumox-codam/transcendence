@@ -114,7 +114,7 @@
 						matches={history.map(({ game, players }) => ({
 							game,
 							players,
-							userId: user.data.id,
+							userId: user.data?.id,
 						}))}
 						maxHeight="max-h-64"
 					/>

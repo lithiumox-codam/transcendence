@@ -1,6 +1,15 @@
 import { avatarSchema, db, friends, users } from "@repo/database";
 import { TRPCError } from "@trpc/server";
-import { aliasedTable, and, count, desc, eq, isNull, ne, or } from "drizzle-orm";
+import {
+    aliasedTable,
+    and,
+    count,
+    desc,
+    eq,
+    isNull,
+    ne,
+    or,
+} from "drizzle-orm";
 import { z } from "zod";
 import { emitter } from "../events/index.ts";
 import { createTRPCRouter, protectedProcedure } from "../trpc.js";
@@ -212,11 +221,7 @@ export const friendsRouter = createTRPCRouter({
                     eq(mutual.friendId, users.id), // added other user back
                 ),
             )
-            .where(and(
-				isNull(mutual.userId),
-				ne(users.name, "[DELETED]"),
-			)
-		); // Exclude mutual friendships
+            .where(and(isNull(mutual.userId), ne(users.name, "[DELETED]"))); // Exclude mutual friendships
     }),
     listen: protectedProcedure.subscription(({ ctx }) =>
         emitter.subscribeDomain("friends", (event) => {

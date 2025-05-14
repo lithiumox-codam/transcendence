@@ -54,16 +54,16 @@ export const blockRouter = createTRPCRouter({
                 await db
                     .delete(friends)
                     .where(
-						or(
-							and(
-								eq(friends.userId, ctx.user.id),
-								eq(friends.friendId, input),
-							),
-							and(
-								eq(friends.userId, input),
-								eq(friends.friendId, ctx.user.id),
-							),
-						)
+                        or(
+                            and(
+                                eq(friends.userId, ctx.user.id),
+                                eq(friends.friendId, input),
+                            ),
+                            and(
+                                eq(friends.userId, input),
+                                eq(friends.friendId, ctx.user.id),
+                            ),
+                        ),
                     );
 
             await db.insert(blocks).values({
@@ -101,20 +101,20 @@ export const blockRouter = createTRPCRouter({
                 );
             return res.length > 0;
         }),
-	list: protectedProcedure.query(async ({ ctx }) => {
-		const blockedUsers = await db
-			.select({
-				id: users.id,
-				name: users.name,
-				email: users.email,
-				avatar: users.avatar,
-				oAuthProvider: users.oAuthProvider,
-				createdAt: users.createdAt,
-			})
-			.from(blocks)
-			.innerJoin(users, eq(users.id, blocks.blockedUserId))
-			.where(eq(blocks.userId, ctx.user.id));
+    list: protectedProcedure.query(async ({ ctx }) => {
+        const blockedUsers = await db
+            .select({
+                id: users.id,
+                name: users.name,
+                email: users.email,
+                avatar: users.avatar,
+                oAuthProvider: users.oAuthProvider,
+                createdAt: users.createdAt,
+            })
+            .from(blocks)
+            .innerJoin(users, eq(users.id, blocks.blockedUserId))
+            .where(eq(blocks.userId, ctx.user.id));
 
-		return blockedUsers;
-	}),
+        return blockedUsers;
+    }),
 });

@@ -15,7 +15,7 @@
 
 	const handleAvatarChange = (e: Event) => {
 		const files = (e.target as HTMLInputElement).files;
-		if (files && files[0]) {
+		if (files?.[0]) {
 			avatarFile = files[0];
 		}
 	};

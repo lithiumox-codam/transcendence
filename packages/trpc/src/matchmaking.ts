@@ -223,6 +223,15 @@ export class Matchmaking {
         playerId: number,
         gameType: 2 | 4 | 8,
     ): Promise<void> {
+        // Check if the player is already in a game
+        const playerInGame = Array.from(this.gamesMap.values()).some((game) =>
+            game.getState().players.some((player) => player.id === playerId),
+        );
+        if (playerInGame) {
+            console.log("Player already in a game, cannot join queue");
+            return;
+        }
+
         const player = this.queuedPlayers.find((p) => p.id === playerId);
         if (player) {
             player.gameType = gameType;
@@ -234,6 +243,7 @@ export class Matchmaking {
             );
             return;
         }
+
         console.log("Adding player to queue", playerId, gameType);
         this.queuedPlayers.push({ id: playerId, gameType });
         this.emitQueuedPlayers();

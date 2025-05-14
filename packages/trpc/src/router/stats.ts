@@ -83,6 +83,7 @@ export const statsRouter = createTRPCRouter({
                     and(
                         eq(players.gameId, maxScoresSubquery.gameId),
                         eq(players.score, maxScoresSubquery.maxScore),
+						eq(games.private, 0),
                     ),
                 )
                 .innerJoin(games, eq(players.gameId, games.id))
@@ -90,6 +91,7 @@ export const statsRouter = createTRPCRouter({
                     and(
                         eq(players.userId, userId),
                         eq(games.status, "finished"),
+						eq(games.private, 0),
                     ),
                 );
 

@@ -45,5 +45,6 @@
 
 <svelte:window onkeydown={handleKeydown} onkeyup={handleKeyup} />
 
-{data.id}
-<Renderer gameId={data.id} />
+{#key data.id}
+    <Renderer gameId={data.id} />
+{/key}

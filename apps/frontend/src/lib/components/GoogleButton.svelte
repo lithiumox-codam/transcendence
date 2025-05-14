@@ -1,17 +1,15 @@
 <script lang="ts">
-	import type { ClientProviderConfig } from "@repo/auth";
-
-	let { providerConfig }: { providerConfig: ClientProviderConfig } = $props();
+	import { PUBLIC_GOOGLE_CLIENT_ID } from "$env/static/public";
 
 	async function handleGoogleSignIn() {
-		if (!providerConfig.clientId) {
+		if (!PUBLIC_GOOGLE_CLIENT_ID) {
 			console.error("Client ID is missing");
 			return;
 		}
 
-		const baseUrl = providerConfig.authHost + providerConfig.authPath;
+		const baseUrl = "https://accounts.google.com/o/oauth2/auth";
 		const params = new URLSearchParams({
-			client_id: providerConfig.clientId,
+			client_id: PUBLIC_GOOGLE_CLIENT_ID,
 			redirect_uri: "http://localhost:5173/oauth/callback",
 			response_type: "code",
 			scope: "openid profile email",
@@ -22,7 +20,7 @@
 </script>
 
 <button
-	class="mt-2 w-full h-10 cursor-pointer rounded-md bg-gray-700 text-white font-medium hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+	class="w-full cursor-pointer select-none h-10 rounded-md bg-white/5 border border-white/10 text-white font-semibold hover:bg-white/10 focus:ring-offset-slate-900 transition-colors duration-150"
 	onclick={handleGoogleSignIn}
 >
 	Login with Google

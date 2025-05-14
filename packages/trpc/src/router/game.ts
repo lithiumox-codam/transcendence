@@ -7,7 +7,6 @@ import {
     players,
     users,
 } from "@repo/database";
-import { GameEngine } from "@repo/game";
 import { and, desc, eq } from "drizzle-orm";
 import { late, z } from "zod";
 import { emitter } from "../events/index.ts";
@@ -57,7 +56,7 @@ export const gameRouter = createTRPCRouter({
         }
     }),
     queue: protectedProcedure
-        .input(z.union([z.literal(2), z.literal(4)]))
+        .input(z.union([z.literal(2), z.literal(4), z.literal(8)]))
         .query(async ({ ctx, input }) => {
             matchmaking.joinQueue(ctx.user.id, input);
             return true;
@@ -170,19 +169,33 @@ export const gameRouter = createTRPCRouter({
                         .where(eq(players.gameId, games.id));
                     const playersData = await Promise.all(
                         playersList.map(async ({ userId }) => {
-                            const [user] = await db
+                            const [playerData] = await db
                                 .select({
                                     id: users.id,
                                     name: users.name,
                                     email: users.email,
                                     createdAt: users.createdAt,
+                                    avatar: users.avatar,
+                                    oAuthProvider: users.oAuthProvider,
+                                    score: players.score, // Add score here
                                 })
                                 .from(users)
-                                .where(eq(users.id, userId));
-                            return user;
+                                .innerJoin(
+                                    players,
+                                    and(
+                                        eq(users.id, players.userId),
+                                        eq(players.gameId, games.id),
+                                    ),
+                                ) // Join players table
+                                .where(eq(users.id, userId)); // Filter by userId
+                            return playerData;
                         }),
                     );
-                    return { game: games, players: playersData };
+                    // Filter out any potential undefined results if a user wasn't found (though unlikely with inner join)
+                    const validPlayersData = playersData.filter(
+                        (p) => p !== undefined,
+                    );
+                    return { game: games, players: validPlayersData };
                 }),
             );
             return list;

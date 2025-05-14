@@ -1,20 +1,14 @@
-import {
-    hashPassword,
-    sign,
-    verifyPassword,
-    googleProvider,
-    TokenPayload,
-} from "@repo/auth";
+import { TokenPayload, hashPassword, sign, verifyPassword } from "@repo/auth";
 import { db, passwordSchema, userNameSchema, users } from "@repo/database";
 import { TRPCError } from "@trpc/server";
 import { and, eq } from "drizzle-orm";
+import { authenticator } from "otplib";
 import { z } from "zod";
 import {
     createTRPCRouter,
     protectedProcedure,
     publicProcedure,
 } from "../trpc.ts";
-import { authenticator } from "otplib";
 
 export const authRouter = createTRPCRouter({
     signup: publicProcedure
@@ -165,20 +159,19 @@ export const authRouter = createTRPCRouter({
     oauthLogin: publicProcedure
         .input(z.string())
         .mutation(async ({ input }) => {
-            const provider = googleProvider;
-
-            const { clientId, clientSecret } = provider;
-            if (!clientId || !clientSecret) {
+            const { PUBLIC_GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET } =
+                process.env;
+            if (!PUBLIC_GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
                 throw new TRPCError({
                     code: "INTERNAL_SERVER_ERROR",
                     message: "Google Sign-in not configured",
                 });
             }
 
-            const tokenUrl = provider.tokenHost + provider.tokenPath;
+            const tokenUrl = "https://accounts.google.com/o/oauth2/token";
             const tokenPayload = new TokenPayload(
-                clientId,
-                clientSecret,
+                PUBLIC_GOOGLE_CLIENT_ID,
+                GOOGLE_CLIENT_SECRET,
                 input,
             );
 
@@ -210,13 +203,29 @@ export const authRouter = createTRPCRouter({
                     .where(eq(users.email, email));
 
                 if (user.length === 0 || !user[0]) {
+                    const baseName = email.split("@")[0];
+                    let name = baseName;
+                    user = await db
+                        .select()
+                        .from(users)
+                        .where(eq(users.name, name));
+
+                    // if name already exists, append a random number
+                    while (user.length > 0) {
+                        name = baseName + Math.floor(Math.random() * 100);
+
+                        user = await db
+                            .select()
+                            .from(users)
+                            .where(eq(users.name, name));
+                    }
                     user = await db
                         .insert(users)
                         .values({
                             email,
-                            name: email.split("@")[0],
+                            name,
                             password: "",
-							oAuthProvider: "google",
+                            oAuthProvider: "google",
                         })
                         .returning();
 
@@ -278,5 +287,31 @@ export const authRouter = createTRPCRouter({
         }
 
         return null;
+    }),
+
+    getOtpUrl: protectedProcedure.query(async ({ ctx }) => {
+        const user = await db
+            .select()
+            .from(users)
+            .where(eq(users.id, ctx.user.id));
+
+        if (user.length === 0 || !user[0]) {
+            throw new TRPCError({
+                code: "FORBIDDEN",
+                message: "Invalid credentials",
+            });
+        }
+
+        if (!user[0].secret) {
+            return null;
+        }
+
+        const otp = authenticator.keyuri(
+            user[0].name,
+            "transcendence",
+            user[0].secret,
+        );
+
+        return otp;
     }),
 });

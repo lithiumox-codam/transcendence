@@ -1,10 +1,4 @@
-import type {
-    Friend,
-    Game,
-    Message,
-    Player,
-    User,
-} from "@repo/database/types";
+import type { Friend, Game, Message, Player, User } from "@repo/database/types";
 
 /**
  * Defines the structure of events for the application, mapping event domains to event names and payload types.

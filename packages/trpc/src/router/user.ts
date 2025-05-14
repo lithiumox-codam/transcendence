@@ -66,6 +66,14 @@ export const userRouter = createTRPCRouter({
                 });
             }
 
+            if (email && ctx.user.oAuthProvider) {
+                throw new TRPCError({
+                    code: "BAD_REQUEST",
+
+                    message: "Cannot change email for OAuth users",
+                });
+            }
+
             try {
                 const [edit] = await db
                     .update(users)
@@ -97,6 +105,35 @@ export const userRouter = createTRPCRouter({
                 });
             }
         }),
+
+    deleteAvatar: protectedProcedure.mutation(async ({ ctx }) => {
+        const [edit] = await db
+            .update(users)
+            .set({
+                avatar: null,
+            })
+            .where(eq(users.id, ctx.user.id))
+            .returning({
+                id: users.id,
+                name: users.name,
+                email: users.email,
+                oAuthProvider: users.oAuthProvider,
+                avatar: users.avatar,
+                createdAt: users.createdAt,
+            });
+        if (edit) {
+            emitter.emit("user:update", edit);
+            emitter.emit("friends:update", edit.id);
+        }
+        if (!edit) {
+            throw new TRPCError({
+                code: "NOT_FOUND",
+                message: "User not found or avatar not deleted",
+            });
+        }
+        return edit;
+    }),
+
     all: publicProcedure.query(async () => {
         return await db
             .select({

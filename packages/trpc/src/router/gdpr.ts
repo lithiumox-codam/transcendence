@@ -1,7 +1,7 @@
 import { hashPassword, sign, verify, verifyPassword } from "@repo/auth";
-import { db, passwordSchema, users } from "@repo/database";
+import { db, friends, passwordSchema, users } from "@repo/database";
 import { TRPCError } from "@trpc/server";
-import { eq } from "drizzle-orm";
+import { eq, or } from "drizzle-orm";
 import { z } from "zod";
 import {
     createTRPCRouter,
@@ -39,9 +39,19 @@ export const gdprRouter = createTRPCRouter({
                 .set({
                     name: "[DELETED]",
                     email: "[DELETED]",
+                    avatar: null,
                     password: "",
                 })
                 .where(eq(users.id, ctx.user.id));
+
+            await db
+                .delete(friends)
+                .where(
+                    or(
+                        eq(friends.userId, ctx.user.id),
+                        eq(friends.friendId, ctx.user.id),
+                    ),
+                );
         }),
 
     changePassword: protectedProcedure

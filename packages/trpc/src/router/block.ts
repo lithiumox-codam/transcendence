@@ -55,8 +55,14 @@ export const blockRouter = createTRPCRouter({
                     .delete(friends)
                     .where(
                         or(
-                            eq(friends.userId, ctx.user.id),
-                            eq(friends.friendId, ctx.user.id),
+                            and(
+                                eq(friends.userId, ctx.user.id),
+                                eq(friends.friendId, input),
+                            ),
+                            and(
+                                eq(friends.userId, input),
+                                eq(friends.friendId, ctx.user.id),
+                            ),
                         ),
                     );
 
@@ -95,4 +101,20 @@ export const blockRouter = createTRPCRouter({
                 );
             return res.length > 0;
         }),
+    list: protectedProcedure.query(async ({ ctx }) => {
+        const blockedUsers = await db
+            .select({
+                id: users.id,
+                name: users.name,
+                email: users.email,
+                avatar: users.avatar,
+                oAuthProvider: users.oAuthProvider,
+                createdAt: users.createdAt,
+            })
+            .from(blocks)
+            .innerJoin(users, eq(users.id, blocks.blockedUserId))
+            .where(eq(blocks.userId, ctx.user.id));
+
+        return blockedUsers;
+    }),
 });

@@ -582,7 +582,9 @@
 							>
 								{friend.name}
 							</span>
-							<span class="text-xs text-gray-400 truncate block select-none">
+							<span
+								class="text-xs text-gray-400 truncate block select-none"
+							>
 								{#if chat.messages.get(friend.id)?.length}
 									{@const lastMsg = chat.messages.get(
 										friend.id,
@@ -625,7 +627,9 @@
 					class="p-3 bg-black/10 border-b border-white/10 flex justify-between items-center"
 				>
 					{#if selectedFriendData}
-						<div class="flex items-center gap-3 min-w-0 select-none">
+						<div
+							class="flex items-center gap-3 min-w-0 select-none"
+						>
 							<Avatar
 								name={selectedFriendData.name}
 								avatar={selectedFriendData.avatar}

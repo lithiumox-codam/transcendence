@@ -12,7 +12,7 @@
     setContext("user", user);
     setContext("chat", new Chat(user));
     setContext("popout", new PopoutClass());
-    setContext("game", new GameClass(user));
+    setContext("game", new GameClass());
 
     let { data, children }: { data: LayoutData; children: Snippet } = $props();
 </script>

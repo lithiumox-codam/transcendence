@@ -62,7 +62,7 @@
 		>
 			{#each letters as letter, i}
 				<span
-					class="inline-block transition-transform duration-300 {letterStates[
+					class="select-none inline-block transition-transform duration-300 {letterStates[
 						i
 					]
 						? 'scale-110 rotate-6 retro-glow'
@@ -75,7 +75,7 @@
 
 		<!-- Updated Play Now button -->
 		<button
-			class="live-button relative inline-block px-10 py-5 bg-black border border-white/30 text-white font-bold uppercase tracking-wide rounded-lg overflow-hidden transform transition-transform duration-200 hover:scale-105"
+			class="live-button cursor-pointer select-none relative inline-block px-10 py-5 bg-black border border-white/30 text-white font-bold uppercase tracking-wide rounded-lg overflow-hidden transform transition-transform duration-200 hover:scale-105"
 			onclick={handlePlayNow}
 		>
 			<span class="relative z-10 animate-pulseButton">{m.play()}</span>

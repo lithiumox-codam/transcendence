@@ -53,19 +53,12 @@
 {#if user.data}
 	<main class="relative text-white">
 		{#if editMode}
-		<section class="px-6 py-8 max-w-5xl mx-auto">
-			<!-- <header
-				class="relative bg-black/10 border border-white/10 rounded-xl p-6 shadow-[0_0_20px_rgba(0,255,255,0.05)] backdrop-blur-sm flex flex-col gap-6"
-			>
-				<h2 class="text-2xl font-extrabold text-center text-white">
-					Edit Profile
-				</h2> -->
+			<section class="px-6 py-8 max-w-5xl mx-auto">
 				<UpdateUser
 					user={user.data}
 					on:updateComplete={() => (editMode = false)}
 				/>
-			<!-- </header> -->
-		</section>
+			</section>
 		{:else}
 			<section class="px-6 py-8 max-w-5xl mx-auto">
 				<header
@@ -80,7 +73,7 @@
 							/>
 							{#if user.data.avatar}
 								<button
-									class="absolute top-16 right-4 bg-gray-400/50 text-white p-2 rounded-full hover:bg-red-700/90 transition duration-300"
+									class="absolute top-16 right-4 bg-white/15 border border-white/10 p-2 rounded-full hover:bg-red-600/20 hover:border hover:border-red-500/30 hover:text-red-300 transition duration-100 cursor-pointer"
 									onclick={deleteAvatar}
 									aria-label="Delete Avatar"
 								>
@@ -104,16 +97,19 @@
 						</div>
 					</div>
 					<button
-						class="bg-white/5 border border-white/10 p-2.5 rounded-md hover:bg-blue-600/10"
+						class="bg-white/5 border border-white/10 p-2.5 rounded-md hover:bg-blue-600/10 cursor-pointer"
 						onclick={() => (editMode = true)}
 					>
 						Edit Profile
 					</button>
 				</header>
 			</section>
-			<div class="flex flex-row flex-wrap justify-center gap-x-6 gap-y-6 px-6 max-w-5xl mx-auto">
-				<!-- Match History -->
-				<div class="flex-1 min-w-[300px] max-w-[500px] w-full sm:w-auto">
+			<div
+				class="flex flex-row flex-wrap justify-center gap-x-6 gap-y-6 px-6 max-w-5xl mx-auto"
+			>
+				<div
+					class="flex-1 min-w-[300px] max-w-[500px] w-full sm:w-auto"
+				>
 					<MatchHistory
 						matches={history.map(({ game, players }) => ({
 							game,
@@ -123,16 +119,19 @@
 						maxHeight="max-h-64"
 					/>
 				</div>
-			
-				<!-- User Stats -->
-				<div class="flex-1 min-w-[300px] max-w-[500px] w-full sm:w-auto">
+
+				<div
+					class="flex-1 min-w-[300px] max-w-[500px] w-full sm:w-auto"
+				>
 					{#if stats}
 						<UserStats
 							userStats={stats}
 							userData={{ name: user.data.name }}
 						/>
 					{:else}
-						<p class="text-center text-gray-400">No stats available</p>
+						<p class="text-center text-gray-400">
+							No stats available
+						</p>
 					{/if}
 				</div>
 			</div>

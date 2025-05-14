@@ -8,7 +8,6 @@
 	import type { Game, User } from "@repo/database/types";
 	import { UserClass } from "$lib/classes/User.svelte";
 
-	// import GameHistory from "$lib/components/Stats/GameHistory.svelte";
 	import MatchHistory from "$lib/components/Stats/MatchHistory.svelte";
 
 	const user = getContext<UserClass>("user");
@@ -46,23 +45,6 @@
 	<div class="flex justify-around items-stretch gap-12 w-full">
 		<Leaderboard leaderboard={data.leaderboard} />
 
-		<!-- <Leaderboard leaderboard={data.leaderboard} /> -->
-
-		<!-- <GameHistory
-		GameHistory={data.gameHistory.map((game) => ({
-			...game,
-			createdAt: game.createdAt ?? "",
-			updatedAt: game.updatedAt ?? "",
-		}))}
-	/> -->
-		<!-- <GameHistory
-			GameHistory={data.gameHistory.map((game) => ({
-				...game,
-				createdAt: game.createdAt ?? "",
-				updatedAt: game.updatedAt ?? "",
-			}))}
-			maxHeight="max-h-150"
-		/> -->
 		<MatchHistory
 			matches={history.map(({ game, players }) => ({
 				game,

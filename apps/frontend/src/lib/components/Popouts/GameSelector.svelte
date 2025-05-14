@@ -97,15 +97,6 @@
             {/if}
         </div>
     {/if}
-    <!-- <div class="flex -space-x-2">
-		{#each game.queue as player}
-			<img
-				src={player.avatar}
-				alt={player.name}
-				class="w-8 h-8 rounded-full border-2 border-gray-900 hover:border-white transition-border duration-300 ease-in-out"
-			/>
-		{/each}
-	</div> -->
     <h2
         class="text-3xl font-extrabold tracking-widest text-center text-white retro-glow mb-6 select-none"
     >
@@ -171,11 +162,6 @@
             <p class="text-sm text-amber-200 mt-2 z-10">Climb the Bracket</p>
         </button>
     </div>
-    <!-- </div> -->
-
-    <!-- <div
-	class="mt-6 bg-black/10 border border-white/10 rounded-xl shadow-[0_0_20px_rgba(0,255,255,0.05)] backdrop-blur-sm p-6 text-white"
-> -->
     <h2
         class="text-2xl font-extrabold tracking-widest text-center text-white mb-6 uppercase select-none"
     >
@@ -197,45 +183,51 @@
 </div>
 
 {#snippet OngoingGame(data: OngoingGame)}
-    <li
-        class="flex justify-between items-center bg-white/5 border border-white/10 rounded-lg p-3 hover:bg-white/10 transition-colors duration-200 ease-in-out"
-    >
-        <div class="flex items-center space-x-3 min-w-0">
-            <div class="flex -space-x-2 flex-shrink-0">
-                {#each data.players as player}
-                    <Avatar
-                        name={player.name}
-                        avatar={player.avatar}
-                        class="w-8 h-8 rounded-full border-2 border-black/50"
-                    />
-                {/each}
-            </div>
-            <div class="min-w-0 flex-1">
-                <h3
-                    class="truncate select-none text-sm font-semibold tracking-wide text-cyan-200"
-                >
-                    {#each data.players as player, i}
-                        {player.name}
-                        {#if i < data.players.length - 1}
-                            <span class="mx-1 text-gray-500">vs</span>
-                        {/if}
-                    {/each}
-                </h3>
-                <p class="select-none text-xs text-gray-400">
-                    {data.game.maxPlayers} Players Max
-                </p>
-            </div>
-        </div>
+	<li
+		class="flex justify-between items-center bg-white/5 border border-white/10 rounded-lg p-3 hover:bg-white/10 transition-colors duration-200 ease-in-out"
+	>
+		<div class="flex items-center space-x-3 min-w-0">
+			<div class="flex -space-x-2 flex-shrink-0">
+				{#each data.players as player}
+					<Avatar
+						name={player.name}
+						avatar={player.avatar}
+						class="w-8 h-8 rounded-full border-2 border-black/50 select-none"
+					/>
+				{/each}
+			</div>
+			<div class="min-w-0 flex-1">
+				<h3
+					class="truncate select-none text-sm font-semibold tracking-wide text-cyan-200"
+				>
+					{#each data.players as player, i}
+						{player.name}
+						{#if i < data.players.length - 1}
+							<span class="text-gray-500 mr-2 mx-1">vs</span>
+						{/if}
+					{/each}
+				</h3>
+				<p class="select-none text-xs text-gray-400">
+					{#if data.game.maxPlayers === 2}
+						1 vs 1
+					{:else if data.game.maxPlayers === 4}
+						4 Players FFA
+					{:else}
+						{data.game.maxPlayers} Players Max
+					{/if}
+				</p>
+			</div>
+		</div>
 
-        <button
-            class="ml-3 flex-shrink-0 bg-cyan-500/20 border border-cyan-500/30 hover:bg-cyan-600/30 text-cyan-300 font-medium py-1.5 px-3 rounded-md text-xs focus:outline-none focus:ring-2 focus:ring-cyan-300 transition-all flex items-center gap-1.5"
-            onclick={() => spectateGame(data.game.id)}
-            aria-label="Spectate Game"
-        >
-            <Eye class="w-5 h-5 inline-block mr-2" />
-            Spectate
-        </button>
-    </li>
+		<button
+			class="ml-3 flex-shrink-0 bg-white/5 border-white/10 border hover:border-cyan-500/30 hover:bg-cyan-600/20 text-cyan-300 font-medium py-1.5 px-3 rounded-md text-xs transition-all flex items-center gap-1.5 cursor-pointer select-none"
+			onclick={() => spectateGame(data.game.id)}
+			aria-label="Spectate Game"
+		>
+			<Eye class="w-5 h-5 inline-block mr-2" />
+			Spectate
+		</button>
+	</li>
 {/snippet}
 
 <style>

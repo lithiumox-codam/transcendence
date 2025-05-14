@@ -98,8 +98,10 @@
 				</h3>
 				<p class="text-sm text-gray-400 leading-relaxed select-none">
 					If you have questions about this Privacy Policy or wish to
-					exercise any of your rights, please contact our <strong
-						>support team</strong
+					exercise any of your rights, please contact our <a
+						class="text-blue-400 text-sm font-semibold hover:underline"
+						href="mailto:spam@meesdekker.xyz?subject=Donkey%20pics%20IRL&body=Wassup%20dude%3F%20Whats%20poppin'%20Brand%20new%20whip%3F%20Just%20hopped%20in%3F%20I%20got%20options..%20I%20can%20catch%20that%20sleb%20like%20stockings."
+						>support team</a
 					>.
 				</p>
 			</div>

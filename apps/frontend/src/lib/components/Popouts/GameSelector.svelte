@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { GameClass } from "$lib/classes/Game.svelte";
 	import { client } from "$lib/trpc";
-	import { TrendingUp, Eye, Users, Trophy, Swords } from "@lucide/svelte";
+	import { Users, Trophy, Swords, Circle, X } from "@lucide/svelte";
 	import type {
 		Game,
 		User,
@@ -15,17 +15,8 @@
 		players: User[];
 	};
 
-	const game = getContext<GameClass>("game");
-	let ongoing = $state<OngoingGame[]>([]);
 	const gameClass = getContext<GameClass>("game");
 	const userClass = getContext<UserClass>("user");
-
-	client.game.ongoing.subscribe(undefined, {
-		onData: (games) => {
-			console.log("Ongoing games", games);
-			ongoing = games;
-		},
-	});
 
 	function selectGame(type: string) {
 		console.log(`Selected game type: ${type}`);
@@ -35,16 +26,16 @@
 		console.log(`Viewing ongoing game with ID: ${gameId}`);
 	}
 
-	let swordsAnimating = $state(false); // State for 1v1 icon
-	let usersAnimating = $state(false); // State for 4FFA icon
-	let trophyAnimating = $state(false); // State for Tournament icon
+	let swordsAnimating = $state(false);
+	let usersAnimating = $state(false);
+	let trophyAnimating = $state(false);
 
 	async function handleQueue1v1() {
 		swordsAnimating = true;
 		await client.game.queue.query(2);
 		setTimeout(() => {
 			swordsAnimating = false;
-		}, 400); // Match animation duration
+		}, 400);
 	}
 
 	async function handleQueue4FFA() {
@@ -52,7 +43,7 @@
 		await client.game.queue.query(4);
 		setTimeout(() => {
 			usersAnimating = false;
-		}, 400); // Match animation duration
+		}, 400);
 	}
 
 	function handleSelectTournament() {
@@ -60,7 +51,7 @@
 		selectGame("tournament");
 		setTimeout(() => {
 			trophyAnimating = false;
-		}, 400); // Match animation duration
+		}, 400);
 	}
 
 	let isUserInQueue = $derived(() => {
@@ -72,195 +63,113 @@
 	});
 </script>
 
-<div
-	class="bg-black/10 shadow-[0_0_20px_rgba(0,255,255,0.05)] backdrop-blur-sm p-6 text-white"
->
-	{#if gameClass.queue.length > 0}
-		<div class="mb-6 flex items-center justify-center space-x-2">
-			<span class="select-none text-sm text-gray-400">In Queue:</span>
-			<div class="flex -space-x-2">
-				{#each gameClass.queue as player}
-					<Avatar
-						name={player.name}
-						avatar={player.avatar}
-						class="w-6 h-6 rounded-full border-2 border-black/50 select-none"
-					/>
-				{/each}
+<div class="p-6 text-white my-auto">
+	<div class="mb-3 flex items-center justify-center min-h-10">
+		{#if gameClass.queue.length > 0}
+			<div class="flex items-center justify-center space-x-2">
+				<div class="flex -space-x-2">
+					{#each gameClass.queue as player}
+						<Avatar
+							name={player.name}
+							avatar={player.avatar}
+							class="w-7 h-7 rounded-full border-2 border-black/50 select-none"
+						/>
+					{/each}
+				</div>
+				{#if isUserInQueue()}
+					<div class="flex justify-center items-center">
+						<button
+							onclick={async () =>
+								await client.game.leaveQueue.mutate()}
+							class="ml-3 text-xs bg-white/5 border border-white/10 text-white font-medium p-2 rounded-full hover:bg-red-600/20 hover:text-red-300 transition select-none cursor-pointer flex justify-center items-center"
+							style="width: 26px; height: 26px;"
+						>
+							<X class="w-4 h-4 text-center" />
+						</button>
+					</div>
+				{/if}
 			</div>
-			{#if isUserInQueue()}
-				<button
-					onclick={async () => await client.game.leaveQueue.mutate()}
-					class="ml-3 text-xs bg-white/5 border border-white/10 text-white font-medium py-1 px-2 rounded-full hover:bg-red-600/20 hover:text-red-300 transition select-none cursor-pointer"
-				>
-					Leave Queue
-				</button>
-			{/if}
-		</div>
-	{/if}
+		{:else}
+			<p class="text-gray-500 text-sm flex items-center select-none">
+				<Circle class="w-2 h-2 inline-block mr-3 animate-ping" />
+				Waiting for players to join the queue...
+			</p>
+		{/if}
+	</div>
+
 	<h2
 		class="text-3xl font-extrabold tracking-widest text-center text-white retro-glow mb-6 select-none"
 	>
 		Choose Your Game Mode
 	</h2>
 
-	<!-- Gamemodes -->
-	<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-		<!-- 1vs1 -->
+	<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
 		<button
 			onclick={handleQueue1v1}
-			class="aspect-[3/4] relative overflow-hidden bg-gradient-to-br from-cyan-900/50 to-black/30 border border-cyan-500/40 rounded-lg p-4 flex flex-col justify-center items-center text-white shadow-[0_0_20px_rgba(0,255,255,0.15)] backdrop-blur-sm
+			class="aspect-[3/4] relative overflow-hidden bg-gradient-to-br from-cyan-900/50 to-black/30 border border-cyan-500/40 rounded-lg p-3 flex flex-col justify-center items-center text-white shadow-[0_0_20px_rgba(0,255,255,0.15)] backdrop-blur-sm
 			   hover:from-cyan-800/60 hover:to-black/40 hover:border-cyan-400/60 hover:shadow-[0_0_30px_rgba(0,255,255,0.25)] transition-all duration-300 group transform hover:-translate-y-1 hover:scale-105 active:scale-100 active:-translate-y-0 cursor-pointer"
 		>
 			<div
 				class="absolute inset-0 bg-grid-cyan opacity-10 group-hover:opacity-20 transition-opacity duration-300"
 			></div>
 			<Swords
-				class="w-10 h-10 mb-4 text-cyan-300 drop-shadow-[0_0_8px_rgba(0,255,255,0.5)] transition-transform duration-300 group-hover:scale-110 {swordsAnimating
+				class="w-8 h-8 mb-3 text-cyan-300 drop-shadow-[0_0_8px_rgba(0,255,255,0.5)] transition-transform duration-300 group-hover:scale-110 {swordsAnimating
 					? 'animate-fight'
 					: ''}"
 			/>
-			<span class="text-xl font-bold tracking-wider z-10 select-none"
+			<span class="text-lg font-bold tracking-wider z-10 select-none"
 				>1 VS 1</span
 			>
-			<p class="text-sm text-cyan-200 mt-2 z-10 select-none">
+			<p class="text-xs text-cyan-200 mt-1 z-10 select-none">
 				Classic Duel
 			</p>
 		</button>
 
-		<!-- 1vs1vs1vs1 -->
 		<button
 			onclick={handleQueue4FFA}
-			class="aspect-[3/4] relative overflow-hidden bg-gradient-to-br from-pink-900/50 to-black/30 border border-pink-500/40 rounded-lg p-4 flex flex-col justify-center items-center text-white shadow-[0_0_20px_rgba(255,0,255,0.15)] backdrop-blur-sm
-                   hover:from-pink-800/60 hover:to-black/40 hover:border-pink-400/60 hover:shadow-[0_0_30px_rgba(255,0,255,0.25)] transition-all duration-300 group transform hover:-translate-y-1 hover:scale-105 active:scale-100 active:-translate-y-0 cursor-pointer"
+			class="aspect-[3/4] relative overflow-hidden bg-gradient-to-br from-pink-900/50 to-black/30 border border-pink-500/40 rounded-lg p-3 flex flex-col justify-center items-center text-white shadow-[0_0_20px_rgba(255,0,255,0.15)] backdrop-blur-sm
+				   hover:from-pink-800/60 hover:to-black/40 hover:border-pink-400/60 hover:shadow-[0_0_30px_rgba(255,0,255,0.25)] transition-all duration-300 group transform hover:-translate-y-1 hover:scale-105 active:scale-100 active:-translate-y-0 cursor-pointer"
 		>
 			<div
 				class="absolute inset-0 bg-grid-pink opacity-10 group-hover:opacity-20 transition-opacity duration-300"
 			></div>
 			<Users
-				class="w-10 h-10 mb-4 text-pink-300 drop-shadow-[0_0_8px_rgba(255,0,255,0.5)] transition-transform duration-300 group-hover:scale-110 {usersAnimating
+				class="w-7 h-8 mb-3 text-pink-300 drop-shadow-[0_0_8px_rgba(255,0,255,0.5)] transition-transform duration-300 group-hover:scale-110 {usersAnimating
 					? 'animate-users'
 					: ''}"
 			/>
-			<span class="text-xl font-bold tracking-wider z-10 select-none"
+			<span class="text-lg font-bold tracking-wider z-10 select-none"
 				>4-Player FFA</span
 			>
-			<p class="text-sm text-pink-200 mt-2 z-10 select-none">
+			<p class="text-xs text-pink-200 mt-1 z-10 select-none">
 				Free-For-All Chaos
 			</p>
 		</button>
 
-		<!-- Tournament -->
 		<button
 			onclick={handleSelectTournament}
-			class="mb-10 aspect-[3/4] relative overflow-hidden bg-gradient-to-br from-amber-900/50 to-black/30 border border-amber-500/40 rounded-lg p-4 flex flex-col justify-center items-center text-white shadow-[0_0_20px_rgba(255,200,0,0.15)] backdrop-blur-sm
+			class="mb-10 aspect-[3/4] relative overflow-hidden bg-gradient-to-br from-amber-900/50 to-black/30 border border-amber-500/40 rounded-lg p-3 flex flex-col justify-center items-center text-white shadow-[0_0_20px_rgba(255,200,0,0.15)] backdrop-blur-sm
 			   hover:from-amber-800/60 hover:to-black/40 hover:border-amber-400/60 hover:shadow-[0_0_30px_rgba(255,200,0,0.25)] transition-all duration-300 group transform hover:-translate-y-1 hover:scale-105 active:scale-100 active:-translate-y-0 cursor-pointer"
 		>
 			<div
 				class="absolute inset-0 bg-grid-amber opacity-10 group-hover:opacity-20 transition-opacity duration-300"
 			></div>
 			<Trophy
-				class="w-10 h-10 mb-4 text-amber-300 drop-shadow-[0_0_8px_rgba(255,200,0,0.5)] transition-transform duration-300 group-hover:scale-110 {trophyAnimating
+				class="w-8 h-8 mb-3 text-amber-300 drop-shadow-[0_0_8px_rgba(255,200,0,0.5)] transition-transform duration-300 group-hover:scale-110 {trophyAnimating
 					? 'animate-trophy'
 					: ''}"
 			/>
-			<span class="text-xl font-bold tracking-wider z-10 select-none"
+			<span class="text-lg font-bold tracking-wider z-10 select-none"
 				>Tournament</span
 			>
-			<p class="select-none text-sm text-amber-200 mt-2 z-10">
+			<p class="select-none text-xs text-amber-200 mt-1 z-10">
 				Climb the Bracket
 			</p>
 		</button>
 	</div>
-	<!-- </div> -->
-
-	<!-- <div
-	class="mt-6 bg-black/10 border border-white/10 rounded-xl shadow-[0_0_20px_rgba(0,255,255,0.05)] backdrop-blur-sm p-6 text-white"
-> -->
-	<h2
-		class="text-2xl font-extrabold tracking-widest text-center text-white mb-6 uppercase select-none"
-	>
-		Ongoing Games
-	</h2>
-
-	<!-- Ongoing Games -->
-	{#if ongoing.length > 0}
-		<ul class="space-y-3 max-h-60 overflow-y-auto pr-2">
-			{#each ongoing as game}
-				{@render OngoingGame(game)}
-			{/each}
-		</ul>
-	{:else}
-		<p class="text-center text-gray-500 text-sm py-4">
-			No games currently in progress.
-		</p>
-	{/if}
 </div>
 
-{#snippet OngoingGame(data: OngoingGame)}
-	<li
-		class="flex justify-between items-center bg-white/5 border border-white/10 rounded-lg p-3 hover:bg-white/10 transition-colors duration-200 ease-in-out"
-	>
-		<div class="flex items-center space-x-3 min-w-0">
-			<div class="flex -space-x-2 flex-shrink-0">
-				{#each data.players as player}
-					<Avatar
-						name={player.name}
-						avatar={player.avatar}
-						class="w-8 h-8 rounded-full border-2 border-black/50 select-none"
-					/>
-				{/each}
-			</div>
-			<div class="min-w-0 flex-1">
-				<h3
-					class="truncate select-none text-sm font-semibold tracking-wide text-cyan-200"
-				>
-					{#each data.players as player, i}
-						{player.name}
-						{#if i < data.players.length - 1}
-							<span class="text-gray-500 mr-2 mx-1">vs</span>
-						{/if}
-					{/each}
-				</h3>
-				<p class="select-none text-xs text-gray-400">
-					{#if data.game.maxPlayers === 2}
-						1 vs 1
-					{:else if data.game.maxPlayers === 4}
-						4 Players FFA
-					{:else}
-						{data.game.maxPlayers} Players Max
-					{/if}
-				</p>
-			</div>
-		</div>
-
-		<button
-			class="ml-3 flex-shrink-0 bg-white/5 border-white/10 border hover:border-cyan-500/30 hover:bg-cyan-600/20 text-cyan-300 font-medium py-1.5 px-3 rounded-md text-xs transition-all flex items-center gap-1.5 cursor-pointer select-none"
-			onclick={() => spectateGame(data.game.id)}
-			aria-label="Spectate Game"
-		>
-			<Eye class="w-5 h-5 inline-block mr-2" />
-			Spectate
-		</button>
-	</li>
-{/snippet}
-
 <style>
-	/* Custom scrollbar for Webkit browsers */
-	.overflow-y-auto::-webkit-scrollbar {
-		width: 6px;
-	}
-	.overflow-y-auto::-webkit-scrollbar-track {
-		background: transparent;
-		margin: 2px 0;
-	}
-	.overflow-y-auto::-webkit-scrollbar-thumb {
-		background-color: rgba(255, 255, 255, 0.2);
-		border-radius: 3px;
-	}
-	.overflow-y-auto::-webkit-scrollbar-thumb:hover {
-		background-color: rgba(255, 255, 255, 0.4);
-	}
-
 	.bg-grid-cyan {
 		background-image:
 			linear-gradient(rgba(0, 255, 255, 0.05) 1px, transparent 1px),
@@ -279,8 +188,6 @@
 			linear-gradient(90deg, rgba(255, 200, 0, 0.05) 1px, transparent 1px);
 		background-size: 20px 20px;
 	}
-
-	/* Ensure transitions cover border and shadow */
 
 	@keyframes fight {
 		0% {

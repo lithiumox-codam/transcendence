@@ -52,36 +52,19 @@
 	}
 
 	async function handleSetPassword() {
-		try {
-			if (!newPassword || !confirmPassword) {
-				errorMessage = "Please enter all fields.";
-				return;
-			}
-			if (newPassword !== confirmPassword) {
-				errorMessage = "Passwords do not match.";
-				return;
-			}
-			await client.user.privacy.setPassword.mutate({
-				password: newPassword,
-			});
-			resetPasswordModal();
-			isPasswordSet = true;
-		} catch (error) {
-			console.error(error);
-			if ((error as any).data?.zodError?.fieldErrors?.password) {
-				if (
-					error instanceof Error &&
-					(error as any).data?.zodError?.fieldErrors?.password
-				) {
-					errorMessage = (error as any).data.zodError.fieldErrors
-						.password[0];
-				}
-			} else if (error instanceof Error && error.message) {
-				errorMessage = error.message;
-			} else {
-				errorMessage = "An unexpected error occurred.";
-			}
+		if (!newPassword || !confirmPassword) {
+			errorMessage = "Please enter all fields.";
+			return;
 		}
+		if (newPassword !== confirmPassword) {
+			errorMessage = "Passwords do not match.";
+			return;
+		}
+		await client.user.privacy.setPassword.mutate({
+			password: newPassword,
+		});
+		resetPasswordModal();
+		isPasswordSet = true;
 	}
 
 	async function handleDownloadData() {
@@ -134,7 +117,6 @@
 			URL.revokeObjectURL(url);
 		} catch (error) {
 			console.error("Failed to download data:", error);
-			alert("There was an error gathering your data.");
 		}
 	}
 
@@ -148,7 +130,6 @@
 			await client.user.privacy.deleteAccount.mutate({
 				username,
 			});
-			alert("Your account has been deleted.");
 			localStorage.removeItem("token");
 			goto("/");
 			setTimeout(() => location.reload(), 100);
@@ -211,8 +192,10 @@
 		<div
 			class="flex justify-between items-center bg-white/5 p-4 rounded-lg transition duration-300 hover:bg-white/10"
 		>
-			<div class="text-left">
-				Toggle 2FA
+			<div class="text-left mr-4">
+				<h3 class="text-lg font-semibold text-white mb-1">
+					Toggle 2FA
+				</h3>
 				<p class="text-gray-400">
 					Enable two-factor authentication for added security.
 				</p>

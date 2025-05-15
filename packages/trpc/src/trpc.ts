@@ -48,7 +48,7 @@ export async function createTRPCContext({
                 oAuthProvider: users.oAuthProvider,
             })
             .from(users)
-            .where(and(eq(users.id, userId), ne(users.password, "[DELETED]")));
+            .where(and(eq(users.id, userId), ne(users.isDeleted, 1)));
         if (dbResult.length === 0) {
             throw new TRPCError({
                 code: "UNAUTHORIZED",

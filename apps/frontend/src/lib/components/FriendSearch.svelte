@@ -28,7 +28,7 @@
 							!user.isFriend(result.id) &&
 							!user.hasSentRequestTo(result.id) &&
 							!user.hasIncomingRequestFrom(result.id) &&
-							result.name !== "[DELETED]" &&
+							result.isDeleted !== 1 &&
 							result.id !== user.data?.id
 						);
 					});

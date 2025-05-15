@@ -484,13 +484,3 @@
 
 <canvas bind:this={canvas} class="z-0 absolute top-0 left-0 w-full h-full"
 ></canvas>
-
-<style :global()>
-    .retro-glow-static {
-        text-shadow:
-            0 0 8px #0ff,
-            0 0 16px #0ff,
-            0 0 24px #f0f,
-            0 0 32px #f0f;
-    }
-</style>

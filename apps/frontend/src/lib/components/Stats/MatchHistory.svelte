@@ -102,7 +102,7 @@
 								{userScore ?? 0}-{opponentScore ?? 0}
 							</p>
 						</div>
-
+						
 						<div
 							class="flex items-center space-x-2 w-1/3 min-w-0 justify-end"
 						>

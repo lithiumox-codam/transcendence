@@ -1,6 +1,5 @@
 import { sql } from "drizzle-orm";
 import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
-import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { users } from "./user.ts";
 
 export const tournaments = sqliteTable("tournaments", {

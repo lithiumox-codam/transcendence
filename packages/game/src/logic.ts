@@ -45,6 +45,7 @@ export class GameEngine {
                 speed: BALL_SPEED,
             },
             status: "waiting" as GameStatus,
+            winner: null as number | null,
         };
     }
 

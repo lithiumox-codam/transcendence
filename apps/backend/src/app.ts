@@ -1,3 +1,4 @@
+import cors from "@fastify/cors";
 import ws from "@fastify/websocket";
 import {
     type FastifyTRPCPluginOptions,
@@ -12,8 +13,19 @@ export default (opts?: FastifyServerOptions) => {
 
     fastify.register(ws);
 
+    if (!import.meta.env.PROD) {
+        fastify.register(cors, {
+            origin: true,
+            credentials: true,
+        });
+    }
+
     fastify.get("/health-check", (req, reply) => {
         reply.send({ status: "ok" });
+    });
+
+    fastify.get("/googleOauth", (req, reply) => {
+        reply.send(process.env.VITE_GOOGLE_CLIENT_ID);
     });
 
     fastify.register(fastifyTRPCPlugin, {

@@ -9,6 +9,7 @@
         "preview": "node build/server.cjs"
     },
     "dependencies": {
+        "@fastify/cors": "^11.0.1",
         "@fastify/jwt": "^9.0.4",
         "@fastify/websocket": "^11.0.2",
         "@repo/auth": "workspace:^",

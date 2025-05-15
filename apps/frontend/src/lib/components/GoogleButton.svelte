@@ -1,27 +1,40 @@
 <script lang="ts">
-    import { page } from "$app/state";
+	import { browser } from "$app/environment";
+	import { getFrontendUrl } from "$lib/getUrls";
+	import { onMount } from "svelte";
 
-    async function handleGoogleSignIn() {
-        if (!process.env.PUBLIC_GOOGLE_CLIENT_ID) {
-            console.error("Client ID is missing");
-            return;
-        }
+	let clientId = "";
 
-        const baseUrl = "https://accounts.google.com/o/oauth2/auth";
-        const params = new URLSearchParams({
-            client_id: process.env.PUBLIC_GOOGLE_CLIENT_ID,
-            redirect_uri: `${page.url.origin}/oauth/callback`,
-            response_type: "code",
-            scope: "openid profile email",
-        });
+	onMount(() => {
+		if (browser) {
+			fetch(`${window.origin}/api/googleOauth`)
+				.then((res) => res.text())
+				.then((id) => {
+					clientId = id;
+					console.log("Client ID:", clientId);
+				})
+				.catch((err) => {
+					console.error("Error fetching client ID:", err);
+				});
+		}
+	});
 
-        window.location.href = `${baseUrl}?${params.toString()}`;
-    }
+	async function handleGoogleSignIn() {
+		const baseUrl = "https://accounts.google.com/o/oauth2/auth";
+		const params = new URLSearchParams({
+			client_id: clientId,
+			redirect_uri: `${getFrontendUrl()}/oauth/callback`,
+			response_type: "code",
+			scope: "openid profile email",
+		});
+
+		window.location.href = `${baseUrl}?${params.toString()}`;
+	}
 </script>
 
 <button
-    class="mt-2 w-full h-10 cursor-pointer rounded-md bg-gray-700 text-white font-medium hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-    onclick={handleGoogleSignIn}
+	class="w-full cursor-pointer select-none h-10 rounded-md bg-white/5 border border-white/10 text-white font-semibold hover:bg-white/10 focus:ring-offset-slate-900 transition-colors duration-150"
+	onclick={handleGoogleSignIn}
 >
-    Login with Google
+	Login with Google
 </button>

@@ -4,6 +4,6 @@
 	let { children } = $props();
 </script>
 
-<main class="dark">
+<main class="dark select-none">
 	{@render children()}
 </main>

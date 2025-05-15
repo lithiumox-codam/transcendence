@@ -100,14 +100,14 @@
                 </div>
                 {#if !blocked}
                     <button
-                        class="ml-auto px-4 py-2 bg-gray-400/20 text-white font-bold rounded-lg hover:bg-red-500/50 active:bg-red-700 transition-all duration-300"
+                        class="ml-auto px-4 py-2 bg-white/5 border border-white/10 text-white rounded-md hover:bg-red-600/20 hover:text-red-300 cursor-pointer transition-all duration-300"
                         onclick={handleBlock}
                     >
                         Block
                     </button>
                 {:else}
                     <button
-                        class="ml-auto px-4 py-2 bg-gray-600/30 text-white font-bold rounded-lg hover:bg-green-400/50 active:bg-green-700 transition-all duration-300"
+                        class="ml-auto px-4 py-2 bg-white/5 border border-white/10 text-white rounded-md hover:bg-blue-600/10 cursor-pointer transition-all duration-300"
                         onclick={handleBlock}
                     >
                         Unblock

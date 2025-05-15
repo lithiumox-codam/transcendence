@@ -1,10 +1,10 @@
 import crypto from "node:crypto";
 import { customType } from "drizzle-orm/sqlite-core";
 
-const BACKEND_SECRET = process.env.BACKEND_SECRET;
+const BACKEND_SECRET = process.env.VITE_BACKEND_SECRET;
 if (!BACKEND_SECRET) {
     throw new Error(
-        "Missing BACKEND_SECRET in .env.  Provide a strong, long secret.",
+        "Missing VITE_BACKEND_SECRET in .env.  Provide a strong, long secret.",
     );
 }
 

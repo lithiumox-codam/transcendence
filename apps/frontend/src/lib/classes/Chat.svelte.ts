@@ -56,6 +56,16 @@ export class Chat {
         }
     }
 
+	private getMessages(friendId: number): Message[] | undefined {
+		if (!this.messages.has(friendId)) {
+			const tmp = $state<Message[]>([]);
+			this.messages.set(friendId, tmp);
+			return this.messages.get(friendId);
+		}
+		return this.messages.get(friendId);
+	}
+
+
     private async listenMessages(): Promise<void> {
         client.chat.listen.subscribe(undefined, {
             onData: async ({ data, type }) => {
@@ -64,8 +74,8 @@ export class Chat {
                         ? data.receiverId
                         : data.senderId;
 
-                const messages = this.messages.get(otherUserId);
-                if (!messages) return;
+				const messages = this.getMessages(otherUserId);
+				if (!messages) return;
 
                 switch (type) {
                     case "message": {

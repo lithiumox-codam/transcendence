@@ -15,7 +15,7 @@
 
 	const handleAvatarChange = (e: Event) => {
 		const files = (e.target as HTMLInputElement).files;
-		if (files && files[0]) {
+		if (files?.[0]) {
 			avatarFile = files[0];
 		}
 	};
@@ -126,7 +126,7 @@
 			<div class="flex justify-start space-x-4 mt-4">
 				<button
 					type="submit"
-					class="bg-white/5 border border-white/10 p-2.5 rounded-md hover:bg-green-600/10 cursor-pointer"
+					class="bg-white/5 border border-white/10 text-white px-4 py-2 transition duration-300 hover:bg-blue-600/10 cursor-pointer p-2.5 rounded-md"
 				>
 					Save
 				</button>

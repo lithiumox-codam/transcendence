@@ -10,6 +10,7 @@ import {
 } from "@trpc/client";
 import { observable } from "@trpc/server/observable";
 import superjson from "superjson";
+import { getBackendUrl } from "./getUrls";
 
 export function isTRPCClientError(
     cause: unknown,
@@ -58,19 +59,11 @@ const unauthorizedRedirectLink: TRPCLink<AppRouter> = () => {
     };
 };
 
-// TODO: Make the hostname come from the environment so it can be easily changed
-const getBaseUrl = () => {
-    if (process.env.NODE_ENV === "production") {
-        return "https://localhost/api/";
-    }
-    return "http://localhost:8080/";
-};
-
 const wsClient = createWSClient({
     url: (() => {
         if (browser)
-            return `${getBaseUrl()}trpc?token=${localStorage.getItem("token")}`;
-        return `${getBaseUrl()}trpc`;
+            return `${getBackendUrl()}trpc?token=${localStorage.getItem("token")}`;
+        return `${getBackendUrl()}trpc`;
     })(),
 });
 

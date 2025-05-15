@@ -6,7 +6,6 @@ export default defineConfig({
     server: {
         port: 8080,
     },
-    envPrefix: "BACKEND_",
     build: {
         ssr: "./src/server.ts",
         target: "node22",

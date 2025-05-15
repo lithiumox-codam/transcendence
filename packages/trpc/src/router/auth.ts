@@ -1,14 +1,14 @@
-import { hashPassword, sign, verifyPassword, TokenPayload } from "@repo/auth";
+import { TokenPayload, hashPassword, sign, verifyPassword } from "@repo/auth";
 import { db, passwordSchema, userNameSchema, users } from "@repo/database";
 import { TRPCError } from "@trpc/server";
 import { and, eq } from "drizzle-orm";
+import { authenticator } from "otplib";
 import { z } from "zod";
 import {
     createTRPCRouter,
     protectedProcedure,
     publicProcedure,
 } from "../trpc.ts";
-import { authenticator } from "otplib";
 
 export const authRouter = createTRPCRouter({
     signup: publicProcedure
@@ -159,9 +159,9 @@ export const authRouter = createTRPCRouter({
     oauthLogin: publicProcedure
         .input(z.string())
         .mutation(async ({ input }) => {
-            const { PUBLIC_GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET } =
+            const { VITE_GOOGLE_CLIENT_ID, VITE_GOOGLE_CLIENT_SECRET } =
                 process.env;
-            if (!PUBLIC_GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
+            if (!VITE_GOOGLE_CLIENT_ID || !VITE_GOOGLE_CLIENT_SECRET) {
                 throw new TRPCError({
                     code: "INTERNAL_SERVER_ERROR",
                     message: "Google Sign-in not configured",
@@ -170,8 +170,8 @@ export const authRouter = createTRPCRouter({
 
             const tokenUrl = "https://accounts.google.com/o/oauth2/token";
             const tokenPayload = new TokenPayload(
-                PUBLIC_GOOGLE_CLIENT_ID,
-                GOOGLE_CLIENT_SECRET,
+                VITE_GOOGLE_CLIENT_ID,
+                VITE_GOOGLE_CLIENT_SECRET,
                 input,
             );
 

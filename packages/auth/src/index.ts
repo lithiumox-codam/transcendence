@@ -3,7 +3,7 @@ import * as jose from "jose";
 import type { JWTPayload } from "jose";
 
 function getSecret(): Uint8Array {
-    const envValue = process.env.BACKEND_SECRET;
+    const envValue = process.env.VITE_BACKEND_SECRET;
     if (!envValue) {
         throw new Error("Missing BACKEND_SECRET environment variable");
     }

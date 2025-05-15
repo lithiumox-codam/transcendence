@@ -12,7 +12,7 @@ export class TokenPayload {
         this.scope = "openid profile email";
         this.client_id = client_id;
         this.client_secret = client_secret;
-        this.redirect_uri = "http://localhost:5173/oauth/callback";
+        this.redirect_uri = `https://${process.env.VITE_HOSTNAME}/oauth/callback`;
     }
 
     /**

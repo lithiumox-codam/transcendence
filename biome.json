@@ -18,7 +18,7 @@
     "formatter": {
         "enabled": true,
         "indentStyle": "space",
-        "ignore": ["*.svelte", "paraglide/**"],
+        "ignore": ["*.svelte"],
         "indentWidth": 4
     },
     "organizeImports": {

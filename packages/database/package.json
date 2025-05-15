@@ -12,10 +12,10 @@
     },
     "scripts": {
         "db:clear": "tsx ./src/clear.ts",
-        "db:push": "dotenvx run -f ../../.env -- drizzle-kit push",
+        "db:push": "dotenvx run -f ../../.env.dev -- drizzle-kit push",
         "db:studio": "drizzle-kit studio",
         "generate": "drizzle-kit generate",
-        "dev": "dotenvx run -f ../../.env -- drizzle-kit studio"
+        "dev": "dotenvx run -f ../../.env.dev -- drizzle-kit studio"
     },
     "dependencies": {
         "@libsql/client": "^0.14.0",

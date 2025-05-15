@@ -24,7 +24,7 @@ export const users = sqliteTable("users", {
 
 export type UserInsert = typeof users.$inferInsert;
 export type UserFull = typeof users.$inferSelect;
-export type User = Omit<UserFull, "password" | "secret">;
+export type User = Omit<UserFull, "password" | "secret" | "isDeleted">;
 
 export const userNameSchema = z
     .string()

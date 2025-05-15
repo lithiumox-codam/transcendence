@@ -6,10 +6,13 @@
     import { client } from "$lib/trpc";
     import ScoreCard from "./ScoreCard.svelte";
     import WinnerCard from "./WinnerCard.svelte";
+    import type { UserClass } from "$lib/classes/User.svelte";
 
     import type { Popout } from "$lib/classes/Popout.svelte";
 
     let { gameId }: { gameId: number } = $props();
+
+    const user = getContext<UserClass>("user");
 
     const ARENA_WIDTH = 40;
     const PADDLE_LENGTH = 6;
@@ -25,11 +28,7 @@
 
     const COLOR_WHITE = new BABYLON.Color3(1, 1, 1);
 
-    const TOURNAMENTSTAGE_MAP = [
-        "Round 1",
-        "Round 2",
-        "Finals",
-    ];
+    const TOURNAMENTSTAGE_MAP = ["Round 1", "Round 2", "Finals"];
 
     let arenaHeight: 30 | 40 = 30;
     let paddleCount: 2 | 4 = 2;
@@ -119,7 +118,7 @@
         engine = new BABYLON.Engine(canvas, true);
         scene = new BABYLON.Scene(engine);
         scene.clearColor = new BABYLON.Color4(0, 0, 0, 1);
-        const axes = new BABYLON.Debug.AxesViewer(scene, 2);
+        // const axes = new BABYLON.Debug.AxesViewer(scene, 2);
 
         const mirrorMaterial = new BABYLON.StandardMaterial(
             "mirrorMaterial",
@@ -466,13 +465,19 @@
             <h2 class="text-6xl text-white mb-8 animate-pulse">
                 <WinnerCard userId={gameState.winner} />
             </h2>
-            <button
-                onclick={() => goto("/stats")}
-                class="px-8 py-4 text-2xl bg-transparent border-2 border-white/50 rounded-lg
+            {#if tournamentStage !== null && tournamentStage !== 2 && gameState.winner === user.data?.id}
+                <h2 class="text-4xl text-white mb-8 animate-pulse">
+                    Waiting for next round...
+                </h2>
+            {:else}
+                <button
+                    onclick={() => goto("/stats")}
+                    class="px-8 py-4 text-2xl bg-transparent border-2 border-white/50 rounded-lg
             text-white hover:bg-white/10 transition-all backdrop-blur-sm"
-            >
-                Back to Stats
-            </button>
+                >
+                    Back to Stats
+                </button>
+            {/if}
         </div>
     </div>
 {/if}

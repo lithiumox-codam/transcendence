@@ -46,9 +46,9 @@
         }, 400);
     }
 
-    function handleSelectTournament() {
+    async function handleSelectTournament() {
         trophyAnimating = true;
-        selectGame("tournament");
+        await client.game.queue.query(8);
         setTimeout(() => {
             trophyAnimating = false;
         }, 400);

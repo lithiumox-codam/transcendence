@@ -47,6 +47,7 @@ export class Matchmaking {
                 .values({
                     status: "waiting",
                     maxPlayers,
+                    tournamentId,
                 })
                 .returning();
             if (!game) throw new Error("Failed to create game");

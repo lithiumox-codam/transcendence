@@ -1,13 +1,13 @@
 <script lang="ts">
     import * as BABYLON from "babylonjs";
-  	import { onMount, getContext } from "svelte";
+    import { onMount, getContext } from "svelte";
     import { goto } from "$app/navigation";
     import type { GameState, Player, GameStatus } from "@repo/game";
     import { client } from "$lib/trpc";
-	import ScoreCard from "./ScoreCard.svelte";
+    import ScoreCard from "./ScoreCard.svelte";
     import WinnerCard from "./WinnerCard.svelte";
-  
-  	import type { Popout } from "$lib/classes/Popout.svelte";
+
+    import type { Popout } from "$lib/classes/Popout.svelte";
 
     let { gameId }: { gameId: number } = $props();
 
@@ -25,6 +25,12 @@
 
     const COLOR_WHITE = new BABYLON.Color3(1, 1, 1);
 
+    const TOURNAMENTSTAGE_MAP = [
+        "Round 1",
+        "Round 2",
+        "Finals",
+    ];
+
     let arenaHeight: 30 | 40 = 30;
     let paddleCount: 2 | 4 = 2;
 
@@ -33,6 +39,7 @@
     let scene = $state<BABYLON.Scene>();
 
     let gameState = $state<GameState | null>(null);
+    let tournamentStage = $state<number | null>(null);
 
     let ground = $state<BABYLON.Mesh>();
     let paddles = $state<BABYLON.Mesh[]>();
@@ -41,28 +48,27 @@
 
     let topBorder = $state<BABYLON.Mesh>();
     let bottomBorder = $state<BABYLON.Mesh>();
-  
-  
+
     const popout = getContext<Popout>("popout");
     let hasAutoClosedPopout = false;
     onMount(() => {
         (async () => {
             client.game.listen.subscribe(gameId, {
                 onData: (data) => {
-                  	const isGameJustStarting = !gameState && data;
-                  
+                    const isGameJustStarting = !gameState && data;
+
                     if (!gameState) {
                         gameState = data;
                         run();
                     }
-                  
+
                     if (
-                      isGameJustStarting &&
-                      popout?.shown &&
-                      !hasAutoClosedPopout
+                        isGameJustStarting &&
+                        popout?.shown &&
+                        !hasAutoClosedPopout
                     ) {
-                      popout.hide();
-                      hasAutoClosedPopout = true;
+                        popout.hide();
+                        hasAutoClosedPopout = true;
                     }
 
                     gameState = data;
@@ -71,6 +77,13 @@
                     console.error(error);
                 },
             });
+
+            const tournamentPlayer =
+                await client.game.tournamentPlayer.query(gameId);
+            if (tournamentPlayer) {
+                tournamentStage = tournamentPlayer.score;
+            }
+
             if (!gameState) {
                 return;
             }
@@ -387,81 +400,92 @@
 <svelte:window onresize={() => engine?.resize()} />
 
 <div
-	class="absolute top-0 left-0 right-0 flex flex-row justify-center items-center p-4 gap-4 text-white text-xl font-mono z-10"
+    class="absolute top-0 left-0 right-0 flex flex-row justify-center items-center p-4 gap-4 text-white text-xl font-mono z-10"
 >
-	{#each (gameState?.players ?? []).slice(0, (gameState?.players?.length ?? 0) / 2) as player, i}
-		<!-- <div class="mt-8">
+    {#each (gameState?.players ?? []).slice(0, (gameState?.players?.length ?? 0) / 2) as player, i}
+        <!-- <div class="mt-8">
 			<ScoreCard userId={player.id} score={player.score} />
 		</div> -->
-		<ScoreCard
-			userId={player.id}
-			score={player.score}
-			color={{
-				r: COLOR_ARRAY[i].r,
-				g: COLOR_ARRAY[i].g,
-				b: COLOR_ARRAY[i].b,
-			}}
-		/>
-	{/each}
+        <ScoreCard
+            userId={player.id}
+            score={player.score}
+            color={{
+                r: COLOR_ARRAY[i].r,
+                g: COLOR_ARRAY[i].g,
+                b: COLOR_ARRAY[i].b,
+            }}
+        />
+    {/each}
 
-	<div class="mx-8 mt-5 mb-20">
-		{@render header((gameState?.players?.length ?? 0) === 4 ? 4 : 2)}
-	</div>
+    <div class="mx-8 mt-5 mb-20">
+        {#if tournamentStage !== null}
+            <div
+                class="absolute top-0 left-0 right-0 flex flex-row justify-center items-center p-4 gap-4 text-white text-xl font-mono z-10"
+            >
+                <div class="mt-8">
+                    <h2 class="text-2xl font-bold">
+                        {TOURNAMENTSTAGE_MAP[tournamentStage]}
+                    </h2>
+                </div>
+            </div>
+        {:else}
+            {@render header((gameState?.players?.length ?? 0) === 4 ? 4 : 2)}
 
-	{#each (gameState?.players ?? []).slice((gameState?.players?.length ?? 0) / 2) as player, j}
-		<ScoreCard
-			userId={player.id}
-			score={player.score}
-			color={{
-				r: COLOR_ARRAY[j + (gameState?.players?.length ?? 0) / 2].r,
-				g: COLOR_ARRAY[j + (gameState?.players?.length ?? 0) / 2].g,
-				b: COLOR_ARRAY[j + (gameState?.players?.length ?? 0) / 2].b,
-			}}
-		/>
-	{/each}
+            {#snippet header(paddleCount: number)}
+                <h2
+                    class="hidden sm:block text-4xl md:text-5xl font-extrabold uppercase tracking-wider text-white text-center retro-glow-static select-none"
+                >
+                    {#each Array(paddleCount) as _, i}
+                        <span>1</span>{#if i < paddleCount - 1}<span
+                                class="text-2xl font-normal text-gray-400"
+                            >
+                                {" "}vs{" "}
+                            </span>{/if}
+                    {/each}
+                </h2>
+            {/snippet}
+        {/if}
+    </div>
+
+    {#each (gameState?.players ?? []).slice((gameState?.players?.length ?? 0) / 2) as player, j}
+        <ScoreCard
+            userId={player.id}
+            score={player.score}
+            color={{
+                r: COLOR_ARRAY[j + (gameState?.players?.length ?? 0) / 2].r,
+                g: COLOR_ARRAY[j + (gameState?.players?.length ?? 0) / 2].g,
+                b: COLOR_ARRAY[j + (gameState?.players?.length ?? 0) / 2].b,
+            }}
+        />
+    {/each}
 </div>
 
-{#snippet header(paddleCount: number)}
-	<h2
-		class="hidden sm:block text-4xl md:text-5xl font-extrabold uppercase tracking-wider text-white text-center retro-glow-static select-none"
-	>
-		{#each Array(paddleCount) as _, i}
-			<span>1</span>{#if i < paddleCount - 1}<span
-					class="text-2xl font-normal text-gray-400"
-				>
-					{" "}vs{" "}
-				</span>{/if}
-		{/each}
-	</h2>
-{/snippet}
-
-
 {#if gameState?.status === "finished" && gameState.winner}
-	<div class="absolute inset-0 grid place-items-center bg-black/80 z-20">
-		<div class="text-center">
-			<h2 class="text-6xl text-white mb-8 animate-pulse">
+    <div class="absolute inset-0 grid place-items-center bg-black/80 z-20">
+        <div class="text-center">
+            <h2 class="text-6xl text-white mb-8 animate-pulse">
                 <WinnerCard userId={gameState.winner} />
-			</h2>
-			<button
-        onclick={() => goto("/stats")}
-          class="px-8 py-4 text-2xl bg-transparent border-2 border-white/50 rounded-lg
+            </h2>
+            <button
+                onclick={() => goto("/stats")}
+                class="px-8 py-4 text-2xl bg-transparent border-2 border-white/50 rounded-lg
             text-white hover:bg-white/10 transition-all backdrop-blur-sm"
-          >
-        Back to Stats
-			</button>
-		</div>
-	</div>
+            >
+                Back to Stats
+            </button>
+        </div>
+    </div>
 {/if}
 
 <canvas bind:this={canvas} class="z-0 absolute top-0 left-0 w-full h-full"
 ></canvas>
 
 <style :global()>
-	.retro-glow-static {
-		text-shadow:
-			0 0 8px #0ff,
-			0 0 16px #0ff,
-			0 0 24px #f0f,
-			0 0 32px #f0f;
-	}
+    .retro-glow-static {
+        text-shadow:
+            0 0 8px #0ff,
+            0 0 16px #0ff,
+            0 0 24px #f0f,
+            0 0 32px #f0f;
+    }
 </style>

@@ -20,7 +20,7 @@ export const statsRouter = createTRPCRouter({
             .where(
                 and(
                     eq(games.status, "finished"),
-                    ne(users.name, "[DELETED]"),
+                    ne(users.isDeleted, 1),
                     eq(games.private, 0),
                 ),
             )

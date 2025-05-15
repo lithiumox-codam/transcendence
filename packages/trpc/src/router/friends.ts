@@ -221,7 +221,7 @@ export const friendsRouter = createTRPCRouter({
                     eq(mutual.friendId, users.id), // added other user back
                 ),
             )
-            .where(and(isNull(mutual.userId), ne(users.name, "[DELETED]"))); // Exclude mutual friendships
+            .where(and(isNull(mutual.userId), ne(users.isDeleted, 1))); // Exclude mutual friendships
     }),
     listen: protectedProcedure.subscription(({ ctx }) =>
         emitter.subscribeDomain("friends", (event) => {

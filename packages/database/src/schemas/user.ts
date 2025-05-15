@@ -18,6 +18,7 @@ export const users = sqliteTable("users", {
     oAuthProvider: text("oauth_provider"),
     avatar: text("avatar"),
     secret: encryptedText("secret"),
+	isDeleted: integer("is_deleted").default(0),
     createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`),
 });
 

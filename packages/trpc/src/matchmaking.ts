@@ -19,7 +19,10 @@ type queuedPlayer = {
 export class Matchmaking {
     private static instance: Matchmaking;
     private queuedPlayers: queuedPlayer[] = [];
-    private queuedTournamentPlayers = new Map<number, number[]>();
+    private queuedTournamentPlayers = new Map<
+        number,
+        { playerId: number; score: number }[]
+    >();
     public gamesMap = new Map<number, GameEngine>();
 
     public static getInstance(): Matchmaking {
@@ -47,6 +50,7 @@ export class Matchmaking {
                 .values({
                     status: "waiting",
                     maxPlayers,
+                    tournamentId,
                 })
                 .returning();
             if (!game) throw new Error("Failed to create game");
@@ -142,7 +146,11 @@ export class Matchmaking {
                             .set({ status: "finished", winnerId })
                             .where(eq(tournaments.id, tournamentId));
                     } else {
-                        this.joinTournamentQueue(winnerId, tournamentId);
+                        this.joinTournamentQueue(
+                            winnerId,
+                            winner.score,
+                            tournamentId,
+                        );
                     }
                 }
             }
@@ -252,23 +260,38 @@ export class Matchmaking {
 
     private async joinTournamentQueue(
         playerId: number,
+        score: number,
         tournamentId: number,
     ): Promise<void> {
         const tournamentPlayers =
             this.queuedTournamentPlayers.get(tournamentId);
         if (!tournamentPlayers) {
-            this.queuedTournamentPlayers.set(tournamentId, [playerId]);
+            this.queuedTournamentPlayers.set(tournamentId, [
+                { playerId, score },
+            ]);
         } else {
-            tournamentPlayers.push(playerId);
+            tournamentPlayers.push({ playerId, score });
         }
 
         for (const [
             tournamentId,
-            playerIds,
+            players,
         ] of this.queuedTournamentPlayers.entries()) {
-            if (playerIds.length === 2) {
-                await this.createGame(playerIds, 2, tournamentId);
-                this.queuedTournamentPlayers.delete(tournamentId);
+            // Get player with same score
+            const dual = players.filter((player) => player.score === score);
+
+            if (dual.length === 2) {
+                await this.createGame(
+                    dual.map((player) => player.playerId),
+                    2,
+                    tournamentId,
+                );
+
+                // remove dual players from queue
+                this.queuedTournamentPlayers.set(
+                    tournamentId,
+                    players.filter((player) => player.score !== score),
+                );
             }
         }
     }

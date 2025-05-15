@@ -5,9 +5,11 @@ import {
     games,
     message,
     players,
+    tournaments,
+    tournamentPlayers,
     users,
 } from "@repo/database";
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, not } from "drizzle-orm";
 import { late, z } from "zod";
 import { emitter } from "../events/index.ts";
 import { Matchmaking } from "../matchmaking.ts";
@@ -144,6 +146,36 @@ export const gameRouter = createTRPCRouter({
         );
         return list;
     }),
+    tournamentPlayer: protectedProcedure
+        .input(z.number())
+        .query(async ({ input, ctx }) => {
+            const [tournament] = await db
+                .select({
+                    id: games.tournamentId,
+                })
+                .from(games)
+                .where(eq(games.id, input))
+                .limit(1);
+
+            if (!tournament?.id) {
+                return null;
+            }
+
+            const [player] = await db
+                .select({
+                    score: tournamentPlayers.score,
+                })
+                .from(tournamentPlayers)
+                .where(
+                    and(
+                        eq(tournamentPlayers.userId, ctx.user.id),
+                        eq(tournamentPlayers.tournamentId, tournament.id),
+                    ),
+                )
+                .limit(1);
+
+            return player;
+        }),
     history: protectedProcedure
         .input(z.number().optional())
         .query(async ({ input, ctx }) => {

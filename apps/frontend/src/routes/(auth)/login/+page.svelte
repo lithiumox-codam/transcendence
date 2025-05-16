@@ -9,7 +9,6 @@
 	let email = $state("");
 	let password = $state("");
 	let otpToken = $state<string | undefined>(undefined);
-	let errorMessage = $state(""); // State for error message
 
 	onMount(() => {
 		// Check if the user is already logged in
@@ -21,7 +20,6 @@
 
 	async function handleSubmit(event: Event) {
 		event.preventDefault();
-		errorMessage = ""; // Clear previous error message
 		try {
 			const res = await client.auth.login.mutate({
 				email,
@@ -35,8 +33,6 @@
 			if (browser) localStorage.setItem("token", res);
 			redirectParam();
 		} catch (error) {
-			errorMessage =
-				"Invalid email address or password. Please try again.";
 			console.error(error);
 		}
 	}
@@ -113,12 +109,6 @@
 						bind:value={otpToken}
 					/>
 				</div>
-			{/if}
-
-			{#if errorMessage}
-				<p class="text-red-400 text-s text-center select-none">
-					{errorMessage}
-				</p>
 			{/if}
 
 			<button

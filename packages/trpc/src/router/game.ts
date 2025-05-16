@@ -5,8 +5,8 @@ import {
     games,
     message,
     players,
-    tournaments,
     tournamentPlayers,
+    tournaments,
     users,
 } from "@repo/database";
 import { and, desc, eq, not } from "drizzle-orm";
@@ -30,7 +30,6 @@ export const gameRouter = createTRPCRouter({
                 .where(eq(games.id, input))
                 .limit(1);
             if (!gameDetails) {
-                console.log("Game not found for id:", input);
                 return null;
             }
 
@@ -101,7 +100,7 @@ export const gameRouter = createTRPCRouter({
         .mutation(({ input, ctx }) => {
             const game = matchmaking.gamesMap.get(input.gameId);
             if (!game) {
-                throw new Error("Game not found");
+                throw new Error("Game finished or does not exist!");
             }
             if (
                 !game

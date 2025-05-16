@@ -6,6 +6,7 @@
     let { data }: { data: PageData } = $props();
     const validKeys = ["w", "s"];
     let pressedKeys = new Set<string>();
+    let gameError = $state<boolean>(false);
 
     function keyToAction(key: string): "up" | "down" | "none" {
         switch (key) {
@@ -19,26 +20,37 @@
     }
 
     async function handleKeydown(event: KeyboardEvent) {
-        if (validKeys.includes(event.key) && !pressedKeys.has(event.key)) {
+        if (
+            validKeys.includes(event.key) &&
+            !pressedKeys.has(event.key) &&
+            !gameError
+        ) {
             pressedKeys.add(event.key);
             event.preventDefault();
 
-            await client.game.sendInput.mutate({
-                gameId: data.id,
-                key: keyToAction(event.key),
-            });
+            try {
+                await client.game.sendInput.mutate({
+                    gameId: data.id,
+                    key: keyToAction(event.key),
+                });
+            } catch (error) {
+                gameError = true;
+            }
         }
     }
 
     async function handleKeyup(event: KeyboardEvent) {
-        if (validKeys.includes(event.key)) {
+        if (validKeys.includes(event.key) && !gameError) {
             pressedKeys.delete(event.key);
             event.preventDefault();
-            // Handle key release
-            await client.game.sendInput.mutate({
-                gameId: data.id,
-                key: "none",
-            });
+            try {
+                await client.game.sendInput.mutate({
+                    gameId: data.id,
+                    key: "none",
+                });
+            } catch (error) {
+                gameError = true;
+            }
         }
     }
 </script>

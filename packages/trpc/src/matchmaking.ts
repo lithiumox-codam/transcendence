@@ -236,8 +236,27 @@ export class Matchmaking {
             game.getState().players.some((player) => player.id === playerId),
         );
         if (playerInGame) {
-            console.log("Player already in a game, cannot join queue");
-            return;
+            for (const [id, game] of this.gamesMap.entries()) {
+                if (
+                    game
+                        .getState()
+                        .players.some((player) => player.id === playerId)
+                ) {
+                    if (game.getState().status === "waiting") {
+                        this.gamesMap.delete(id);
+                        await db
+                            .delete(players)
+                            .where(
+                                and(
+                                    eq(players.userId, playerId),
+                                    eq(players.gameId, id),
+                                ),
+                            );
+                        await db.delete(games).where(eq(games.id, id));
+                        console.log("Killed their shitty game!");
+                    }
+                }
+            }
         }
 
         const player = this.queuedPlayers.find((p) => p.id === playerId);
@@ -329,6 +348,37 @@ export class Matchmaking {
 
     public async createPrivateGame(playerId: number): Promise<number> {
         try {
+            // Check if the player is already in a game on their own if so delete it
+            const playerInGame = Array.from(this.gamesMap.values()).some(
+                (game) =>
+                    game
+                        .getState()
+                        .players.some((player) => player.id === playerId),
+            );
+            if (playerInGame) {
+                for (const [id, game] of this.gamesMap.entries()) {
+                    if (
+                        game
+                            .getState()
+                            .players.some((player) => player.id === playerId)
+                    ) {
+                        if (game.getState().status === "waiting") {
+                            this.gamesMap.delete(id);
+                            await db
+                                .delete(players)
+                                .where(
+                                    and(
+                                        eq(players.userId, playerId),
+                                        eq(players.gameId, id),
+                                    ),
+                                );
+                            await db.delete(games).where(eq(games.id, id));
+                            console.log("Killed their shitty game!");
+                        }
+                    }
+                }
+            }
+
             // Create the game
             const [game] = await db
                 .insert(games)

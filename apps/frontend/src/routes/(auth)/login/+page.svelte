@@ -4,11 +4,20 @@
 	import { goto } from "$app/navigation";
 	import { redirectParam } from "$lib/utils/redirect";
 	import GoogleButton from "$lib/components/GoogleButton.svelte";
+	import { onMount } from "svelte";
 
 	let email = $state("");
 	let password = $state("");
 	let otpToken = $state<string | undefined>(undefined);
 	let errorMessage = $state(""); // State for error message
+
+	onMount(() => {
+		// Check if the user is already logged in
+		const token = localStorage.getItem("token");
+		if (token) {
+			goto("/stats");
+		}
+	});
 
 	async function handleSubmit(event: Event) {
 		event.preventDefault();
@@ -160,9 +169,5 @@
 		100% {
 			transform: scale(1) translate(0, 0);
 		}
-	}
-
-	.animate-[backgroundPan_20s_linear_infinite] {
-		animation: backgroundPan 20s linear infinite;
 	}
 </style>

@@ -31,7 +31,6 @@
 
     // Effect to fetch and periodically update game details
     $effect(() => {
-        // Cleanup function: clears any active interval timer
         const cleanup = () => {
             if (updateInterval) {
                 clearInterval(updateInterval);

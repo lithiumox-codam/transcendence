@@ -1,6 +1,7 @@
 import { goto } from "$app/navigation";
 import { client, isTRPCClientError } from "$lib/trpc";
 import type { User } from "@repo/database/types";
+import { toast } from "svelte-sonner";
 
 export class UserClass {
     data = $state<User | null>(null);
@@ -96,6 +97,10 @@ export class UserClass {
 
                     const friend = await client.user.getById.query(friendId);
                     if (friend) {
+                        console.log("New friend added", friend);
+                        toast.info("New friend added!", {
+                            description: `${friend.name} is now your friend!`,
+                        });
                         // Add to friends list
                         this.friends.push(friend);
 

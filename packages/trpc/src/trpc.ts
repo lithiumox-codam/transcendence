@@ -33,6 +33,9 @@ export async function createTRPCContext({
         if (!token) {
             return { req, res, user };
         }
+        if (token === "null") {
+            return { req, res, user: undefined };
+        }
         const payload = await verify(token);
         const userId = payload.userId as number;
         if (!userId)

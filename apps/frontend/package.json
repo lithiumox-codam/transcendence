@@ -40,6 +40,7 @@
         "babylon": "^6.18.0",
         "babylonjs": "^7.52.3",
         "superjson": "^2.2.2",
-        "svelte-qrcode": "^1.0.1"
+        "svelte-qrcode": "^1.0.1",
+        "svelte-sonner": "^1.0.1"
     }
 }

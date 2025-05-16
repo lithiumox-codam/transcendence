@@ -1,7 +1,9 @@
 import type { UserClass } from "$lib/classes/User.svelte";
 import { client } from "$lib/trpc";
-import type { Message, User } from "@repo/database/types";
+import { MessageSquareDot, Swords } from "@lucide/svelte";
+import type { Message } from "@repo/database/types";
 import { tick } from "svelte";
+import { toast } from "svelte-sonner";
 import { SvelteMap } from "svelte/reactivity";
 
 export class Chat {
@@ -18,7 +20,6 @@ export class Chat {
 
     private async initialize() {
         try {
-            // Wait until user data is loaded
             while (this.userClass.isLoading) {
                 await new Promise((resolve) => setTimeout(resolve, 100));
             }
@@ -56,15 +57,14 @@ export class Chat {
         }
     }
 
-	private getMessages(friendId: number): Message[] | undefined {
-		if (!this.messages.has(friendId)) {
-			const tmp = $state<Message[]>([]);
-			this.messages.set(friendId, tmp);
-			return this.messages.get(friendId);
-		}
-		return this.messages.get(friendId);
-	}
-
+    private getMessages(friendId: number): Message[] | undefined {
+        if (!this.messages.has(friendId)) {
+            const tmp = $state<Message[]>([]);
+            this.messages.set(friendId, tmp);
+            return this.messages.get(friendId);
+        }
+        return this.messages.get(friendId);
+    }
 
     private async listenMessages(): Promise<void> {
         client.chat.listen.subscribe(undefined, {
@@ -74,12 +74,42 @@ export class Chat {
                         ? data.receiverId
                         : data.senderId;
 
-				const messages = this.getMessages(otherUserId);
-				if (!messages) return;
+                const messages = this.getMessages(otherUserId);
+                if (!messages) return;
 
                 switch (type) {
                     case "message": {
                         messages.push(data);
+                        if (data.senderId !== this.userClass.data?.id) {
+                            const friend = this.userClass.friends.find(
+                                (friend) => friend.id === data.senderId,
+                            );
+                            if (data.content.includes("invite://")) {
+                                toast.message(friend?.name || "", {
+                                    description: "Invited you to a game!",
+                                    action: {
+                                        label: "Accept",
+                                        onClick: async () => {
+                                            const id =
+                                                data.content.split(
+                                                    "invite://",
+                                                )[1];
+                                            await client.game.acceptInvite.mutate(
+                                                Number(id),
+                                            );
+                                        },
+                                    },
+                                    icon: Swords,
+                                    duration: 8000,
+                                });
+                            } else {
+                                toast.message(`${friend?.name}:`, {
+                                    description: data.content,
+                                    duration: 4000,
+                                    icon: MessageSquareDot,
+                                });
+                            }
+                        }
                         await tick();
                         this.scrollDown();
                         break;

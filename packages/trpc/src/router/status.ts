@@ -13,13 +13,9 @@ export const statusRouter = createTRPCRouter({
         try {
             await new Promise<void>((resolve) => {
                 opts.signal?.addEventListener("abort", () => {
-                    console.log("Client disconnected");
                     resolve(); // Resolve the promise when the client disconnects
                 });
-                if (opts.signal?.aborted) {
-                    console.log("Client disconnected immediately");
-                    resolve();
-                }
+                if (opts.signal?.aborted) resolve(); // Resolve immediately if the signal is already aborted
             });
         } finally {
             await handleUserDisconnect(opts.ctx.user);

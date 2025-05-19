@@ -7,8 +7,7 @@
 	import Avatar from "../Avatar.svelte";
 	import GameInvite from "../GameInvite.svelte";
 	import { User, MessageCircle, Swords } from "@lucide/svelte";
-	
-
+	import FriendStatus from "../FriendStatus.svelte";
 
 	let userClass = getContext<UserClass>("user");
 	let chat = getContext<Chat>("chat");
@@ -182,6 +181,7 @@
 								class="font-semibold text-white truncate block text-sm select-none"
 							>
 								{friend.name}
+								<FriendStatus friendId={friend.id} />
 							</span>
 							<span
 								class="text-xs text-gray-400 truncate block select-none"
@@ -240,6 +240,9 @@
 								class="text-lg font-semibold text-white truncate select-none"
 							>
 								{selectedFriendData.name}
+								<FriendStatus
+									friendId={selectedFriendData.id}
+								/>
 							</h3>
 						</div>
 						<div class="flex space-x-2">
@@ -324,9 +327,7 @@
 									}`}
 								>
 									{#if gameInviteId}
-										<GameInvite
-											gameId={gameInviteId}
-										/>
+										<GameInvite gameId={gameInviteId} />
 									{:else}
 										<p class="text-sm">{message.content}</p>
 									{/if}

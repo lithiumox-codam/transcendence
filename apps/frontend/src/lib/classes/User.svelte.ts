@@ -1,12 +1,13 @@
 import { goto } from "$app/navigation";
 import { client, isTRPCClientError } from "$lib/trpc";
-import { UserCheck, UserPlus } from "@lucide/svelte";
+import { Bell, UserCheck, UserCircle, UserPlus } from "@lucide/svelte";
 import type { User } from "@repo/database/types";
 import { toast } from "svelte-sonner";
 
 export class UserClass {
     data = $state<User | null>(null);
     friends = $state<User[]>([]);
+    onlineFriends = $state<number[]>([]);
     incomingRequests = $state<User[]>([]);
     outgoingRequests = $state<User[]>([]);
     isLoading = $state(true);
@@ -37,6 +38,7 @@ export class UserClass {
 
             this.listenUser();
             this.listenFriends();
+            this.listenStatus();
         } catch (e) {
             if (isTRPCClientError(e)) {
                 switch (e.data?.code) {
@@ -186,6 +188,24 @@ export class UserClass {
                             ];
                         }
                     }
+                }
+            },
+        });
+    }
+
+    async listenStatus() {
+        this.onlineFriends = await client.status.getOnlineFriends.query();
+        // updates the users status to online when they connect and offline when they disconnect
+        client.status.presence.subscribe(undefined, {});
+        // listens for online/offline events and updates the online friends list
+        client.status.listen.subscribe(undefined, {
+            onData: ({ type, data }) => {
+                if (type === "online") {
+                    this.onlineFriends.push(data.friendId);
+                } else if (type === "offline") {
+                    this.onlineFriends = this.onlineFriends.filter(
+                        (id) => id !== data.friendId,
+                    );
                 }
             },
         });

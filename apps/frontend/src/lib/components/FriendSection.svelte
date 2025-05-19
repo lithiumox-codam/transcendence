@@ -5,6 +5,7 @@
     import { getContext } from "svelte";
     import Avatar from "$lib/components/Avatar.svelte";
     import { Search, SearchX, Check, X } from "@lucide/svelte"; // Import Check and X icons
+    import FriendStatus from "./FriendStatus.svelte";
 
     const user = getContext<UserClass>("user");
 
@@ -104,7 +105,7 @@
                                 class="text-lg font-semibold text-white/80 text-left cursor-pointer"
                                 onclick={() => viewProfile(friend.id)}
                             >
-                                {friend.name}
+                                {friend.name} <FriendStatus friendId={friend.id} />
                             </button>
                             <p class="text-sm text-gray-300/40">
                                 {friend.email}

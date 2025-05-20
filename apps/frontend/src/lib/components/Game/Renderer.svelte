@@ -74,6 +74,7 @@
                 },
                 onError: (error) => {
                     console.error(error);
+					goto("/stats");
                 },
             });
 

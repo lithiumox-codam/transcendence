@@ -1,4 +1,5 @@
 {$VITE_HOSTNAME:localhost} {
+	tls internal
 	handle_path /api/* {
 		uri strip_prefix /api
 		reverse_proxy backend:8000

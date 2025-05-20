@@ -100,7 +100,7 @@ export const gameRouter = createTRPCRouter({
         .mutation(({ input, ctx }) => {
             const game = matchmaking.gamesMap.get(input.gameId);
             if (!game) {
-                throw new Error("Game finished or does not exist!");
+				return ;
             }
             if (
                 !game

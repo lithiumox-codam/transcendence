@@ -1,6 +1,6 @@
 import { goto } from "$app/navigation";
 import { client, isTRPCClientError } from "$lib/trpc";
-import { Bell, UserCheck, UserCircle, UserPlus } from "@lucide/svelte";
+import { Bell, UserCheck, UserPlus } from "@lucide/svelte";
 import type { User } from "@repo/database/types";
 import { toast } from "svelte-sonner";
 

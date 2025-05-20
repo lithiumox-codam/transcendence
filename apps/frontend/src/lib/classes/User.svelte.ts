@@ -1,6 +1,8 @@
 import { goto } from "$app/navigation";
 import { client, isTRPCClientError } from "$lib/trpc";
+import { UserCheck, UserPlus } from "@lucide/svelte";
 import type { User } from "@repo/database/types";
+import { toast } from "svelte-sonner";
 
 export class UserClass {
     data = $state<User | null>(null);
@@ -96,6 +98,16 @@ export class UserClass {
 
                     const friend = await client.user.getById.query(friendId);
                     if (friend) {
+                        toast.message("New friend added!", {
+                            description: `${friend.name} is now your friend!`,
+                            action: {
+                                label: "View",
+                                onClick: () => {
+                                    goto(`/user/${friend.id}`);
+                                },
+                            },
+                            icon: UserCheck,
+                        });
                         // Add to friends list
                         this.friends.push(friend);
 
@@ -151,12 +163,22 @@ export class UserClass {
                 ) {
                     const requesterId = data.userId;
 
-                    // Skip if already in requests
                     if (
                         !this.incomingRequests.some((r) => r.id === requesterId)
                     ) {
                         const requester =
                             await client.user.getById.query(requesterId);
+                        toast.message(requester?.name || "", {
+                            description: "Sent you a friend request!",
+                            action: {
+                                label: "Accept",
+                                onClick: () => {
+                                    this.acceptFriendRequest(requesterId);
+                                },
+                            },
+                            icon: UserPlus,
+                        });
+
                         if (requester) {
                             this.incomingRequests = [
                                 ...this.incomingRequests,

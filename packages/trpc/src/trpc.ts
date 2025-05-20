@@ -33,6 +33,9 @@ export async function createTRPCContext({
         if (!token) {
             return { req, res, user };
         }
+        if (token === "null") {
+            return { req, res, user: undefined };
+        }
         const payload = await verify(token);
         const userId = payload.userId as number;
         if (!userId)
@@ -71,14 +74,28 @@ export async function createTRPCContext({
  */
 const t = initTRPC.context<typeof createTRPCContext>().create({
     transformer: superjson,
-    errorFormatter: ({ shape, error }) => ({
-        ...shape,
-        data: {
-            ...shape.data,
-            zodError:
-                error.cause instanceof ZodError ? error.cause.flatten() : null,
-        },
-    }),
+    errorFormatter: ({ shape, error }) => {
+        if (error.cause instanceof ZodError) {
+            const zodError = error.cause.flatten();
+            const fieldErrors = Object.values(zodError.fieldErrors)
+                .flat()
+                .join(", ");
+            const formErrors = zodError.formErrors.join(", ");
+            const combinedMessage = [fieldErrors, formErrors]
+                .filter(Boolean)
+                .join(", ");
+            return {
+                ...shape,
+                message: combinedMessage,
+                data: {
+                    ...shape.data,
+                    zodError: null,
+                },
+            };
+        }
+        // Default error format for non-Zod errors
+        return shape;
+    },
 });
 
 /**

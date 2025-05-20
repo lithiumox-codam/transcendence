@@ -4,15 +4,22 @@
 	import { goto } from "$app/navigation";
 	import { redirectParam } from "$lib/utils/redirect";
 	import GoogleButton from "$lib/components/GoogleButton.svelte";
+	import { onMount } from "svelte";
 
 	let email = $state("");
 	let password = $state("");
 	let otpToken = $state<string | undefined>(undefined);
-	let errorMessage = $state(""); // State for error message
+
+	onMount(() => {
+		// Check if the user is already logged in
+		const token = localStorage.getItem("token");
+		if (token) {
+			goto("/stats");
+		}
+	});
 
 	async function handleSubmit(event: Event) {
 		event.preventDefault();
-		errorMessage = ""; // Clear previous error message
 		try {
 			const res = await client.auth.login.mutate({
 				email,
@@ -26,8 +33,6 @@
 			if (browser) localStorage.setItem("token", res);
 			redirectParam();
 		} catch (error) {
-			errorMessage =
-				"Invalid email address or password. Please try again.";
 			console.error(error);
 		}
 	}
@@ -106,12 +111,6 @@
 				</div>
 			{/if}
 
-			{#if errorMessage}
-				<p class="text-red-400 text-s text-center select-none">
-					{errorMessage}
-				</p>
-			{/if}
-
 			<button
 				type="submit"
 				class="w-full cursor-pointer h-10 rounded-md bg-white/5 border border-white/10 text-white font-semibold hover:bg-white/10 focus:ring-offset-slate-900 transition-colors duration-150 select-none"
@@ -160,9 +159,5 @@
 		100% {
 			transform: scale(1) translate(0, 0);
 		}
-	}
-
-	.animate-[backgroundPan_20s_linear_infinite] {
-		animation: backgroundPan 20s linear infinite;
 	}
 </style>

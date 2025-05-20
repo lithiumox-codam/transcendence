@@ -10,6 +10,7 @@ import {
 } from "@trpc/client";
 import { observable } from "@trpc/server/observable";
 import superjson from "superjson";
+import { toast } from "svelte-sonner";
 
 export function isTRPCClientError(
     cause: unknown,
@@ -33,6 +34,8 @@ const unauthorizedRedirectLink: TRPCLink<AppRouter> = () => {
                         err.data?.code === "UNAUTHORIZED"
                     ) {
                         if (browser) {
+                            toast.error("Session expired, please login again");
+                            localStorage.removeItem("token");
                             goto("/login").catch((e) => {
                                 console.error(
                                     "Failed to redirect to /login:",
@@ -58,6 +61,34 @@ const unauthorizedRedirectLink: TRPCLink<AppRouter> = () => {
     };
 };
 
+const generalErrorLink: TRPCLink<AppRouter> = () => {
+    return ({ op, next }) => {
+        return observable((observer) => {
+            const subscription = next(op).subscribe({
+                next: (value) => {
+                    observer.next(value);
+                },
+                complete: () => {
+                    observer.complete();
+                },
+                error: (err) => {
+                    if (
+                        isTRPCClientError(err) &&
+                        err.data?.code !== "UNAUTHORIZED"
+                    ) {
+                        toast.error(err.message);
+                    } else {
+                        toast.error("An unknown error occurred");
+                    }
+                    observer.error(err);
+                },
+            });
+
+            return subscription;
+        });
+    };
+};
+
 const wsClient = createWSClient({
     url: (() => {
         if (browser)
@@ -68,6 +99,7 @@ const wsClient = createWSClient({
 
 export const client = createTRPCClient<AppRouter>({
     links: [
+        generalErrorLink,
         unauthorizedRedirectLink,
         wsLink<AppRouter>({ client: wsClient, transformer: superjson }),
     ],

@@ -1,44 +1,44 @@
 <script lang="ts">
-	import * as BABYLON from "babylonjs";
-	import { onMount, getContext } from "svelte";
-	import { goto } from "$app/navigation";
-	import type { GameState, Player, GameStatus } from "@repo/game";
-	import { client } from "$lib/trpc";
-	import ScoreCard from "./ScoreCard.svelte";
-	import WinnerCard from "./WinnerCard.svelte";
-	import type { UserClass } from "$lib/classes/User.svelte";
+    import * as BABYLON from "babylonjs";
+    import { onMount, getContext } from "svelte";
+    import { goto } from "$app/navigation";
+    import type { GameState, Player, GameStatus } from "@repo/game";
+    import { client } from "$lib/trpc";
+    import ScoreCard from "./ScoreCard.svelte";
+    import WinnerCard from "./WinnerCard.svelte";
+    import type { UserClass } from "$lib/classes/User.svelte";
 
-	import type { Popout } from "$lib/classes/Popout.svelte";
+    import type { Popout } from "$lib/classes/Popout.svelte";
 
     let { gameId }: { gameId: number } = $props();
 
-	const user = getContext<UserClass>("user");
+    const user = getContext<UserClass>("user");
 
-	const ARENA_WIDTH = 40;
-	const PADDLE_LENGTH = 6;
-	const PADDLE_WIDTH = 1;
-	const axisX = 0;
-	const axisY = 1;
-	const COLOR_ARRAY = [
-		new BABYLON.Color3(1, 0, 0),
-		new BABYLON.Color3(0, 1, 0),
-		new BABYLON.Color3(0, 0, 1),
-		new BABYLON.Color3(1, 1, 0),
-	];
+    const ARENA_WIDTH = 40;
+    const PADDLE_LENGTH = 6;
+    const PADDLE_WIDTH = 1;
+    const axisX = 0;
+    const axisY = 1;
+    const COLOR_ARRAY = [
+        new BABYLON.Color3(1, 0, 0),
+        new BABYLON.Color3(0, 1, 0),
+        new BABYLON.Color3(0, 0, 1),
+        new BABYLON.Color3(1, 1, 0),
+    ];
 
     const COLOR_WHITE = new BABYLON.Color3(1, 1, 1);
 
-	const TOURNAMENTSTAGE_MAP = ["Round 1", "Round 2", "Finals"];
+    const TOURNAMENTSTAGE_MAP = ["Round 1", "Round 2", "Finals"];
 
-	let arenaHeight: 30 | 40 = 30;
-	let paddleCount: 2 | 4 = 2;
+    let arenaHeight: 30 | 40 = 30;
+    let paddleCount: 2 | 4 = 2;
 
-	let canvas = $state<HTMLCanvasElement>();
-	let engine = $state<BABYLON.Engine>();
-	let scene = $state<BABYLON.Scene>();
+    let canvas = $state<HTMLCanvasElement>();
+    let engine = $state<BABYLON.Engine>();
+    let scene = $state<BABYLON.Scene>();
 
-	let gameState = $state<GameState | null>(null);
-	let tournamentStage = $state<number | null>(null);
+    let gameState = $state<GameState | null>(null);
+    let tournamentStage = $state<number | null>(null);
 
     let ground = $state<BABYLON.Mesh>();
     let paddles = $state<BABYLON.Mesh[]>();
@@ -47,101 +47,66 @@
 
     let topBorder = $state<BABYLON.Mesh>();
     let bottomBorder = $state<BABYLON.Mesh>();
-  
-  
+
     const popout = getContext<Popout>("popout");
     let hasAutoClosedPopout = false;
     onMount(() => {
         (async () => {
             client.game.listen.subscribe(gameId, {
                 onData: (data) => {
-                  	const isGameJustStarting = !gameState && data;
-                  
+                    const isGameJustStarting = !gameState && data;
+
                     if (!gameState) {
                         gameState = data;
                         run();
                     }
-                  
+
                     if (
-                      isGameJustStarting &&
-                      popout?.shown &&
-                      !hasAutoClosedPopout
+                        isGameJustStarting &&
+                        popout?.shown &&
+                        !hasAutoClosedPopout
                     ) {
-                      popout.hide();
-                      hasAutoClosedPopout = true;
+                        popout.hide();
+                        hasAutoClosedPopout = true;
                     }
 
-	const popout = getContext<Popout>("popout");
-	let hasAutoClosedPopout = false;
-	onMount(() => {
-		(async () => {
-			client.game.listen.subscribe(gameId, {
-				onData: (data) => {
-					const isGameJustStarting = !gameState && data;
+                    gameState = data;
+                },
+                onError: (error) => {
+                    console.error(error);
+                },
+            });
 
-					if (!gameState) {
-						gameState = data;
-						run();
-					}
+            const tournamentPlayer =
+                await client.game.tournamentPlayer.query(gameId);
+            if (tournamentPlayer) {
+                tournamentStage = tournamentPlayer.score;
+            }
 
-					if (
-						isGameJustStarting &&
-						popout?.shown &&
-						!hasAutoClosedPopout
-					) {
-						popout.hide();
-						hasAutoClosedPopout = true;
-					}
+            if (!gameState) {
+                return;
+            }
+        })();
+    });
 
-					gameState = data;
-				},
-				onError: (error) => {
-					console.error(error);
-				},
-			});
+    function run() {
+        if (!canvas) return;
 
-			const tournamentPlayer =
-				await client.game.tournamentPlayer.query(gameId);
-			if (tournamentPlayer) {
-				tournamentStage = tournamentPlayer.score;
-			}
+        if (gameState?.players.length === 4) {
+            paddleCount = 4;
+            arenaHeight = 40;
+        } else {
+            paddleCount = 2;
+            arenaHeight = 30;
+        }
 
-			if (!gameState) {
-				return;
-			}
-		})();
-	});
+        initBabylon();
+        if (!engine || !scene) return;
 
-	function run() {
-		if (!canvas) return;
-
-		if (gameState?.players.length === 4) {
-			paddleCount = 4;
-			arenaHeight = 40;
-		} else {
-			paddleCount = 2;
-			arenaHeight = 30;
-		}
-
-		initBabylon();
-		if (!engine || !scene) return;
-
-		engine.runRenderLoop(() => {
-			updateScene();
-			scene?.render();
-		});
-
-		return () => {
-			engine?.dispose();
-		};
-	}
-
-	function initBabylon() {
-		if (!canvas) return;
-		engine = new BABYLON.Engine(canvas, true);
-		scene = new BABYLON.Scene(engine);
-		scene.clearColor = new BABYLON.Color4(0, 0, 0, 1);
-		// const axes = new BABYLON.Debug.AxesViewer(scene, 2);
+        engine.runRenderLoop(() => {
+            updateScene();
+            scene?.render();
+        });
 
         return () => {
             engine?.dispose();
@@ -153,7 +118,7 @@
         engine = new BABYLON.Engine(canvas, true);
         scene = new BABYLON.Scene(engine);
         scene.clearColor = new BABYLON.Color4(0, 0, 0, 1);
-        const axes = new BABYLON.Debug.AxesViewer(scene, 2);
+        // const axes = new BABYLON.Debug.AxesViewer(scene, 2);
 
         const mirrorMaterial = new BABYLON.StandardMaterial(
             "mirrorMaterial",
@@ -222,18 +187,25 @@
 
         neonMaterial.emissiveColor = new BABYLON.Color3(1, 1, 1);
 
-		if (paddleCount === 4) {
-			paddles[2].position.y = arenaHeight / 2 + 0.5;
-			paddles[2].rotate(BABYLON.Axis.Z, Math.PI / 2);
-			paddles[3].position.y = -arenaHeight / 2 - 0.5;
-			paddles[3].rotate(BABYLON.Axis.Z, Math.PI / 2);
-		}
-		const ballMaterial = new BABYLON.StandardMaterial(
-			"ballMaterial",
-			scene,
-		);
-		ballMaterial.emissiveColor = new BABYLON.Color3(1, 0, 0);
-		ballMaterial.diffuseColor = new BABYLON.Color3(1, 0, 0);
+        const createPaddles = () => {
+            if (!scene) return;
+            const paddles = [];
+            for (let i = 0; i < paddleCount; i++) {
+                const paddle = BABYLON.MeshBuilder.CreateBox(
+                    `paddle${i}`,
+                    {
+                        width: PADDLE_WIDTH,
+                        height: PADDLE_LENGTH,
+                        depth: PADDLE_WIDTH,
+                    },
+                    scene,
+                );
+                paddle.material = neonMaterial;
+                paddles.push(paddle);
+            }
+            return paddles;
+        };
+        paddles = createPaddles();
 
         if (!paddles) return;
         paddles[0].position.x = -ARENA_WIDTH / 2 - 0.5;
@@ -352,11 +324,14 @@
         }
     }
 
-	function initBorders() {
-		if (!scene) return;
-		const borderMaterial = new BABYLON.StandardMaterial("borderMat", scene);
-		borderMaterial.emissiveColor = new BABYLON.Color3(1, 1, 1);
-		borderMaterial.diffuseColor = new BABYLON.Color3(0, 0, 0);
+    function createBorder(
+        position: BABYLON.Vector3,
+        size: BABYLON.Vector3,
+        color: BABYLON.Color3,
+    ): BABYLON.Mesh {
+        const borderMat = new BABYLON.StandardMaterial("BorderMat", scene);
+        borderMat.emissiveColor = color;
+        borderMat.diffuseColor = color;
 
         const border = BABYLON.MeshBuilder.CreateBox(
             "Border",
@@ -371,8 +346,8 @@
     function initBorders() {
         if (!scene) return;
         const borderMaterial = new BABYLON.StandardMaterial("borderMat", scene);
-        borderMaterial.emissiveColor = new BABYLON.Color3(1, 1, 1); // White glow
-        borderMaterial.diffuseColor = new BABYLON.Color3(0, 0, 0); // Black base
+        borderMaterial.emissiveColor = new BABYLON.Color3(1, 1, 1);
+        borderMaterial.diffuseColor = new BABYLON.Color3(0, 0, 0);
 
         topBorder = createBorder(
             new BABYLON.Vector3(0, arenaHeight / 2 + 0.5, 0),

@@ -13,11 +13,6 @@
 
     async function handleSubmit(event: Event) {
         event.preventDefault();
-        errorMessage = ""; // Clear previous error message
-        if (password !== confirmPassword) {
-            errorMessage = "Passwords do not match.";
-            return;
-        }
         try {
             const res = await client.auth.signup.mutate({
                 name,
@@ -37,8 +32,12 @@
     class="flex min-h-screen bg-slate-900 text-white items-center justify-center p-4"
 >
     <div class="absolute inset-0 bg-black">
-        <div class="absolute inset-0 bg-[size:40px_40px] bg-[linear-gradient(to_right,#4a55681a_1px,transparent_1px),linear-gradient(to_bottom,#4a55681a_1px,transparent_1px)] opacity-50 animate-[backgroundPan_20s_linear_infinite]"></div>
-        <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-gradient-to-r from-cyan-500/20 to-purple-500/20 rounded-full blur-3xl animate-pulse"></div>
+        <div
+            class="absolute inset-0 bg-[size:40px_40px] bg-[linear-gradient(to_right,#4a55681a_1px,transparent_1px),linear-gradient(to_bottom,#4a55681a_1px,transparent_1px)] opacity-50 animate-[backgroundPan_20s_linear_infinite]"
+        ></div>
+        <div
+            class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-gradient-to-r from-cyan-500/20 to-purple-500/20 rounded-full blur-3xl animate-pulse"
+        ></div>
     </div>
 
     <div
@@ -46,7 +45,9 @@
     >
         <!-- Header -->
         <div class="flex flex-col space-y-2 text-center mb-6">
-            <h3 class="select-none text-3xl font-bold text-white [text-shadow:0_1px_2px_rgba(0,0,0,0.5)]">
+            <h3
+                class="select-none text-3xl font-bold text-white [text-shadow:0_1px_2px_rgba(0,0,0,0.5)]"
+            >
                 Sign Up
             </h3>
             <p class="select-none text-sm text-gray-300">
@@ -57,7 +58,10 @@
         <!-- Signup Form -->
         <form class="space-y-4" onsubmit={handleSubmit}>
             <div class="space-y-2">
-                <label class="text-sm font-semibold text-gray-300 select-none" for="name">Name</label>
+                <label
+                    class="text-sm font-semibold text-gray-300 select-none"
+                    for="name">Name</label
+                >
                 <input
                     type="text"
                     placeholder="Enter your name"
@@ -68,7 +72,10 @@
                 />
             </div>
             <div class="space-y-2">
-                <label class="text-sm font-semibold text-gray-300 select-none" for="email">Email</label>
+                <label
+                    class="text-sm font-semibold text-gray-300 select-none"
+                    for="email">Email</label
+                >
                 <input
                     type="email"
                     placeholder="you@example.com"
@@ -79,7 +86,10 @@
                 />
             </div>
             <div class="space-y-2">
-                <label class="text-sm font-semibold text-gray-300 select-none" for="password">Password</label>
+                <label
+                    class="text-sm font-semibold text-gray-300 select-none"
+                    for="password">Password</label
+                >
                 <input
                     type="password"
                     placeholder="••••••••"
@@ -90,7 +100,10 @@
                 />
             </div>
             <div class="space-y-2">
-                <label class="text-sm font-semibold text-gray-300 select-none" for="confirm-password">Confirm Password</label>
+                <label
+                    class="text-sm font-semibold text-gray-300 select-none"
+                    for="confirm-password">Confirm Password</label
+                >
                 <input
                     type="password"
                     placeholder="••••••••"
@@ -101,15 +114,9 @@
                 />
             </div>
 
-            {#if errorMessage}
-                <p class="text-red-400 select-none text-sm select-none text-center">
-                    {errorMessage}
-                </p>
-            {/if}
-
             <button
                 type="submit"
-                class="w-full select-none cursor-pointer h-10 rounded-md bg-white/5 border border-white/10 text-white font-semibold hover:bg-white/10  focus:ring-offset-slate-900 transition-colors duration-150"
+                class="w-full select-none cursor-pointer h-10 rounded-md bg-white/5 border border-white/10 text-white font-semibold hover:bg-white/10 focus:ring-offset-slate-900 transition-colors duration-150"
             >
                 Sign Up
             </button>
@@ -118,7 +125,9 @@
         <!-- OR Separator -->
         <div class="my-6 flex items-center">
             <div class="flex-grow border-t border-gray-600/20"></div>
-            <span class="mx-4 flex-shrink text-xs text-gray-400 select-none">OR</span>
+            <span class="mx-4 flex-shrink text-xs text-gray-400 select-none"
+                >OR</span
+            >
             <div class="flex-grow border-t border-gray-600/20"></div>
         </div>
 

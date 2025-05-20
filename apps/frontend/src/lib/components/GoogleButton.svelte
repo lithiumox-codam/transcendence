@@ -3,7 +3,7 @@
 	import { getFrontendUrl } from "$lib/getUrls";
 	import { onMount } from "svelte";
 
-	let clientId = "";
+	let clientId = $state<string>("");
 
 	onMount(() => {
 		if (browser) {

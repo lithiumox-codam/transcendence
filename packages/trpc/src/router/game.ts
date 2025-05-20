@@ -5,10 +5,11 @@ import {
     games,
     message,
     players,
+    tournamentPlayers,
+    tournaments,
     users,
 } from "@repo/database";
-import { GameEngine } from "@repo/game";
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, not } from "drizzle-orm";
 import { late, z } from "zod";
 import { emitter } from "../events/index.ts";
 import { Matchmaking } from "../matchmaking.ts";
@@ -29,7 +30,6 @@ export const gameRouter = createTRPCRouter({
                 .where(eq(games.id, input))
                 .limit(1);
             if (!gameDetails) {
-                console.log("Game not found for id:", input);
                 return null;
             }
 
@@ -57,7 +57,7 @@ export const gameRouter = createTRPCRouter({
         }
     }),
     queue: protectedProcedure
-        .input(z.union([z.literal(2), z.literal(4)]))
+        .input(z.union([z.literal(2), z.literal(4), z.literal(8)]))
         .query(async ({ ctx, input }) => {
             matchmaking.joinQueue(ctx.user.id, input);
             return true;
@@ -100,7 +100,7 @@ export const gameRouter = createTRPCRouter({
         .mutation(({ input, ctx }) => {
             const game = matchmaking.gamesMap.get(input.gameId);
             if (!game) {
-                throw new Error("Game not found");
+                throw new Error("Game finished or does not exist!");
             }
             if (
                 !game
@@ -145,6 +145,36 @@ export const gameRouter = createTRPCRouter({
         );
         return list;
     }),
+    tournamentPlayer: protectedProcedure
+        .input(z.number())
+        .query(async ({ input, ctx }) => {
+            const [tournament] = await db
+                .select({
+                    id: games.tournamentId,
+                })
+                .from(games)
+                .where(eq(games.id, input))
+                .limit(1);
+
+            if (!tournament?.id) {
+                return null;
+            }
+
+            const [player] = await db
+                .select({
+                    score: tournamentPlayers.score,
+                })
+                .from(tournamentPlayers)
+                .where(
+                    and(
+                        eq(tournamentPlayers.userId, ctx.user.id),
+                        eq(tournamentPlayers.tournamentId, tournament.id),
+                    ),
+                )
+                .limit(1);
+
+            return player;
+        }),
     history: protectedProcedure
         .input(z.number().optional())
         .query(async ({ input, ctx }) => {
@@ -181,13 +211,21 @@ export const gameRouter = createTRPCRouter({
                                     score: players.score, // Add score here
                                 })
                                 .from(users)
-                                .innerJoin(players, and(eq(users.id, players.userId), eq(players.gameId, games.id))) // Join players table
+                                .innerJoin(
+                                    players,
+                                    and(
+                                        eq(users.id, players.userId),
+                                        eq(players.gameId, games.id),
+                                    ),
+                                ) // Join players table
                                 .where(eq(users.id, userId)); // Filter by userId
                             return playerData;
                         }),
                     );
                     // Filter out any potential undefined results if a user wasn't found (though unlikely with inner join)
-                    const validPlayersData = playersData.filter(p => p !== undefined);
+                    const validPlayersData = playersData.filter(
+                        (p) => p !== undefined,
+                    );
                     return { game: games, players: validPlayersData };
                 }),
             );

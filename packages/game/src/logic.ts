@@ -1,24 +1,8 @@
 import { vec2 } from "gl-matrix";
+import type { Player } from "./player.ts";
+import type { GameState, GameStatus } from "./state.ts";
 
-export interface GameState {
-    players: Player[];
-    ball: {
-        lastHit: number | null;
-        pos: vec2;
-        vel: vec2;
-        speed: number;
-    };
-    gameOver: boolean;
-}
-export interface Player {
-    id: number;
-    position: vec2;
-    score: number;
-    input: "up" | "down" | "none";
-    movementAxis: "x" | "y";
-}
-
-const VICTORY_SCORE = 7;
+const VICTORY_SCORE = 1;
 const axisX = 0;
 const axisY = 1;
 const ARENA_WIDTH = 40;
@@ -36,6 +20,7 @@ export class GameEngine {
     constructor(
         private maxPlayers: 2 | 4,
         playerIds: number[],
+        private tournamentId?: number,
     ) {
         console.log(
             "GameEngine constructror called with maxPlayers: ",
@@ -59,7 +44,8 @@ export class GameEngine {
                 vel: this.randomDirection(),
                 speed: BALL_SPEED,
             },
-            gameOver: false,
+            status: "waiting" as GameStatus,
+            winner: null as number | null,
         };
     }
 
@@ -131,19 +117,17 @@ export class GameEngine {
         return this.state;
     }
 
-    private update(deltaTime: number): void {
-        if (this.state.gameOver) return;
+    public getTournamentId(): number | undefined {
+        return this.tournamentId;
+    }
+
+    public update(deltaTime: number): void {
+        if (this.state.status !== "playing") return;
 
         this.updatePlayers(deltaTime);
         this.updateBall(deltaTime);
-        this.checkCollisions(deltaTime);
+        this.checkCollisions();
         this.checkScore();
-    }
-
-    public startGame(): void {
-        setInterval(() => {
-            this.update(1 / 240);
-        }, 1000 / 240);
     }
 
     public setPlayerInput(
@@ -193,7 +177,7 @@ export class GameEngine {
         );
     }
 
-    private checkCollisions(deltaTime: number): void {
+    private checkCollisions(): void {
         if (this.collisionCooldown > 0) {
             this.collisionCooldown--;
             return;
@@ -201,6 +185,7 @@ export class GameEngine {
 
         const ballPos = this.state.ball.pos;
 
+        // Check for wall collisions
         if (this.maxPlayers === 2) {
             const verticalBounds = this.arenaHeight / 2;
             if (
@@ -210,6 +195,7 @@ export class GameEngine {
                 this.state.ball.vel[axisY] *= -1;
             }
         }
+
         if (!this.isInScoringZone()) return;
         let collisionOccurred = false;
         for (const player of this.state.players) {
@@ -249,8 +235,7 @@ export class GameEngine {
         if (
             planeDistance <= 0.5 &&
             ballPos[lengthAxis] + 0.5 >= paddleStart &&
-            ballPos[lengthAxis] - 0.5 <= paddleEnd &&
-            this.isInScoringZone()
+            ballPos[lengthAxis] - 0.5 <= paddleEnd
         ) {
             const normal = this.getPaddleNormal(player);
             this.reflectBall(normal, player);
@@ -321,7 +306,8 @@ export class GameEngine {
                 if (!player) return;
                 player.score++;
                 if (player.score >= VICTORY_SCORE) {
-                    this.state.gameOver = true;
+                    this.state.winner = player.id;
+                    this.state.status = "finished";
                 }
             }
             this.resetBall();
@@ -346,6 +332,10 @@ export class GameEngine {
             const player = this.state.players[i];
             if (player) player.score = 0;
         }
-        this.state.gameOver = false;
+        this.state.status = "waiting";
+    }
+
+    public start(): void {
+        this.state.status = "playing";
     }
 }

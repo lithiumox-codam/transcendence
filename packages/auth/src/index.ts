@@ -21,7 +21,7 @@ function getSecret(): Uint8Array {
  */
 export async function sign(
     payload: JWTPayload,
-    expiresIn: string | number = "1d",
+    expiresIn: string | number = "10d",
 ): Promise<string> {
     const alg = "HS256"; // Consider RS256 or ES256 for higher security
     try {

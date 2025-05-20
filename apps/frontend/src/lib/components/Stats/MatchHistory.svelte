@@ -57,8 +57,12 @@
 				{#each matches as { players, userId }}
 					{@const userScore =
 						players.find((p) => p.id === userId)?.score ?? null}
-					{@const opponentScore =
-						players.find((p) => p.id !== userId)?.score ?? null}
+					{@const sortedPlayers = [...players].sort((a, b) => (b.score ?? 0) - (a.score ?? 0))}
+					{@const opponentPlayer = 
+						sortedPlayers[0]?.id !== userId
+							? sortedPlayers[0]
+							: sortedPlayers[1]
+					}
 					<div
 						class="flex items-center justify-between p-4 border border-white/10 bg-white/5 shadow-lg rounded-lg transition duration-300 hover:bg-white/10"
 					>
@@ -69,7 +73,7 @@
 										?.name || "Unknown"}
 									avatar={players.find((p) => p.id === userId)
 										?.avatar || null}
-									class="w-8 h-8 mr-2"
+									class="w-8 h-8 mr-2 min-w-8 min-h-8"
 								/>
 								<p
 									class="text-sm font-semibold text-white truncate select-none"
@@ -83,26 +87,26 @@
 						<div class="text-center w-1/3 flex-shrink-0">
 							<p
 								class={`text-xs select-none font-bold ${
-									getResult(userScore, opponentScore) ===
+									getResult(userScore, opponentPlayer.score) ===
 									"Win"
 										? "text-green-400"
 										: getResult(
 													userScore,
-													opponentScore,
+													opponentPlayer.score,
 											  ) === "Loss"
 											? "text-red-400"
 											: "text-gray-400"
 								}`}
 							>
-								{getResult(userScore, opponentScore)}
+								{getResult(userScore, opponentPlayer.score)}
 							</p>
 							<p
 								class="text-xs text-gray-400 truncate select-none"
 							>
-								{userScore ?? 0}-{opponentScore ?? 0}
+								{userScore ?? 0}-{opponentPlayer.score ?? 0}
 							</p>
 						</div>
-
+						
 						<div
 							class="flex items-center space-x-2 w-1/3 min-w-0 justify-end"
 						>
@@ -110,16 +114,12 @@
 								<p
 									class="text-xs font-semibold text-white select-none truncate"
 								>
-									{players
-										.find((p) => p.id !== userId)
-										?.name.substring(0, 7) || "Unknown"}
+									{opponentPlayer.name || "Unknown"}
 								</p>
 								<Avatar
-									name={players.find((p) => p.id !== userId)
-										?.name || "Unknown"}
-									avatar={players.find((p) => p.id !== userId)
-										?.avatar || null}
-									class="w-8 h-8 ml-2"
+									name={opponentPlayer.name || "Unknown"}
+									avatar={opponentPlayer.avatar || null}
+									class="w-8 h-8 ml-2 min-w-8 min-h-8"
 								/>
 							</div>
 						</div>

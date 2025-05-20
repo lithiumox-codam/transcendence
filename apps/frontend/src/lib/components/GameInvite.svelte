@@ -1,10 +1,10 @@
 <script lang="ts">
     import { client } from "$lib/trpc";
-    import { getContext, onMount } from "svelte";
+    import { getContext } from "svelte";
     import type { UserClass } from "$lib/classes/User.svelte";
     import Avatar from "$lib/components/Avatar.svelte";
     import type { Game, User } from "@repo/database";
-    import { Loader, Send } from "@lucide/svelte";
+    import { Loader, Send, XCircle } from "@lucide/svelte";
 
     type Player = User & {
         score?: number | null;
@@ -31,7 +31,6 @@
 
     // Effect to fetch and periodically update game details
     $effect(() => {
-        // Cleanup function: clears any active interval timer
         const cleanup = () => {
             if (updateInterval) {
                 clearInterval(updateInterval);
@@ -70,9 +69,11 @@
                     // Determine next update interval based on status
                     let intervalMs: number | null = null;
                     if (details.game.status === "waiting") {
-                        intervalMs = 20000; // 20 seconds
+                        intervalMs = 2000; // 20 seconds
                     } else if (details.game.status === "playing") {
                         intervalMs = 2000; // 2 seconds
+                    } else {
+                        intervalMs = null; // No updates needed
                     }
 
                     cleanup();
@@ -164,7 +165,12 @@
         </div>
     {:then gameDetails}
         {#if !gameDetails}
-            <div class="text-yellow-300 text-sm">Game not found</div>
+            <div class="flex flex-col items-center justify-center py-2 gap-2">
+                <XCircle class="text-red-500 " size={32} stroke-width={2} />
+                <span class="text-sm text-red-300 font-thin"
+                    >Game invite expired!</span
+                >
+            </div>
         {:else}
             {@const { game, players } = gameDetails}
             {@const isCurrentUserInviter =

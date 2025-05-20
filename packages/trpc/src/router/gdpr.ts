@@ -34,15 +34,28 @@ export const gdprRouter = createTRPCRouter({
                 });
             }
 
-			await db.update(users).set({
-				name: "[DELETED]",
-				email: "[DELETED]",
-				avatar: null,
-				password: "",
-			}).where(eq(users.id, ctx.user.id));
+			const uniqueId = `${Date.now()}-${Math.random().toString(36).substring(2, 10)}`;
 
-			await db.delete(friends).where(or(eq(friends.userId, ctx.user.id), eq(friends.friendId, ctx.user.id)));
-		}),
+			await db
+				.update(users)
+				.set({
+					name: `[DELETED-${uniqueId}]`,
+					email: `[DELETED-${uniqueId}]`,
+					avatar: null,
+					password: "",
+					isDeleted: 1
+				})
+				.where(eq(users.id, ctx.user.id));
+
+            await db
+                .delete(friends)
+                .where(
+                    or(
+                        eq(friends.userId, ctx.user.id),
+                        eq(friends.friendId, ctx.user.id),
+                    ),
+                );
+        }),
 
     changePassword: protectedProcedure
         .input(

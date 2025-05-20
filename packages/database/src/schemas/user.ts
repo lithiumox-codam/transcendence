@@ -18,12 +18,13 @@ export const users = sqliteTable("users", {
     oAuthProvider: text("oauth_provider"),
     avatar: text("avatar"),
     secret: encryptedText("secret"),
+	isDeleted: integer("is_deleted").default(0),
     createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`),
 });
 
 export type UserInsert = typeof users.$inferInsert;
 export type UserFull = typeof users.$inferSelect;
-export type User = Omit<UserFull, "password" | "secret">;
+export type User = Omit<UserFull, "password" | "secret" | "isDeleted">;
 
 export const userNameSchema = z
     .string()

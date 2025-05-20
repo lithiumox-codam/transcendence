@@ -162,6 +162,7 @@ export const userRouter = createTRPCRouter({
                     id: users.id,
                     name: users.name,
                     email: users.email,
+					isDeleted: users.isDeleted,
                 })
                 .from(users)
                 .where(

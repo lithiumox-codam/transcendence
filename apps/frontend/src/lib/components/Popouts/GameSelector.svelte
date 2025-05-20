@@ -2,10 +2,7 @@
     import type { GameClass } from "$lib/classes/Game.svelte";
     import { client } from "$lib/trpc";
     import { Users, Trophy, Swords, Circle, X } from "@lucide/svelte";
-    import type {
-        Game,
-        User,
-    } from "../../../../../../packages/database/src/types";
+    import type { Game, User } from "@repo/database/types";
     import { getContext } from "svelte";
     import Avatar from "../Avatar.svelte";
     import type { UserClass } from "$lib/classes/User.svelte";
@@ -46,9 +43,9 @@
         }, 400);
     }
 
-    function handleSelectTournament() {
+    async function handleSelectTournament() {
         trophyAnimating = true;
-        selectGame("tournament");
+        await client.game.queue.query(8);
         setTimeout(() => {
             trophyAnimating = false;
         }, 400);

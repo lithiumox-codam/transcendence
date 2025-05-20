@@ -2,6 +2,7 @@ import { sql } from "drizzle-orm";
 import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { users } from "./user.ts";
+import { tournaments } from "./tournament.ts";
 
 export const games = sqliteTable("games", {
     id: integer("id").primaryKey({ autoIncrement: true }),
@@ -11,6 +12,7 @@ export const games = sqliteTable("games", {
         .notNull()
         .default("waiting"),
     private: integer("private").default(0),
+    tournamentId: integer("tournament_id").references(() => tournaments.id),
     maxPlayers: integer("max_players").notNull().default(2),
     createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`),
     updatedAt: text("updated_at")

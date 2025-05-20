@@ -121,6 +121,9 @@ importers:
       svelte-qrcode:
         specifier: ^1.0.1
         version: 1.0.1
+      svelte-sonner:
+        specifier: ^1.0.1
+        version: 1.0.1(svelte@5.25.9)
     devDependencies:
       '@sveltejs/adapter-auto':
         specifier: ^4.0.0
@@ -4095,6 +4098,14 @@ packages:
   /rrweb-cssom@0.8.0:
     resolution: {integrity: sha512-guoltQEx+9aMf2gDZ0s62EcV8lsXR+0w8915TC3ITdn2YueuNjdAYh/levpU9nFaoChh9RUS5ZdQMrKfVEN9tw==}
     dev: true
+  /runed@0.26.0(svelte@5.25.9):
+    resolution: {integrity: sha512-qWFv0cvLVRd8pdl/AslqzvtQyEn5KaIugEernwg9G98uJVSZcs/ygvPBvF80LA46V8pwRvSKnaVLDI3+i2wubw==}
+    peerDependencies:
+      svelte: ^5.7.0
+    dependencies:
+      esm-env: 1.2.2
+      svelte: 5.25.9
+    dev: false
 
   /sade@1.8.1:
     resolution: {integrity: sha512-xal3CZX1Xlo/k4ApwCFrHVACi9fBqJ7V+mwhBsuf/1IOKbBy098Fex+Wa/5QMubw09pSZ/u8EY8PWgevJsXp1A==}
@@ -4328,6 +4339,15 @@ packages:
     resolution: {integrity: sha512-l1RcxDWkQqtBWUkolYee/IHGVKSgm1I2PdF8yVoIRqzKCc3kXpCXSVsMfrMSavWW2/BXvKu5Orv+JGbrO5onsw==}
     dependencies:
       qrious: 4.0.2
+    dev: false
+
+  /svelte-sonner@1.0.1(svelte@5.25.9):
+    resolution: {integrity: sha512-vz0eqcs9GNnJ2CTtTno7v/jSA0P3r+X+3y/hrJg+FPpB2rZCFywIKNKD3wiRI8449i3LXVcgQ+q5R5ocOd6ydA==}
+    peerDependencies:
+      svelte: ^5.0.0
+    dependencies:
+      runed: 0.26.0(svelte@5.25.9)
+      svelte: 5.25.9
     dev: false
 
   /svelte@5.25.9:

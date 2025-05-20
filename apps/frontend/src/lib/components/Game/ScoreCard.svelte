@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { onMount } from "svelte";
 	import { client } from "$lib/trpc";
 	import type { User } from "@repo/database/types";
 	import Avatar from "../Avatar.svelte";
@@ -14,55 +13,36 @@
 		color: { r: number; g: number; b: number };
 	} = $props();
 
-	let rgbShadow = $derived(
-		`rgb(${Math.round(color.r * 255)}, ${Math.round(color.g * 255)}, ${Math.round(color.b * 255)})`,
-	);
-	let textShadow = $derived(`0 0 20px ${rgbShadow}, 0 0 80px ${rgbShadow}`);
+	let r = $derived(Math.round(color.r * 255));
+	let g = $derived(Math.round(color.g * 255));
+	let b = $derived(Math.round(color.b * 255));
 
 	let user: User | null = $state(null);
 
-	onMount(async () => {
+	async function fetchUser() {
 		user = await client.user.getById.query(userId);
-	});
+	}
+
+	fetchUser();
 </script>
 
-<div class="flex flex-col items-center w-40 font-retro">
-	{#if user}
-		<!-- Avatar + Username -->
-		<div class="flex items-center gap-2 mb-2 select-none">
-			<Avatar
-				name={user.name}
-				avatar={user.avatar}
-				class="h-8 w-8 rounded-full border border-white relative z-10"
-			/>
-			<h2
-				class="text-white text-[1.5rem] font-semibold truncate max-w-[6rem] text-left leading-tight select-none"
-			>
-				{user.name}
-			</h2>
-		</div>
+<div
+	class="flex items-center px-3 py-2 text-white min-w-[180px] max-w-[240px] border border-white/10 rounded-md gap-3"
+>
+	<div
+		class="w-1 h-8 rounded-full border border-gray-900"
+		style="background-color: rgba({r}, {g}, {b}, 0.5)"
+	></div>
 
-		<!-- Score -->
-		<p
-			class="text-white text-5xl font-bold tracking-wide mt-1 animate-score-pop select-none"
-			style="text-shadow: {textShadow}"
-		>
-			{score}
-		</p>
+	{#if user}
+		<Avatar
+			name={user.name}
+			avatar={user.avatar}
+			class="w-8 h-8 rounded-full flex-shrink-0"
+		/>
+		<h2 class="text-sm font-semibold truncate max-w-[6rem]">{user.name}</h2>
+		<p class="text-lg font-bold ml-auto">{score}</p>
 	{:else}
-		<!-- Skeleton loading -->
-		<div class="flex flex-col items-center gap-1 select-none">
-			<div class="flex items-center gap-2 mb-1 select-none">
-				<div
-					class="h-12 w-12 rounded-full bg-white/10 animate-pulse select-none"
-				></div>
-				<div
-					class="h-6 w-20 bg-white/10 rounded animate-pulse select-none"
-				></div>
-			</div>
-			<div
-				class="h-6 w-10 bg-white/10 rounded animate-pulse select-none"
-			></div>
-		</div>
+		<div class="w-full h-8 bg-white/10 animate-pulse rounded-md"></div>
 	{/if}
 </div>

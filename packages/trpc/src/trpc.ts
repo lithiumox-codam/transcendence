@@ -1,5 +1,5 @@
 import { verify } from "@repo/auth";
-import { db, friends, users } from "@repo/database";
+import { type User, db, users } from "@repo/database";
 import { TRPCError, initTRPC } from "@trpc/server";
 import type { CreateFastifyContextOptions } from "@trpc/server/adapters/fastify";
 import { and, eq, ne } from "drizzle-orm";
@@ -25,8 +25,7 @@ export async function createTRPCContext({
     req,
     res,
 }: CreateFastifyContextOptions) {
-    let user: { id: number; name: string; email: string } | undefined =
-        undefined;
+    let user: Omit<User, "avatar"> | undefined = undefined;
 
     try {
         const token = extractToken(req.url);
@@ -49,6 +48,7 @@ export async function createTRPCContext({
                 name: users.name,
                 email: users.email,
                 oAuthProvider: users.oAuthProvider,
+                createdAt: users.createdAt,
             })
             .from(users)
             .where(and(eq(users.id, userId), ne(users.isDeleted, 1)));

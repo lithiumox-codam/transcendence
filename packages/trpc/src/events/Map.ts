@@ -22,5 +22,9 @@ export interface EventMap {
         newMatch: { userId: number; gameId: number };
         players: User[];
     };
+    status: {
+        online: { friendId: number; userId: number };
+        offline: { friendId: number; userId: number };
+    };
     [key: string]: Record<string, unknown>; // Added to tell TypeScript that the key is a string
 }
